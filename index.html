@@ -713,6 +713,27 @@
         }
 
 
+
+        .platform-heading {
+            margin: 12px 0 6px;
+            font-size: .72rem;
+            font-weight: 900;
+            color: #9da8b6;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+        }
+        .platform-selector { margin: 0 0 9px; }
+        .platform-btn { min-height: 34px; padding: 7px 8px; }
+        .platform-btn.active {
+            box-shadow: 0 0 0 1px rgba(0,230,118,.10), 0 0 14px rgba(0,230,118,.10);
+        }
+        .card-img-container .card-img {
+            aspect-ratio: 1 / 1;
+            object-fit: cover;
+            display: block;
+            width: 100%;
+        }
+
         .platform-selector {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2538,79 +2559,56 @@
 
             const discount = getDiscountPercent(game);
             const platformList = game.platforms || [];
+            const data = getPlatformData(game, selectedPlatform);
 
             let platformHtml = '';
             if (platformList.length > 1) {
                 platformHtml = `
+                    <div class="platform-heading">Plataforma</div>
                     <div class="platform-selector" aria-label="Escolha a plataforma">
                         ${platformList.map(platform => `
-                            <button
-                                type="button"
+                            <button type="button"
                                 class="platform-btn ${selectedPlatform === platform ? 'active' : ''}"
                                 aria-pressed="${selectedPlatform === platform ? 'true' : 'false'}"
-                                onclick="selectPlatform('${game.id}', '${platform}')"
-                            >${platform}</button>
+                                onclick="selectPlatform('${game.id}', '${platform}')">${platform}</button>
                         `).join('')}
-                    </div>
-                `;
+                    </div>`;
             } else if (platformList.length === 1) {
-                platformHtml = `<div class="platform-single">Plataforma: ${escapeHtml(platformList[0])}</div>`;
+                platformHtml = `
+                    <div class="platform-heading">Plataforma</div>
+                    <div class="platform-single">${escapeHtml(platformList[0])}</div>`;
             }
-
-            const data = getPlatformData(game, selectedPlatform);
 
             const primaryAvailable = data.primary > 0;
             const secondaryAvailable = data.secondary > 0;
-
             let buttonsHtml = '';
 
-            const primaryTxt = primaryAvailable
-                ? `<span class="media-label">Primária${data.stockPrimary > 0 ? ` (${data.stockPrimary} Un)` : ''}</span><br><span class="media-price">R$ ${data.primary.toFixed(2).replace('.', ',')}</span>`
-                : '';
-
-            const secondaryTxt = secondaryAvailable
-                ? `<span class="media-label">Secundária${data.stockSecondary > 0 ? ` (${data.stockSecondary} Un)` : ''}</span><br><span class="media-price">R$ ${data.secondary.toFixed(2).replace('.', ',')}</span>`
-                : '';
-
             if (primaryAvailable || secondaryAvailable) {
+                const primaryTxt = primaryAvailable
+                    ? `<span class="media-label">Primária${data.stockPrimary > 0 ? ` (${data.stockPrimary} Un)` : ''}</span><br><span class="media-price">R$ ${data.primary.toFixed(2).replace('.', ',')}</span>`
+                    : '';
+                const secondaryTxt = secondaryAvailable
+                    ? `<span class="media-label">Secundária${data.stockSecondary > 0 ? ` (${data.stockSecondary} Un)` : ''}</span><br><span class="media-price">R$ ${data.secondary.toFixed(2).replace('.', ',')}</span>`
+                    : '';
+
                 buttonsHtml = `
                     <div class="type-selector">
-                        ${primaryAvailable ? `
-                            <button
-                                type="button"
-                                class="type-btn ${selectedType === 'Primária' ? 'active' : ''}"
-                                onclick="toggleSelectType('${game.id}', 'Primária')"
-                            >${primaryTxt}</button>
-                        ` : ''}
-                        ${secondaryAvailable ? `
-                            <button
-                                type="button"
-                                class="type-btn ${selectedType === 'Secundária' ? 'active' : ''}"
-                                onclick="toggleSelectType('${game.id}', 'Secundária')"
-                            >${secondaryTxt}</button>
-                        ` : ''}
-                    </div>
-                `;
+                        ${primaryAvailable ? `<button type="button" class="type-btn ${selectedType === 'Primária' ? 'active' : ''}" onclick="toggleSelectType('${game.id}', 'Primária')">${primaryTxt}</button>` : ''}
+                        ${secondaryAvailable ? `<button type="button" class="type-btn ${selectedType === 'Secundária' ? 'active' : ''}" onclick="toggleSelectType('${game.id}', 'Secundária')">${secondaryTxt}</button>` : ''}
+                    </div>`;
             }
 
-            let timerHtml = '';
-            if (game.targetDate) {
-                timerHtml = `<div class="timer-badge" data-target="${escapeHtml(game.targetDate)}">⏳ Carregando...</div>`;
-            }
-
-            const preorderHtml = isPreorderGame(game)
-                ? `<span class="preorder-label">🚀 PRÉ-VENDA</span>`
-                : '';
-
-            const platformTag = platformList.length
-                ? platformList.join(' / ')
-                : 'Plataforma não informada';
+            const timerHtml = game.targetDate
+                ? `<div class="timer-badge" data-target="${escapeHtml(game.targetDate)}">⏳ Carregando...</div>` : '';
+            const preorderHtml = isPreorderGame(game) ? `<span class="preorder-label">🚀 PRÉ-VENDA</span>` : '';
+            const platformTag = platformList.length ? platformList.join(' / ') : 'Plataforma não informada';
 
             card.innerHTML = `
                 <div class="card-img-container">
                     ${preorderHtml}
                     <span class="platform-tag">${escapeHtml(platformTag)}</span>
-                    <img src="${escapeHtml(game.img)}" alt="${escapeHtml(game.name)}" class="card-img" loading="lazy" onerror="this.src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTnOXAQFE6SWdIZy6b4OpXDWYJUjkIbnYx7gQLCRunJ3w&s=10'">
+                    <img src="${escapeHtml(game.img)}" alt="${escapeHtml(game.name)}" class="card-img" loading="lazy"
+                         onerror="this.onerror=null;this.src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTnOXAQFE6SWdIZy6b4OpXDWYJUjkIbnYx7gQLCRunJ3w&s=10';">
                 </div>
                 <div class="card-info">
                     <div class="card-title">${escapeHtml(game.name)}</div>
@@ -2625,31 +2623,21 @@
                     ${platformHtml}
                     ${buttonsHtml}
                     <div class="card-actions-row">
-                        <button
-                            class="btn-buy-direct"
-                            ${selectedItem ? '' : 'disabled'}
-                            ${selectedItem ? '' : 'aria-disabled="true"'}
-                            title="${selectedItem ? 'Comprar este jogo' : 'Selecione a plataforma e depois Primária ou Secundária'}"
-                            onclick="buyGameDirect(event, '${game.id}')"
-                        >
-                            🛒 Comprar
-                        </button>
+                        <button class="btn-buy-direct" ${selectedItem ? '' : 'disabled'} ${selectedItem ? '' : 'aria-disabled="true"'}
+                                title="${selectedItem ? 'Comprar este jogo' : 'Selecione a plataforma e depois Primária ou Secundária'}"
+                                onclick="buyGameDirect(event, '${game.id}')">🛒 Comprar</button>
                         <button class="btn-share-circle" onclick="shareGameOffer(event, '${game.id}')" title="Compartilhar oferta no WhatsApp">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                                <path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984 0 1.762.459 3.48 1.332 5.001l-1.416 5.17 5.291-1.387c1.467.8 3.123 1.22 4.78 1.22h.005c5.507 0 9.991-4.479 9.992-9.985 0-2.667-1.038-5.175-2.925-7.063C17.195 3.039 14.68 2 12.012 2zm5.833 14.283c-.244.686-1.42 1.309-1.96 1.365-.506.052-1.168.082-3.376-.826-2.825-1.162-4.636-4.04-4.776-4.228-.14-.188-1.141-1.517-1.141-2.893 0-1.376.721-2.054.978-2.336.257-.282.56-.352.747-.352.187 0 .374.002.538.01.176.008.412-.067.644.49.245.589.842 2.052.915 2.202.073.15.122.327.024.524-.098.198-.147.32-.293.491-.147.171-.309.383-.442.514-.148.148-.302.308-.13.603.172.295.766 1.265 1.644 2.047 1.13 1.005 2.083 1.317 2.378 1.464.295.148.467.123.639-.074.172-.197.737-.859.933-1.154.196-.295.393-.246.664-.148.27.098 1.716.81 2.011.957.295.148.491.221.564.344.073.123.073.712-.171 1.398z"/>
+                                <path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984 0 1.762.459 3.48 1.332 5.001l-1.416 5.17 5.291-1.387c1.467.8 3.123 1.22 4.78 1.22h.005c5.507 0 9.991-4.479 9.992-9.985 0-2.667-1.038-5.175-2.925-7.063C17.195 3.039 14.68 2 12.012 2z"/>
                             </svg>
                         </button>
                     </div>
-                </div>
-            `;
+                </div>`;
 
             card.querySelectorAll('.type-btn').forEach(btn => {
-                const duration = (5.8 + Math.random() * 4.8).toFixed(2);
-                const delay = (-Math.random() * 8).toFixed(2);
-                btn.style.setProperty('--type-glow-duration', `${duration}s`);
-                btn.style.setProperty('--type-glow-delay', `${delay}s`);
+                btn.style.setProperty('--type-glow-duration', `${(5.8 + Math.random() * 4.8).toFixed(2)}s`);
+                btn.style.setProperty('--type-glow-delay', `${(-Math.random() * 8).toFixed(2)}s`);
             });
-
             return card;
         }
 
