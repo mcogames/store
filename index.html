@@ -2460,6 +2460,24 @@
             window.__shareToastTimer = setTimeout(() => toast.classList.remove('show'), 4500);
         }
 
+        window.__mcoShareErrorHandler = function (message) {
+            const toast = document.getElementById('shareStatusToast');
+            if (toast) {
+                toast.textContent = message || 'Não foi possível compartilhar. Tente novamente.';
+                toast.classList.add('show');
+                clearTimeout(window.__shareToastTimer);
+                window.__shareToastTimer = setTimeout(() => toast.classList.remove('show'), 5000);
+            }
+        };
+
+        function isMobileDevice() {
+            const ua = navigator.userAgent || navigator.vendor || window.opera || '';
+            const touchPoints = navigator.maxTouchPoints || 0;
+
+            return /android|iphone|ipad|ipod|iemobile|opera mini|mobile/i.test(ua)
+                || (navigator.platform === 'MacIntel' && touchPoints > 1);
+        }
+
         async function shareGameOffer(event, gameId) {
             event.stopPropagation();
 
