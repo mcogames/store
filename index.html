@@ -1506,7 +1506,7 @@
 
         <div id="errorContainer" class="status-box error" style="display: none;">
             <h3>Não foi possível carregar o catálogo.</h3>
-            <p>Verifique se a planilha está acessível para quem tem o link e se as abas PREVENDA, LANCAMENTO.EM.OFERTA, PROMOCAO e CATALOGO existem.</p>
+            <p>Verifique se a planilha continua publicada na Web como CSV e se os GIDs das quatro abas permanecem os mesmos.</p>
         </div>
 
         <div id="mainContent" style="display: none;">
@@ -1664,12 +1664,12 @@
 
     <script>
         const PHONE_NUMBER = "5599981810222";
-        const SHEET_ID = "1-2aBMM0Bp8TgfmhkbBqmuRwyFI84uapDEj_XKfgIJY0";
+        const SHEET_PUB_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTbnddE66aBmhilS8BtFkch5qx41mzkZOiVtVeMxzHJRXljT3qevVZFGf4jU8o1LNZHuHL_3bnIGqRg/pub";
         const SHEET_TABS = [
-            { sheet: "LANCAMENTO.EM.OFERTA", category: "Lançamento em Oferta" },
-            { sheet: "PREVENDA", category: "Pré Venda" },
-            { sheet: "PROMOCAO", category: "Promoção" },
-            { sheet: "CATALOGO", category: "Catálogo" }
+            { gid: "307634723", sheet: "LANCAMENTO.EM.OFERTA", category: "Lançamento em Oferta" },
+            { gid: "0",         sheet: "PREVENDA",              category: "Pré Venda" },
+            { gid: "903469329", sheet: "PROMOCAO",              category: "Promoção" },
+            { gid: "212181136", sheet: "CATALOGO",              category: "Catálogo" }
         ];
         const SHARE_URL = "https://mcogames.github.io/store/";
         const PIX_KEY = "pixmcogames@gmail.com";
@@ -1936,8 +1936,8 @@
             }
         }
 
-        function buildSheetCsvUrl(sheetName) {
-            return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&headers=1&sheet=${encodeURIComponent(sheetName)}`;
+        function buildSheetCsvUrl(tab) {
+            return `${SHEET_PUB_URL}?gid=${tab.gid}&single=true&output=csv`;
         }
 
         function parseSheetCsv(sheetName, category, rows) {
@@ -2098,7 +2098,7 @@
 
         function parseSheetWithPapa(tab) {
             return new Promise((resolve, reject) => {
-                Papa.parse(buildSheetCsvUrl(tab.sheet), {
+                Papa.parse(buildSheetCsvUrl(tab), {
                     download: true,
                     header: false,
                     skipEmptyLines: true,
