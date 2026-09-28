@@ -958,6 +958,30 @@
             transform: none;
         }
 
+
+        #shareStatusToast {
+            position: fixed;
+            left: 50%;
+            bottom: 24px;
+            transform: translate(-50%, 18px);
+            background: rgba(18, 24, 32, .96);
+            color: #fff;
+            border: 1px solid #394454;
+            border-radius: 12px;
+            padding: 11px 15px;
+            font-size: .86rem;
+            font-weight: 800;
+            z-index: 99999;
+            opacity: 0;
+            pointer-events: none;
+            transition: .2s ease;
+            box-shadow: 0 8px 30px rgba(0,0,0,.35);
+        }
+        #shareStatusToast.show {
+            opacity: 1;
+            transform: translate(-50%, 0);
+        }
+
         .btn-share-circle {
             width: 40px;
             height: 40px;
@@ -1438,6 +1462,8 @@
     </style>
 </head>
 <body>
+
+    <div id="shareStatusToast" role="status" aria-live="polite"></div>
 
     <header>
         <div class="brand">
@@ -2303,11 +2329,17 @@
             if (!sourceUrl) return null;
             if (sourceUrl.startsWith('data:')) return sourceUrl;
 
+            // O proxy é usado somente para a captura. Se ele não responder rapidamente,
+            // não bloqueamos o botão de compartilhar.
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 7000);
+
             try {
                 const proxyUrl = `https://images.weserv.nl/?url=${encodeURIComponent(sourceUrl)}`;
                 const response = await fetch(proxyUrl, {
                     mode: 'cors',
-                    cache: 'force-cache'
+                    cache: 'no-store',
+                    signal: controller.signal
                 });
 
                 if (!response.ok) throw new Error(`Proxy retornou ${response.status}`);
@@ -2322,8 +2354,10 @@
                     reader.readAsDataURL(blob);
                 });
             } catch (err) {
-                console.warn('Não foi possível preparar a capa para o print:', err);
+                console.warn('Proxy da capa indisponível; seguindo com a imagem original.', err);
                 return null;
+            } finally {
+                clearTimeout(timeout);
             }
         }
 
@@ -2394,16 +2428,21 @@
             return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(navigator.userAgent);
         }
 
+        function showShareStatus(text) {
+            const toast = document.getElementById('shareStatusToast');
+            if (!toast) return;
+            toast.textContent = text;
+            toast.classList.add('show');
+            clearTimeout(window.__shareToastTimer);
+            window.__shareToastTimer = setTimeout(() => toast.classList.remove('show'), 4500);
+        }
+
         async function shareGameOffer(event, gameId) {
             event.stopPropagation();
 
             const game = games.find(g => g.id === gameId);
             const cardEl = event.currentTarget.closest('.card');
             if (!game || !cardEl) return;
-
-            const typeStr = (game.pricePrimary > 0 && game.priceSecondary > 0)
-                ? 'Escolha a mídia no site'
-                : (game.pricePrimary > 0 ? 'Primária' : 'Secundária');
 
             const discount = getDiscountPercent(game);
             const offerLine = discount > 0
@@ -2414,33 +2453,42 @@
                 `🎮 *MCO GAMES*\n\n` +
                 `Confira esta oferta:\n` +
                 `🕹️ *${game.name}* (${(game.platforms || []).join(' / ') || 'Plataforma não informada'})\n` +
-                `📌 ${typeStr}\n` +
                 `${offerLine}\n\n` +
                 `Esse e mais jogos, acesse: ${SHARE_URL}`;
 
             const actionsRow = cardEl.querySelector('.card-actions-row');
             const previousDisplay = actionsRow ? actionsRow.style.display : '';
 
+            // No computador, abre o WhatsApp imediatamente no clique.
+            // Isso evita que o navegador bloqueie a nova aba enquanto esperamos
+            // a geração do PNG.
+            let whatsappWindow = null;
+            if (!isMobileDevice()) {
+                whatsappWindow = window.open(
+                    `https://web.whatsapp.com/send?text=${encodeURIComponent(message)}`,
+                    '_blank'
+                );
+            }
+
             try {
                 if (actionsRow) actionsRow.style.display = 'none';
 
-                // Usa a versão preparada para impressão, que converte a capa externa
-                // em data URL antes do html2canvas. Isso evita a capa ficar branca/vazia
-                // no PNG por causa de CORS.
-                const canvas = await buildPrintableCard(cardEl);
+                showShareStatus('Preparando a imagem da oferta…');
 
+                const canvas = await buildPrintableCard(cardEl);
                 const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+
                 if (!blob) throw new Error('Não foi possível gerar a imagem da oferta.');
 
                 const safeName = game.name
-                    .replace(/[^a-zA-Z0-9À-ÿ]/g, '_')
-                    .replace(/_+/g, '_');
+                    .normalize('NFD')
+                    .replace(/[\u0300-\u036f]/g, '')
+                    .replace(/[^a-zA-Z0-9]+/g, '_')
+                    .replace(/^_+|_+$/g, '');
+
                 const fileName = `MCO_GAMES_${safeName}.png`;
                 const file = new File([blob], fileName, { type: 'image/png' });
 
-                // CELULAR:
-                // Usa o compartilhamento nativo, pois é a forma mais adequada de entregar
-                // a imagem ao WhatsApp em aparelhos móveis.
                 if (isMobileDevice()) {
                     const canShareFile = !!(
                         navigator.share &&
@@ -2455,14 +2503,15 @@
                                 text: message,
                                 title: `Oferta MCO GAMES - ${game.name}`
                             });
+                            showShareStatus('Compartilhado com sucesso.');
                             return;
                         } catch (shareError) {
                             if (shareError && shareError.name === 'AbortError') return;
-                            console.warn('Compartilhamento nativo falhou no celular:', shareError);
+                            console.warn('Compartilhamento nativo falhou:', shareError);
                         }
                     }
 
-                    // Fallback mobile: salva a imagem e abre o WhatsApp com o texto pronto.
+                    // Fallback para celular: salva o PNG e abre o WhatsApp com texto.
                     const mobileImageUrl = URL.createObjectURL(blob);
                     const mobileLink = document.createElement('a');
                     mobileLink.href = mobileImageUrl;
@@ -2472,6 +2521,8 @@
                     mobileLink.click();
                     mobileLink.remove();
 
+                    showShareStatus('Imagem salva. Abrindo o WhatsApp…');
+
                     setTimeout(() => {
                         URL.revokeObjectURL(mobileImageUrl);
                         window.location.href = `https://wa.me/?text=${encodeURIComponent(message)}`;
@@ -2480,20 +2531,7 @@
                     return;
                 }
 
-                // COMPUTADOR:
-                // Evita o compartilhamento do Windows e também evita o download automático
-                // sempre que o navegador permitir escrever uma imagem no clipboard.
-                //
-                // Fluxo:
-                // 1) abre o WhatsApp Web imediatamente (evita bloqueio de pop-up);
-                // 2) copia o PNG para a área de transferência;
-                // 3) deixa a mensagem pronta no WhatsApp;
-                // 4) você usa Ctrl+V no WhatsApp para colar a imagem.
-                const whatsappWindow = window.open(
-                    `https://web.whatsapp.com/send?text=${encodeURIComponent(message)}`,
-                    '_blank'
-                );
-
+                // Computador: copia o PNG para Ctrl+V no WhatsApp.
                 let copiedToClipboard = false;
 
                 if (navigator.clipboard && window.ClipboardItem) {
@@ -2501,17 +2539,17 @@
                         const clipboardItem = new ClipboardItem({
                             'image/png': blob
                         });
-
                         await navigator.clipboard.write([clipboardItem]);
                         copiedToClipboard = true;
                     } catch (clipboardError) {
-                        console.warn('Não foi possível copiar a imagem para o clipboard:', clipboardError);
+                        console.warn('Clipboard de imagem indisponível:', clipboardError);
                     }
                 }
 
-                if (!copiedToClipboard) {
-                    // Fallback: caso o navegador não permita clipboard de imagem,
-                    // mantém o PNG disponível para salvamento manual.
+                if (copiedToClipboard) {
+                    showShareStatus('Imagem copiada! No WhatsApp, pressione Ctrl+V.');
+                } else {
+                    // Fallback para navegadores que não permitem clipboard de imagem.
                     const imageUrl = URL.createObjectURL(blob);
                     const link = document.createElement('a');
                     link.href = imageUrl;
@@ -2521,28 +2559,27 @@
                     link.click();
                     link.remove();
 
-                    setTimeout(() => {
-                        URL.revokeObjectURL(imageUrl);
-                    }, 5000);
+                    showShareStatus('Imagem salva. Anexe o PNG no WhatsApp.');
+
+                    setTimeout(() => URL.revokeObjectURL(imageUrl), 5000);
                 }
 
-                // Mantém a aba do WhatsApp aberta. Se ela tiver sido bloqueada pelo navegador,
-                // tenta novamente depois da operação de clipboard/download.
+                // Se a aba foi bloqueada, tenta uma segunda vez.
                 if (!whatsappWindow || whatsappWindow.closed) {
-                    window.open(
+                    whatsappWindow = window.open(
                         `https://web.whatsapp.com/send?text=${encodeURIComponent(message)}`,
                         '_blank'
                     );
                 }
 
             } catch (err) {
-                if (err && err.name !== 'AbortError') {
-                    console.error('Erro ao gerar/compartilhar o print:', err);
-                }
+                console.error('Erro no compartilhamento da oferta:', err);
+                showShareStatus('Não foi possível gerar a imagem. Tente novamente.');
             } finally {
                 if (actionsRow) actionsRow.style.display = previousDisplay || 'flex';
             }
         }
+
 
         function createCardElement(game) {
             const card = document.createElement('div');
