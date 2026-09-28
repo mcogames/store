@@ -1630,6 +1630,9 @@
 
         let games = [];
         let selectedCart = [];
+        // Guarda a plataforma escolhida mesmo antes de o cliente selecionar Primária/Secundária.
+        // Isso evita que o card volte automaticamente para PS4 após clicar em PS5.
+        let selectedPlatformByGame = {};
         let expandedCategories = new Set();
         let expandedFeatureCategories = new Set();
         const carouselIntervals = new Map();
@@ -1752,6 +1755,9 @@
                 // Remove também do carrinho qualquer item que acabou de expirar.
                 const validIds = new Set(games.map(game => game.id));
                 selectedCart = selectedCart.filter(item => validIds.has(item.gameId));
+                Object.keys(selectedPlatformByGame).forEach(gameId => {
+                    if (!validIds.has(gameId)) delete selectedPlatformByGame[gameId];
+                });
 
                 populateCategories();
                 renderLaunchCarousel();
@@ -2130,12 +2136,29 @@
         }
 
         function getDefaultPlatform(game) {
-            if (game.platforms && game.platforms.length) {
-                const selected = selectedCart.find(i => i.gameId === game.id);
-                if (selected && game.platforms.includes(selected.platform)) return selected.platform;
-                return game.platforms[0];
+            if (!game || !game.platforms || !game.platforms.length) return '';
+
+            const selectedItem = selectedCart.find(i => i.gameId === game.id);
+            if (selectedItem && game.platforms.includes(selectedItem.platform)) {
+                return selectedItem.platform;
             }
-            return '';
+
+            const rememberedPlatform = selectedPlatformByGame[game.id];
+            if (rememberedPlatform && game.platforms.includes(rememberedPlatform)) {
+                return rememberedPlatform;
+            }
+
+            return game.platforms[0];
+        }
+
+        function clearSelectedGame(gameId) {
+            selectedCart = selectedCart.filter(i => i.gameId !== gameId);
+            delete selectedPlatformByGame[gameId];
+            renderLaunchCarousel();
+            renderPreorderCarousel();
+            renderPromotionCarousel();
+            renderGames();
+            updateBottomBar();
         }
 
         function getSelectedItem(gameId) {
@@ -2146,16 +2169,12 @@
             const game = games.find(g => g.id === gameId);
             if (!game || !game.platforms.includes(platform)) return;
 
-            const current = selectedCart.find(i => i.gameId === gameId);
-            if (current && current.platform === platform) {
-                renderLaunchCarousel();
-                renderPreorderCarousel();
-                renderPromotionCarousel();
-                renderGames();
-                return;
-            }
+            // GUARDA A ESCOLHA. Antes, o código só redesenhava o card e
+            // imediatamente voltava para a primeira plataforma (normalmente PS4).
+            selectedPlatformByGame[gameId] = platform;
 
-            // Trocar de plataforma limpa a seleção anterior daquele jogo.
+            // Ao trocar de plataforma, remove a escolha de Primária/Secundária
+            // anterior porque ela pertence à outra plataforma.
             selectedCart = selectedCart.filter(i => i.gameId !== gameId);
 
             renderLaunchCarousel();
@@ -2169,8 +2188,12 @@
             const game = games.find(g => g.id === gameId);
             if (!game) return;
 
-            const platform = getDefaultPlatform(game);
+            // Usa a plataforma escolhida pelo cliente, inclusive quando ele
+            // ainda não selecionou Primária/Secundária.
+            const platform = selectedPlatformByGame[gameId] || getDefaultPlatform(game);
             if (!platform) return;
+
+            selectedPlatformByGame[gameId] = platform;
 
             const data = getPlatformData(game, platform);
             const isPrimary = type === 'Primária';
@@ -2524,6 +2547,7 @@
                             <button
                                 type="button"
                                 class="platform-btn ${selectedPlatform === platform ? 'active' : ''}"
+                                aria-pressed="${selectedPlatform === platform ? 'true' : 'false'}"
                                 onclick="selectPlatform('${game.id}', '${platform}')"
                             >${platform}</button>
                         `).join('')}
