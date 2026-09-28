@@ -1957,59 +1957,156 @@
         function parseCsvData(rows) {
             games = [];
 
+            if (!Array.isArray(rows) || rows.length < 2) {
+                showError();
+                return;
+            }
+
+            // A planilha nova é identificada pelos nomes das colunas, e não
+            // pela posição fixa. Isso evita que mover a Capa para a última
+            // coluna quebre todo o catálogo.
+            const rawHeaders = rows[0] || [];
+            const normalizeHeader = (value) => String(value ?? '')
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .trim()
+                .toLowerCase();
+
+            const headers = rawHeaders.map(normalizeHeader);
+            const findCol = (...names) => {
+                for (const name of names) {
+                    const idx = headers.indexOf(normalizeHeader(name));
+                    if (idx >= 0) return idx;
+                }
+                return -1;
+            };
+
+            const get = (row, ...names) => {
+                const idx = findCol(...names);
+                return idx >= 0 ? String(row[idx] ?? '').trim() : '';
+            };
+
+            const money = (value) => {
+                if (value === null || value === undefined || String(value).trim() === '') return 0;
+                let s = String(value).trim().replace(/[R$\s]/g, '');
+                // Aceita tanto 127,90 quanto 127.90 e 1.299,90.
+                if (s.includes(',') && s.includes('.')) {
+                    s = s.replace(/\./g, '').replace(',', '.');
+                } else if (s.includes(',')) {
+                    s = s.replace(',', '.');
+                }
+                return parseFloat(s) || 0;
+            };
+
+            const stock = (value) => {
+                if (value === null || value === undefined || String(value).trim() === '') return 0;
+                return parseInt(String(value).replace(/[^\d-]/g, ''), 10) || 0;
+            };
+
+            const isNewUnifiedSheet =
+                findCol('PS4 Primária', 'PS4 Primaria') >= 0 ||
+                findCol('PS5 Primária', 'PS5 Primaria') >= 0;
+
             for (let i = 1; i < rows.length; i++) {
                 const row = rows[i];
-                if (!row || row.length < 2) continue;
+                if (!row || row.length === 0) continue;
 
-                const name = row[1] ? row[1].trim() : '';
-                if (!name || name.toLowerCase() === 'nome' || name.toLowerCase() === 'jogo') continue;
+                const name = get(row, 'Jogo', 'Nome', 'Título', 'Titulo');
+                if (!name || ['nome', 'jogo', 'título', 'titulo'].includes(normalizeHeader(name))) continue;
 
-                const imgRaw = row[10] ? row[10].trim() : '';
-                const imgUrl = (imgRaw && imgRaw.startsWith('http')) 
-                    ? imgRaw 
-                    : "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTnOXAQFE6SWdIZy6b4OpXDWYJUjkIbnYx7gQLCRunJ3w&s=10";
+                let game;
 
-                const pricePrimary = parsePrice(row[5]);
-                const stockPrimary = row[6] ? (parseInt(row[6].toString().replace(/\D/g, '')) || 0) : 0;
+                if (isNewUnifiedSheet) {
+                    // NOVA ESTRUTURA:
+                    // Jogo | Descrição | Categoria | Data | PS4 Primária |
+                    // PS4 Secundária | PS5 Primária | PS5 Secundária |
+                    // estoques... | Capa (última coluna)
+                    const ps4Primary = money(get(row, 'PS4 Primária', 'PS4 Primaria'));
+                    const ps4Secondary = money(get(row, 'PS4 Secundária', 'PS4 Secundaria'));
+                    const ps5Primary = money(get(row, 'PS5 Primária', 'PS5 Primaria'));
+                    const ps5Secondary = money(get(row, 'PS5 Secundária', 'PS5 Secundaria'));
 
-                const priceSecondary = parsePrice(row[7]);
-                const stockSecondary = row[8] ? (parseInt(row[8].toString().replace(/\D/g, '')) || 0) : 0;
+                    const platforms = [];
+                    if (ps4Primary > 0 || ps4Secondary > 0) platforms.push('PS4');
+                    if (ps5Primary > 0 || ps5Secondary > 0) platforms.push('PS5');
 
-                const oldPrice = parsePrice(row[4]);
+                    const prices = [ps4Primary, ps4Secondary, ps5Primary, ps5Secondary]
+                        .filter(v => v > 0);
 
-                let validPrices = [];
-                if (pricePrimary > 0 && stockPrimary > 0) validPrices.push(pricePrimary);
-                if (priceSecondary > 0 && stockSecondary > 0) validPrices.push(priceSecondary);
+                    const mainPrice = prices.length ? Math.min(...prices) : 0;
 
-                if (validPrices.length === 0) {
-                    if (pricePrimary > 0) validPrices.push(pricePrimary);
-                    if (priceSecondary > 0) validPrices.push(priceSecondary);
+                    const cover = get(row, 'Capa');
+                    game = {
+                        id: get(row, 'ID', 'Id') || `game-${i}`,
+                        name,
+                        description: get(row, 'Descrição', 'Descricao'),
+                        platform: platforms.length ? platforms.join(' / ') : 'PS4 / PS5',
+                        platforms,
+                        category: get(row, 'Categoria') || 'Catálogo',
+                        oldPrice: money(get(row, 'Preço antigo', 'Preco antigo', 'Preço de', 'Preco de')),
+                        pricePrimary: ps4Primary || ps5Primary || 0,
+                        stockPrimary: stock(get(row, 'Estoque PS4 Primária', 'Estoque PS4 Primaria')) ||
+                                      stock(get(row, 'Estoque PS5 Primária', 'Estoque PS5 Primaria')),
+                        priceSecondary: ps4Secondary || ps5Secondary || 0,
+                        stockSecondary: stock(get(row, 'Estoque PS4 Secundária', 'Estoque PS4 Secundaria')) ||
+                                        stock(get(row, 'Estoque PS5 Secundária', 'Estoque PS5 Secundaria')),
+                        ps4Primary,
+                        ps4Secondary,
+                        ps5Primary,
+                        ps5Secondary,
+                        stockPs4Primary: stock(get(row, 'Estoque PS4 Primária', 'Estoque PS4 Primaria')),
+                        stockPs4Secondary: stock(get(row, 'Estoque PS4 Secundária', 'Estoque PS4 Secundaria')),
+                        stockPs5Primary: stock(get(row, 'Estoque PS5 Primária', 'Estoque PS5 Primaria')),
+                        stockPs5Secondary: stock(get(row, 'Estoque PS5 Secundária', 'Estoque PS5 Secundaria')),
+                        pricesByPlatform: {
+                            PS4: { primary: ps4Primary, secondary: ps4Secondary },
+                            PS5: { primary: ps5Primary, secondary: ps5Secondary }
+                        },
+                        targetDate: get(row, 'Data de lançamento', 'Data de lancamento', 'Data', 'Data de validade'),
+                        img: cover && /^https?:\/\//i.test(cover)
+                            ? cover
+                            : "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTnOXAQFE6SWdIZy6b4OpXDWYJUjkIbnYx7gQLCRunJ3w&s=10",
+                        mainPrice
+                    };
+                } else {
+                    // COMPATIBILIDADE COM A PLANILHA ANTIGA.
+                    const platform = get(row, 'Plataforma', 'Platform') || 'PS4 / PS5';
+                    const pricePrimary = money(get(row, 'Primária', 'Primaria', 'Preço Primária', 'Preco Primaria'));
+                    const priceSecondary = money(get(row, 'Secundária', 'Secundaria', 'Preço Secundária', 'Preco Secundaria'));
+
+                    const primaryStock = stock(get(row, 'Estoque Primária', 'Estoque Primaria'));
+                    const secondaryStock = stock(get(row, 'Estoque Secundária', 'Estoque Secundaria'));
+
+                    const oldPrice = money(get(row, 'De', 'Preço antigo', 'Preco antigo', 'Preço de', 'Preco de'));
+                    const cover = get(row, 'Capa', 'Imagem', 'URL Capa', 'URL da Capa');
+
+                    game = {
+                        id: get(row, 'ID', 'Id') || `game-${i}`,
+                        name,
+                        description: get(row, 'Descrição', 'Descricao'),
+                        platform,
+                        platforms: platform.split('/').map(p => p.trim()).filter(Boolean),
+                        category: get(row, 'Categoria') || 'Catálogo',
+                        oldPrice,
+                        pricePrimary,
+                        stockPrimary: primaryStock,
+                        priceSecondary,
+                        stockSecondary: secondaryStock,
+                        targetDate: get(row, 'Data', 'Data de lançamento', 'Data de lancamento', 'Data de validade'),
+                        img: cover && /^https?:\/\//i.test(cover)
+                            ? cover
+                            : "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTnOXAQFE6SWdIZy6b4OpXDWYJUjkIbnYx7gQLCRunJ3w&s=10",
+                        mainPrice: [pricePrimary, priceSecondary].filter(v => v > 0).length
+                            ? Math.min(...[pricePrimary, priceSecondary].filter(v => v > 0))
+                            : 0
+                    };
                 }
 
-                const mainPrice = validPrices.length > 0 ? Math.min(...validPrices) : (pricePrimary || priceSecondary || 0);
-
-                const targetDate = row[9] ? row[9].trim() : '';
-
-                games.push({
-                    id: row[0] && row[0].trim() ? row[0].trim() : `game-${i}`,
-                    name: name,
-                    platform: row[2] ? row[2].trim() : 'PS4 / PS5',
-                    category: row[3] ? row[3].trim() : 'Catálogo',
-                    oldPrice: oldPrice > 0 ? oldPrice : 0,
-                    pricePrimary: pricePrimary,
-                    stockPrimary: stockPrimary,
-                    priceSecondary: priceSecondary,
-                    stockSecondary: stockSecondary,
-                    mainPrice: mainPrice,
-                    targetDate: targetDate,
-                    img: imgUrl
-                });
+                games.push(game);
             }
 
             // Remove imediatamente itens vencidos de Pré Venda/Promoção.
             games = games.filter(game => !shouldHideExpiredTimedGame(game));
-
-            // Mantém a ordem da planilha. A organização visual das seções é feita pela coluna D.
 
             if (games.length === 0) {
                 showError();
@@ -2032,6 +2129,7 @@
             updateTimers();
             setInterval(updateTimers, 1000);
         }
+
 
         function showError() {
             document.getElementById('loadingContainer').style.display = 'none';
