@@ -712,62 +712,66 @@
             line-height: 1;
         }
 
-        .platform-selector {
-            display: flex;
-            gap: 6px;
-            margin-top: 2px;
-        }
 
-        .platform-choice-btn {
-            position: relative;
-            flex: 1;
-            min-width: 0;
-            background: #171d26;
-            border: 1px solid #303946;
-            color: #fff;
-            padding: 7px 6px;
-            border-radius: 7px;
-            cursor: pointer;
-            font-size: 0.68rem;
+
+        .platform-heading {
+            margin: 12px 0 6px;
+            font-size: .72rem;
             font-weight: 900;
-            text-align: center;
-            transition: all .2s ease;
-            overflow: hidden;
+            color: #9da8b6;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+        }
+        .platform-selector { margin: 0 0 9px; }
+        .platform-btn { min-height: 34px; padding: 7px 8px; }
+        .platform-btn.active {
+            box-shadow: 0 0 0 1px rgba(0,230,118,.10), 0 0 14px rgba(0,230,118,.10);
+        }
+        .card-img-container .card-img {
+            aspect-ratio: 1 / 1;
+            object-fit: cover;
+            display: block;
+            width: 100%;
         }
 
-        .platform-choice-btn:hover {
+        .platform-selector {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 7px;
+            margin: 10px 0 8px;
+        }
+
+        .platform-btn {
+            min-height: 36px;
+            border-radius: 9px;
+            border: 1px solid #303946;
+            background: #1b222c;
+            color: #dbe2ea;
+            font-weight: 900;
+            font-size: .78rem;
+            cursor: pointer;
+            transition: .18s ease;
+        }
+
+        .platform-btn:hover {
+            border-color: #596675;
             transform: translateY(-1px);
-            background: #222a35;
         }
 
-        .platform-choice-btn.active {
-            background: rgba(0, 230, 118, .12);
-            border-color: var(--accent-green);
-            color: var(--accent-green);
-            box-shadow: 0 0 0 1px rgba(0,230,118,.12), 0 0 10px rgba(0,230,118,.12);
+        .platform-btn.active {
+            background: rgba(0, 230, 118, .10);
+            border-color: rgba(0, 230, 118, .70);
+            color: #00e676;
+            box-shadow: 0 0 12px rgba(0, 230, 118, .08);
         }
 
-        .platform-help {
-            color: var(--text-muted);
-            font-size: .66rem;
-            text-align: center;
-            padding: 2px 0 0;
-        }
-
-        .platform-choice-btn:not(.active)::after {
-            content: "";
-            position: absolute;
-            inset: -1px;
-            border-radius: inherit;
-            border: 1px solid rgba(0,230,118,.0);
-            animation: platformChoicePulse 7s ease-in-out infinite;
-            pointer-events: none;
-        }
-
-        @keyframes platformChoicePulse {
-            0%, 72%, 100% { opacity: 0; box-shadow: 0 0 0 rgba(0,230,118,0); }
-            78% { opacity: .16; box-shadow: 0 0 7px rgba(0,230,118,.16); }
-            83% { opacity: .04; box-shadow: 0 0 11px rgba(0,230,118,.08); }
+        .platform-single {
+            margin: 10px 0 8px;
+            font-size: .76rem;
+            font-weight: 900;
+            color: #9faab8;
+            text-transform: uppercase;
+            letter-spacing: .03em;
         }
 
         .type-selector {
@@ -952,6 +956,30 @@
             opacity: 0.58;
             box-shadow: none;
             transform: none;
+        }
+
+
+        #shareStatusToast {
+            position: fixed;
+            left: 50%;
+            bottom: 24px;
+            transform: translate(-50%, 18px);
+            background: rgba(18, 24, 32, .96);
+            color: #fff;
+            border: 1px solid #394454;
+            border-radius: 12px;
+            padding: 11px 15px;
+            font-size: .86rem;
+            font-weight: 800;
+            z-index: 99999;
+            opacity: 0;
+            pointer-events: none;
+            transition: .2s ease;
+            box-shadow: 0 8px 30px rgba(0,0,0,.35);
+        }
+        #shareStatusToast.show {
+            opacity: 1;
+            transform: translate(-50%, 0);
         }
 
         .btn-share-circle {
@@ -1182,6 +1210,25 @@
         }
 
         /* --- CAMADA DE PAGAMENTO --- */
+        .purchase-confirm-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,.72); backdrop-filter: blur(5px);
+            display:none; align-items:center; justify-content:center; z-index:430; padding:18px;
+        }
+        .purchase-confirm-overlay.active { display:flex; }
+        .purchase-confirm-card { width:min(430px,100%); background:#151a21; border:1px solid #303946;
+            border-radius:16px; padding:22px; box-shadow:0 20px 60px rgba(0,0,0,.55); }
+        .purchase-confirm-badge { width:44px;height:44px;border-radius:12px;display:grid;place-items:center;
+            background:rgba(0,230,118,.10);border:1px solid rgba(0,230,118,.25);color:var(--accent-green);margin-bottom:14px; }
+        .purchase-confirm-card h2 { margin:0 0 8px;color:#fff;font-size:1.12rem; }
+        .purchase-confirm-card p { color:#aeb7c3;line-height:1.5;font-size:.88rem;margin:0 0 16px; }
+        .purchase-confirm-summary { background:#0e1319;border:1px solid #2a323d;border-radius:12px;padding:14px;margin-bottom:16px; }
+        .purchase-confirm-summary strong { display:block;color:#fff;font-size:.98rem;margin-bottom:6px; }
+        .purchase-confirm-summary span { color:var(--accent-green);font-weight:800;font-size:.82rem; }
+        .purchase-confirm-actions { display:grid;grid-template-columns:1fr 1fr;gap:10px; }
+        .purchase-confirm-actions button { min-height:44px;border-radius:10px;border:1px solid #333d49;cursor:pointer;font-weight:900; }
+        .purchase-confirm-cancel { background:#202731;color:#d7dde5; }
+        .purchase-confirm-ok { background:var(--accent-green);color:#001b0c;border-color:var(--accent-green)!important; }
+
         .payment-overlay {
             position: fixed;
             inset: 0;
@@ -1413,9 +1460,10 @@
             .search-results-title { align-items: flex-start; flex-direction: column; }
         }
     </style>
-<!-- A planilha original é mantida: A=ID, B=Jogo, C=Plataforma, D=Categoria, E=De, F/G=Primária, H/I=Secundária, J=Data, K=Capa. -->
 </head>
 <body>
+
+    <div id="shareStatusToast" role="status" aria-live="polite"></div>
 
     <header>
         <div class="brand">
@@ -1458,7 +1506,7 @@
 
         <div id="errorContainer" class="status-box error" style="display: none;">
             <h3>Não foi possível carregar o catálogo.</h3>
-            <p>Verifique se a planilha continua publicada na web como CSV.</p>
+            <p>Verifique se a planilha continua publicada na Web como CSV e se os GIDs das quatro abas permanecem os mesmos.</p>
         </div>
 
         <div id="mainContent" style="display: none;">
@@ -1542,46 +1590,24 @@
         </div>
     </div>
 
-    <!-- CAMADA DE CONFIRMAÇÃO DA PLATAFORMA -->
-    <div class="payment-overlay" id="purchaseConfirmOverlay" onclick="handlePurchaseConfirmOverlayClick(event)">
-        <div class="payment-modal" onclick="event.stopPropagation()">
-            <div class="payment-header">
-                <div>
-                    <span>CONFIRME SUA ESCOLHA</span>
-                    <h2>Confira o produto</h2>
-                </div>
-                <button class="close-btn" type="button" onclick="closePurchaseConfirmation()">✕</button>
+    <!-- CAMADA DE PAGAMENTO -->
+    <div class="purchase-confirm-overlay" id="purchaseConfirmOverlay" role="dialog" aria-modal="true" aria-labelledby="purchaseConfirmTitle" onclick="handlePurchaseConfirmOverlay(event)">
+        <div class="purchase-confirm-card" onclick="event.stopPropagation()">
+            <div class="purchase-confirm-badge">✓</div>
+            <h2 id="purchaseConfirmTitle">Confirme sua escolha</h2>
+            <p>Você está comprando:</p>
+            <div class="purchase-confirm-summary">
+                <strong id="purchaseConfirmProduct">Jogo</strong>
+                <span id="purchaseConfirmChoice">Conta Primária • PS4</span>
             </div>
-            <div class="payment-body">
-                <div class="payment-total-box">
-                    <small>Você está comprando</small>
-                    <strong id="confirmGameName">Jogo</strong>
-                </div>
-                <div class="selected-item-card" style="margin-bottom:14px;">
-                    <div>
-                        <h5 id="confirmPlatformText">PS5</h5>
-                        <p id="confirmTypeText">Conta Primária</p>
-                    </div>
-                    <strong id="confirmPriceText">R$ 0,00</strong>
-                </div>
-                <div class="payment-question">Está correto?</div>
-                <div class="payment-methods">
-                    <button type="button" class="payment-method-btn" onclick="confirmPurchaseSelection()">
-                        <span class="method-icon">✅</span>
-                        <strong>Sim, está correto</strong>
-                        <small>Continuar para escolher o pagamento.</small>
-                    </button>
-                    <button type="button" class="payment-method-btn" onclick="closePurchaseConfirmation()">
-                        <span class="method-icon">↩️</span>
-                        <strong>Voltar</strong>
-                        <small>Alterar plataforma ou tipo de conta.</small>
-                    </button>
-                </div>
+            <p>Confira a plataforma, o tipo de conta e o valor antes de continuar para o pagamento.</p>
+            <div class="purchase-confirm-actions">
+                <button type="button" class="purchase-confirm-cancel" onclick="closePurchaseConfirm()">Voltar</button>
+                <button type="button" class="purchase-confirm-ok" onclick="confirmPurchaseChoice()">Sim, está correto</button>
             </div>
         </div>
     </div>
 
-    <!-- CAMADA DE PAGAMENTO -->
     <div class="payment-overlay" id="paymentOverlay" onclick="handlePaymentOverlayClick(event)">
         <div class="payment-modal" onclick="event.stopPropagation()">
             <div class="payment-header">
@@ -1638,7 +1664,13 @@
 
     <script>
         const PHONE_NUMBER = "5599981810222";
-        const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTbnddE66aBmhilS8BtFkch5qx41mzkZOiVtVeMxzHJRXljT3qevVZFGf4jU8o1LNZHuHL_3bnIGqRg/pub?output=csv";
+        const SHEET_PUB_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTbnddE66aBmhilS8BtFkch5qx41mzkZOiVtVeMxzHJRXljT3qevVZFGf4jU8o1LNZHuHL_3bnIGqRg/pub";
+        const SHEET_TABS = [
+            { gid: "307634723", sheet: "LANCAMENTO.EM.OFERTA", category: "Lançamento em Oferta" },
+            { gid: "0",         sheet: "PREVENDA",              category: "Pré Venda" },
+            { gid: "903469329", sheet: "PROMOCAO",              category: "Promoção" },
+            { gid: "212181136", sheet: "CATALOGO",              category: "Catálogo" }
+        ];
         const SHARE_URL = "https://mcogames.github.io/store/";
         const PIX_KEY = "pixmcogames@gmail.com";
         const CATEGORY_VISIBLE_LIMIT = 4;
@@ -1651,7 +1683,9 @@
 
         let games = [];
         let selectedCart = [];
-        const selectedPlatformByGame = new Map();
+        // Guarda a plataforma escolhida mesmo antes de o cliente selecionar Primária/Secundária.
+        // Isso evita que o card volte automaticamente para PS4 após clicar em PS5.
+        let selectedPlatformByGame = {};
         let expandedCategories = new Set();
         let expandedFeatureCategories = new Set();
         const carouselIntervals = new Map();
@@ -1744,7 +1778,7 @@
             return categoryKey(game.category) === categoryKey(categoryName);
         }
 
-        // A pré-venda é definida exclusivamente pela coluna D da planilha.
+        // A categoria agora vem do nome da aba da planilha.
         function isPreorderGame(game) {
             return isCategory(game, "Pré Venda");
         }
@@ -1774,6 +1808,9 @@
                 // Remove também do carrinho qualquer item que acabou de expirar.
                 const validIds = new Set(games.map(game => game.id));
                 selectedCart = selectedCart.filter(item => validIds.has(item.gameId));
+                Object.keys(selectedPlatformByGame).forEach(gameId => {
+                    if (!validIds.has(gameId)) delete selectedPlatformByGame[gameId];
+                });
 
                 populateCategories();
                 renderLaunchCarousel();
@@ -1899,184 +1936,235 @@
             }
         }
 
-        function fetchCatalogFromSheets() {
-            Papa.parse(SHEET_CSV_URL, {
-                download: true,
-                header: false,
-                skipEmptyLines: true,
-                complete: function(results) {
-                    if (results && results.data && results.data.length > 0) {
-                        parseCsvData(results.data);
-                    } else {
-                        showError();
-                    }
-                },
-                error: function(err) {
-                    console.error("Erro ao carregar CSV:", err);
-                    showError();
-                }
-            });
+        function buildSheetCsvUrl(tab) {
+            // Cada categoria é uma aba diferente. O gid é o identificador real
+            // da aba no Google Sheets publicado como CSV.
+            const cacheBust = Date.now();
+            return `${SHEET_PUB_URL}?gid=${tab.gid}&single=true&output=csv&cb=${cacheBust}`;
         }
 
-        function normalizeGameName(value) {
-            return String(value || '')
+        function parseSheetCsv(sheetName, category, rows) {
+            if (!rows || rows.length < 2) return [];
+
+            const headers = rows[0].map(v => String(v || '').trim());
+            const normalizeHeader = value => String(value || '')
                 .normalize('NFD')
                 .replace(/[\u0300-\u036f]/g, '')
                 .trim()
-                .replace(/\s+/g, ' ')
                 .toLowerCase();
-        }
 
-        function normalizePlatform(value) {
-            const s = String(value || '').toUpperCase().replace(/\s+/g, '');
-            const result = [];
-            if (s.includes('PS4')) result.push('PS4');
-            if (s.includes('PS5')) result.push('PS5');
-            return result.length ? result : ['PS4'];
-        }
-
-        function applyPlatformRowToGame(game, rowPlatform, pricePrimary, stockPrimary, priceSecondary, stockSecondary) {
-            const platforms = normalizePlatform(rowPlatform);
-            platforms.forEach(platform => {
-                if (!game.platformData[platform]) {
-                    game.platformData[platform] = { primary: 0, primaryStock: 0, secondary: 0, secondaryStock: 0 };
-                }
-
-                // Mantém a linha original da planilha como fonte. Se houver duas linhas
-                // para o mesmo jogo (PS4 e PS5), cada uma abastece sua própria plataforma.
-                if (pricePrimary > 0 || stockPrimary > 0) {
-                    game.platformData[platform].primary = pricePrimary;
-                    game.platformData[platform].primaryStock = stockPrimary;
-                }
-                if (priceSecondary > 0 || stockSecondary > 0) {
-                    game.platformData[platform].secondary = priceSecondary;
-                    game.platformData[platform].secondaryStock = stockSecondary;
-                }
-            });
-        }
-
-        function finalizeUnifiedGame(game) {
-            game.platforms = Object.keys(game.platformData).filter(platform => {
-                const p = game.platformData[platform];
-                return p.primary > 0 || p.secondary > 0 || p.primaryStock > 0 || p.secondaryStock > 0;
+            const headerMap = {};
+            headers.forEach((header, index) => {
+                const key = normalizeHeader(header);
+                if (key) headerMap[key] = index;
             });
 
-            if (!game.platforms.length) game.platforms = ['PS4'];
-            game.platform = game.platforms.join(' / ');
+            const col = (fallbackIndex, ...aliases) => {
+                for (const alias of aliases) {
+                    const found = headerMap[normalizeHeader(alias)];
+                    if (found !== undefined) return found;
+                }
+                return fallbackIndex;
+            };
 
-            const values = [];
-            game.platforms.forEach(platform => {
-                const p = game.platformData[platform];
-                if (p.primary > 0 && p.primaryStock > 0) values.push(p.primary);
-                if (p.secondary > 0 && p.secondaryStock > 0) values.push(p.secondary);
-            });
-            if (!values.length) {
-                game.platforms.forEach(platform => {
-                    const p = game.platformData[platform];
-                    if (p.primary > 0) values.push(p.primary);
-                    if (p.secondary > 0) values.push(p.secondary);
-                });
-            }
+            // Estrutura NOVA, igual em todas as abas. A categoria NÃO está mais em uma coluna;
+            // ela é definida pelo nome da aba (PREVENDA, LANCAMENTO.EM.OFERTA, PROMOCAO, CATALOGO).
+            // A ID
+            // B Jogo
+            // C Preço PSN
+            // D PS5 Primária
+            // E Estoque PS5 Primária
+            // F PS5 Secundária
+            // G Estoque PS5 Secundária
+            // H PS4 Primária
+            // I Estoque PS4 Primária
+            // J PS4 Secundária
+            // K Estoque PS4 Secundária
+            // L Data Encerramento
+            // M Capa
+            const C = {
+                id: col(0, 'ID'),
+                name: col(1, 'Jogo', 'Nome'),
+                psn: col(2, 'Preço PSN', 'Preco PSN'),
+                ps5Primary: col(3, 'PS5 Primária', 'PS5 Primaria'),
+                stockPs5Primary: col(4, 'Estoque PS5 Primária', 'Estoque PS5 Primaria'),
+                ps5Secondary: col(5, 'PS5 Secundária', 'PS5 Secundaria'),
+                stockPs5Secondary: col(6, 'Estoque PS5 Secundária', 'Estoque PS5 Secundaria'),
+                ps4Primary: col(7, 'PS4 Primária', 'PS4 Primaria', 'PS4 Primário', 'PS4 Primario'),
+                stockPs4Primary: col(8, 'Estoque PS4 Primária', 'Estoque PS4 Primaria'),
+                ps4Secondary: col(9, 'PS4 Secundária', 'PS4 Secundaria'),
+                stockPs4Secondary: col(10, 'Estoque PS4 Secundária', 'Estoque PS4 Secundaria'),
+                endDate: col(11, 'Data Encerramento', 'Data de Encerramento', 'Data de lançamento', 'Data de lancamento'),
+                cover: col(12, 'Capa', 'Imagem', 'URL Capa')
+            };
 
-            game.mainPrice = values.length ? Math.min(...values) : 0;
+            const money = value => {
+                if (value === null || value === undefined || String(value).trim() === '') return 0;
+                let s = String(value).trim().replace(/[R$\s]/g, '');
+                if (s.includes(',') && s.includes('.')) {
+                    s = s.replace(/\./g, '').replace(',', '.');
+                } else if (s.includes(',')) {
+                    s = s.replace(',', '.');
+                }
+                const n = Number(s);
+                return Number.isFinite(n) ? n : 0;
+            };
 
-            // Compatibilidade com partes antigas do site.
-            const defaultPlatform = game.platforms[0];
-            const defaultData = game.platformData[defaultPlatform] || {};
-            game.pricePrimary = defaultData.primary || 0;
-            game.stockPrimary = defaultData.primaryStock || 0;
-            game.priceSecondary = defaultData.secondary || 0;
-            game.stockSecondary = defaultData.secondaryStock || 0;
-            return game;
-        }
+            const stock = value => {
+                if (value === null || value === undefined || String(value).trim() === '') return 0;
+                const n = parseInt(String(value).replace(/[^\d-]/g, ''), 10);
+                return Number.isFinite(n) ? Math.max(0, n) : 0;
+            };
 
-        function parseCsvData(rows) {
-            games = [];
-            const grouped = new Map();
+            const text = value => String(value === null || value === undefined ? '' : value).trim();
+            const parsedGames = [];
 
             for (let i = 1; i < rows.length; i++) {
                 const row = rows[i];
                 if (!row || row.length < 2) continue;
 
-                // A PLANILHA ORIGINAL NÃO É ALTERADA:
-                // A ID continua na A, Jogo B, Plataforma C, Categoria D,
-                // preço antigo E, Primária F/G, Secundária H/I, data J e Capa K.
-                const name = row[1] ? row[1].trim() : '';
-                if (!name || name.toLowerCase() === 'nome' || name.toLowerCase() === 'jogo') continue;
+                const name = text(row[C.name]);
+                if (!name || ['jogo', 'nome'].includes(name.toLowerCase())) continue;
 
-                const platformRaw = row[2] ? row[2].trim() : 'PS4';
-                const category = row[3] ? row[3].trim() : 'Catálogo';
-                const oldPrice = parsePrice(row[4]);
-                const pricePrimary = parsePrice(row[5]);
-                const stockPrimary = row[6] ? (parseInt(row[6].toString().replace(/\D/g, '')) || 0) : 0;
-                const priceSecondary = parsePrice(row[7]);
-                const stockSecondary = row[8] ? (parseInt(row[8].toString().replace(/\D/g, '')) || 0) : 0;
-                const targetDate = row[9] ? row[9].trim() : '';
-                const imgRaw = row[10] ? row[10].trim() : '';
-                const imgUrl = (imgRaw && imgRaw.startsWith('http'))
+                const ps4Primary = money(row[C.ps4Primary]);
+                const ps4Secondary = money(row[C.ps4Secondary]);
+                const ps5Primary = money(row[C.ps5Primary]);
+                const ps5Secondary = money(row[C.ps5Secondary]);
+
+                const stockPs4Primary = stock(row[C.stockPs4Primary]);
+                const stockPs4Secondary = stock(row[C.stockPs4Secondary]);
+                const stockPs5Primary = stock(row[C.stockPs5Primary]);
+                const stockPs5Secondary = stock(row[C.stockPs5Secondary]);
+
+                const platformPrices = [
+                    ps4Primary, ps4Secondary, ps5Primary, ps5Secondary
+                ].filter(v => v > 0);
+
+                const mainPrice = platformPrices.length ? Math.min(...platformPrices) : 0;
+                const oldPrice = money(row[C.psn]);
+
+                const platforms = [];
+                if (ps4Primary > 0 || ps4Secondary > 0) platforms.push('PS4');
+                if (ps5Primary > 0 || ps5Secondary > 0) platforms.push('PS5');
+
+                const imgRaw = text(row[C.cover]);
+                const imgUrl = imgRaw && /^https?:\/\//i.test(imgRaw)
                     ? imgRaw
                     : "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTnOXAQFE6SWdIZy6b4OpXDWYJUjkIbnYx7gQLCRunJ3w&s=10";
 
-                // Unifica apenas linhas que representam o mesmo jogo e a mesma categoria.
-                // Assim PS4 e PS5 continuam sendo cadastrados separadamente na planilha,
-                // mas aparecem como UM único produto no site.
-                const key = `${normalizeGameName(name)}||${categoryKey(category)}`;
-                let game = grouped.get(key);
+                parsedGames.push({
+                    id: text(row[C.id]) || `${sheetName}-${i}`,
+                    name,
+                    platform: platforms.length ? platforms.join(' / ') : 'Plataforma não informada',
+                    platforms,
 
-                if (!game) {
-                    game = {
-                        id: row[0] && row[0].trim() ? row[0].trim() : `game-${i}`,
-                        name,
-                        category,
-                        oldPrice: oldPrice > 0 ? oldPrice : 0,
-                        targetDate,
-                        img: imgUrl,
-                        platformData: {},
-                        _firstIndex: i
-                    };
-                    grouped.set(key, game);
-                } else {
-                    // Usa a primeira capa válida, mas aceita a da linha seguinte se a primeira faltar.
-                    if (!game.img || game.img.includes('encrypted-tbn0')) {
-                        if (imgRaw && imgRaw.startsWith('http')) game.img = imgRaw;
-                    }
-                    if (!game.oldPrice && oldPrice > 0) game.oldPrice = oldPrice;
-                    if (!game.targetDate && targetDate) game.targetDate = targetDate;
+                    // A categoria agora vem da ABA, e não de uma coluna.
+                    category,
+
+                    oldPrice,
+                    ps4Primary,
+                    ps4Secondary,
+                    ps5Primary,
+                    ps5Secondary,
+                    stockPs4Primary,
+                    stockPs4Secondary,
+                    stockPs5Primary,
+                    stockPs5Secondary,
+
+                    pricePrimary: mainPrice,
+                    priceSecondary: 0,
+                    stockPrimary: 0,
+                    stockSecondary: 0,
+
+                    mainPrice,
+                    targetDate: text(row[C.endDate]),
+                    img: imgUrl
+                });
+
+                const game = parsedGames[parsedGames.length - 1];
+                const onlyPlatform = platforms.length === 1 ? platforms[0] : null;
+
+                if (onlyPlatform === 'PS4') {
+                    game.pricePrimary = ps4Primary;
+                    game.priceSecondary = ps4Secondary;
+                    game.stockPrimary = stockPs4Primary;
+                    game.stockSecondary = stockPs4Secondary;
+                } else if (onlyPlatform === 'PS5') {
+                    game.pricePrimary = ps5Primary;
+                    game.priceSecondary = ps5Secondary;
+                    game.stockPrimary = stockPs5Primary;
+                    game.stockSecondary = stockPs5Secondary;
+                }
+            }
+
+            return parsedGames;
+        }
+
+        function parseSheetWithPapa(tab) {
+            return new Promise((resolve, reject) => {
+                Papa.parse(buildSheetCsvUrl(tab), {
+                    download: true,
+                    header: false,
+                    skipEmptyLines: true,
+                    complete: results => {
+                        if (results && results.data && results.data.length > 0) {
+                            resolve(parseSheetCsv(tab.sheet, tab.category, results.data));
+                        } else {
+                            reject(new Error(`A aba "${tab.sheet}" não retornou dados.`));
+                        }
+                    },
+                    error: err => reject(new Error(`Erro ao carregar a aba "${tab.sheet}".`))
+                });
+            });
+        }
+
+        async function fetchCatalogFromSheets() {
+            try {
+                // Lê as quatro abas em paralelo.
+                const results = await Promise.all(SHEET_TABS.map(parseSheetWithPapa));
+
+                games = results.flat();
+
+                // Evita duplicação acidental de IDs entre abas.
+                const seen = new Set();
+                games = games.filter(game => {
+                    const key = `${game.category}::${game.id}`;
+                    if (seen.has(key)) return false;
+                    seen.add(key);
+                    return true;
+                });
+
+                // Pré-vendas e promoções com Data Encerramento vencida deixam de aparecer.
+                games = games.filter(game => !shouldHideExpiredTimedGame(game));
+
+                if (games.length === 0) {
+                    showError();
+                    return;
                 }
 
-                applyPlatformRowToGame(game, platformRaw, pricePrimary, stockPrimary, priceSecondary, stockSecondary);
-            }
+                document.getElementById('loadingContainer').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'block';
 
-            games = Array.from(grouped.values())
-                .sort((a, b) => a._firstIndex - b._firstIndex)
-                .map(finalizeUnifiedGame);
+                populateCategories();
+                renderLaunchCarousel();
+                renderPreorderCarousel();
+                renderPromotionCarousel();
+                renderGames();
+                applySharedCategoryFromUrl();
 
-            games.forEach(game => delete game._firstIndex);
+                startAutoScroll('launchGrid');
+                startAutoScroll('preorderGrid');
+                startAutoScroll('promotionGrid');
 
-            // Remove imediatamente itens vencidos de Pré Venda/Promoção.
-            games = games.filter(game => !shouldHideExpiredTimedGame(game));
+                updateTimers();
+                setInterval(updateTimers, 1000);
 
-            if (games.length === 0) {
+            } catch (err) {
+                console.error('Erro ao carregar as abas da planilha:', err);
                 showError();
-                return;
             }
-
-            document.getElementById('loadingContainer').style.display = 'none';
-            document.getElementById('mainContent').style.display = 'block';
-
-            populateCategories();
-            renderLaunchCarousel();
-            renderPreorderCarousel();
-            renderPromotionCarousel();
-            renderGames();
-            applySharedCategoryFromUrl();
-            startAutoScroll('launchGrid');
-            startAutoScroll('preorderGrid');
-            startAutoScroll('promotionGrid');
-
-            updateTimers();
-            setInterval(updateTimers, 1000);
         }
+
 
         function showError() {
             document.getElementById('loadingContainer').style.display = 'none';
@@ -2096,32 +2184,70 @@
             });
         }
 
-        function getSelectedPlatform(game) {
-            if (!game) return null;
-            if (game.platforms.length === 1) return game.platforms[0];
-            return selectedPlatformByGame.get(game.id) || null;
-        }
-
-        function getPlatformOption(game, platform, type) {
-            if (!game || !platform || !game.platformData[platform]) return { price: 0, stock: 0 };
-            const data = game.platformData[platform];
-            return type === 'Primária'
-                ? { price: data.primary || 0, stock: data.primaryStock || 0 }
-                : { price: data.secondary || 0, stock: data.secondaryStock || 0 };
-        }
-
-        function toggleSelectPlatform(gameId, platform) {
-            const game = games.find(g => g.id === gameId);
-            if (!game || !game.platformData[platform]) return;
-
-            const current = selectedPlatformByGame.get(gameId);
-            if (current === platform) {
-                return;
+        function getPlatformData(game, platform) {
+            const p = String(platform || '').toUpperCase();
+            if (p === 'PS4') {
+                return {
+                    primary: game.ps4Primary,
+                    secondary: game.ps4Secondary,
+                    stockPrimary: game.stockPs4Primary,
+                    stockSecondary: game.stockPs4Secondary
+                };
             }
 
-            selectedPlatformByGame.set(gameId, platform);
-            // Trocar PS4/PS5 invalida a escolha de Primária/Secundária anterior.
-            selectedCart = selectedCart.filter(item => item.gameId !== gameId);
+            if (p === 'PS5') {
+                return {
+                    primary: game.ps5Primary,
+                    secondary: game.ps5Secondary,
+                    stockPrimary: game.stockPs5Primary,
+                    stockSecondary: game.stockPs5Secondary
+                };
+            }
+
+            return { primary: 0, secondary: 0, stockPrimary: 0, stockSecondary: 0 };
+        }
+
+        function getDefaultPlatform(game) {
+            if (!game || !game.platforms || !game.platforms.length) return '';
+
+            const selectedItem = selectedCart.find(i => i.gameId === game.id);
+            if (selectedItem && game.platforms.includes(selectedItem.platform)) {
+                return selectedItem.platform;
+            }
+
+            const rememberedPlatform = selectedPlatformByGame[game.id];
+            if (rememberedPlatform && game.platforms.includes(rememberedPlatform)) {
+                return rememberedPlatform;
+            }
+
+            return game.platforms[0];
+        }
+
+        function clearSelectedGame(gameId) {
+            selectedCart = selectedCart.filter(i => i.gameId !== gameId);
+            delete selectedPlatformByGame[gameId];
+            renderLaunchCarousel();
+            renderPreorderCarousel();
+            renderPromotionCarousel();
+            renderGames();
+            updateBottomBar();
+        }
+
+        function getSelectedItem(gameId) {
+            return selectedCart.find(i => i.gameId === gameId) || null;
+        }
+
+        function selectPlatform(gameId, platform) {
+            const game = games.find(g => g.id === gameId);
+            if (!game || !game.platforms.includes(platform)) return;
+
+            // GUARDA A ESCOLHA. Antes, o código só redesenhava o card e
+            // imediatamente voltava para a primeira plataforma (normalmente PS4).
+            selectedPlatformByGame[gameId] = platform;
+
+            // Ao trocar de plataforma, remove a escolha de Primária/Secundária
+            // anterior porque ela pertence à outra plataforma.
+            selectedCart = selectedCart.filter(i => i.gameId !== gameId);
 
             renderLaunchCarousel();
             renderPreorderCarousel();
@@ -2134,14 +2260,25 @@
             const game = games.find(g => g.id === gameId);
             if (!game) return;
 
-            const platform = getSelectedPlatform(game);
+            // Usa a plataforma escolhida pelo cliente, inclusive quando ele
+            // ainda não selecionou Primária/Secundária.
+            const platform = selectedPlatformByGame[gameId] || getDefaultPlatform(game);
             if (!platform) return;
 
-            const option = getPlatformOption(game, platform, type);
-            if (!option.price || option.stock <= 0) return;
+            selectedPlatformByGame[gameId] = platform;
 
-            const idx = selectedCart.findIndex(i => i.gameId === gameId);
-            if (idx > -1 && selectedCart[idx].type === type && selectedCart[idx].platform === platform) {
+            const data = getPlatformData(game, platform);
+            const isPrimary = type === 'Primária';
+            const price = isPrimary ? data.primary : data.secondary;
+            const stock = isPrimary ? data.stockPrimary : data.stockSecondary;
+
+            if (!(price > 0)) return;
+
+            const idx = selectedCart.findIndex(
+                i => i.gameId === gameId && i.platform === platform
+            );
+
+            if (idx > -1 && selectedCart[idx].type === type) {
                 selectedCart.splice(idx, 1);
             } else {
                 selectedCart = selectedCart.filter(i => i.gameId !== gameId);
@@ -2150,7 +2287,8 @@
                     name: game.name,
                     platform,
                     type,
-                    price: option.price
+                    price,
+                    stock
                 });
             }
 
@@ -2161,43 +2299,51 @@
             updateBottomBar();
         }
 
-        // --- CONFIRMAÇÃO DA PLATAFORMA/TIPO ANTES DO PAGAMENTO ---
-        function openPurchaseConfirmation(gameId) {
-            const game = games.find(g => g.id === gameId);
-            const cartItem = selectedCart.find(i => i.gameId === gameId);
-            if (!game || !cartItem) return;
 
-            document.getElementById('confirmGameName').innerText = game.name;
-            document.getElementById('confirmPlatformText').innerText = `🎮 Plataforma: ${cartItem.platform}`;
-            document.getElementById('confirmTypeText').innerText = `Conta ${cartItem.type}`;
-            document.getElementById('confirmPriceText').innerText = `R$ ${cartItem.price.toFixed(2).replace('.', ',')}`;
-            document.getElementById('purchaseConfirmOverlay').classList.add('active');
-        }
+        // --- COMPRA DIRETA NO WHATSAPP PELO CARD ---
+        let pendingPurchaseGameId = null;
 
-        function closePurchaseConfirmation() {
-            const el = document.getElementById('purchaseConfirmOverlay');
-            if (el) el.classList.remove('active');
-        }
-
-        function handlePurchaseConfirmOverlayClick(event) {
-            if (event.target && event.target.id === 'purchaseConfirmOverlay') closePurchaseConfirmation();
-        }
-
-        function confirmPurchaseSelection() {
-            closePurchaseConfirmation();
-            openPaymentModal();
-        }
-
-        // --- COMPRA DIRETA NO CARD: confirmação -> pagamento ---
         function buyGameDirect(event, gameId) {
             event.stopPropagation();
+
             const game = games.find(g => g.id === gameId);
             if (!game) return;
 
             const cartItem = selectedCart.find(i => i.gameId === gameId);
             if (!cartItem) return;
 
-            openPurchaseConfirmation(gameId);
+            pendingPurchaseGameId = gameId;
+
+            const overlay = document.getElementById('purchaseConfirmOverlay');
+            document.getElementById('purchaseConfirmProduct').innerText = game.name;
+            document.getElementById('purchaseConfirmChoice').innerText =
+                `Conta ${cartItem.type} • ${cartItem.platform} • R$ ${cartItem.price.toFixed(2).replace('.', ',')}`;
+
+            overlay.classList.add('active');
+            document.body.classList.add('modal-open');
+        }
+
+
+        function closePurchaseConfirm() {
+            const overlay = document.getElementById('purchaseConfirmOverlay');
+            if (overlay) overlay.classList.remove('active');
+            pendingPurchaseGameId = null;
+            document.body.classList.remove('modal-open');
+        }
+
+        function handlePurchaseConfirmOverlay(event) {
+            if (event.target.id === 'purchaseConfirmOverlay') closePurchaseConfirm();
+        }
+
+        function confirmPurchaseChoice() {
+            if (!pendingPurchaseGameId) return;
+
+            closePurchaseConfirm();
+
+            // Mantém o fluxo de pagamento existente: PIX ou cartão.
+            if (typeof openPaymentModal === 'function') {
+                openPaymentModal();
+            }
         }
 
         // --- PREPARAR IMAGENS EXTERNAS PARA O HTML2CANVAS ---
@@ -2208,17 +2354,21 @@
             if (!sourceUrl) return null;
             if (sourceUrl.startsWith('data:')) return sourceUrl;
 
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 7000);
+
             try {
                 const proxyUrl = `https://images.weserv.nl/?url=${encodeURIComponent(sourceUrl)}`;
                 const response = await fetch(proxyUrl, {
                     mode: 'cors',
-                    cache: 'force-cache'
+                    cache: 'no-store',
+                    signal: controller.signal
                 });
 
                 if (!response.ok) throw new Error(`Proxy retornou ${response.status}`);
 
                 const blob = await response.blob();
-                if (!blob.type.startsWith('image/')) throw new Error('Resposta não é uma imagem.');
+                if (!blob.type.startsWith('image/')) throw new Error('A resposta não é uma imagem.');
 
                 return await new Promise((resolve, reject) => {
                     const reader = new FileReader();
@@ -2227,76 +2377,130 @@
                     reader.readAsDataURL(blob);
                 });
             } catch (err) {
-                console.warn('Não foi possível preparar a capa para o print:', err);
+                console.warn('Não foi possível preparar a capa pelo proxy:', err);
                 return null;
+            } finally {
+                clearTimeout(timeout);
             }
         }
 
-        async function buildPrintableCard(cardEl) {
-            const clone = cardEl.cloneNode(true);
+        async function loadImageForCanvas(imgElement) {
+            if (!imgElement) throw new Error('Imagem da capa não encontrada.');
 
-            // Mantém a largura exata do card que o usuário está vendo.
-            const rect = cardEl.getBoundingClientRect();
-            clone.style.width = `${Math.round(rect.width)}px`;
+            const sourceUrl = imgElement.currentSrc || imgElement.src;
+            if (!sourceUrl) throw new Error('URL da capa não encontrada.');
+
+            // Primeiro tenta uma cópia segura via proxy.
+            const dataUrl = await getImageDataUrlForCanvas(sourceUrl);
+
+            if (dataUrl) {
+                const safeImage = new Image();
+                safeImage.decoding = 'async';
+                safeImage.src = dataUrl;
+                await safeImage.decode();
+                return safeImage;
+            }
+
+            // Fallback: usa a imagem já carregada pelo navegador.
+            if (imgElement.complete && imgElement.naturalWidth > 0) {
+                return imgElement;
+            }
+
+            throw new Error('A capa não pôde ser carregada para a imagem de compartilhamento.');
+        }
+
+        async function buildPrintableCard(cardEl) {
+            if (typeof html2canvas === 'undefined') {
+                throw new Error('html2canvas não foi carregado.');
+            }
+
+            const clone = cardEl.cloneNode(true);
             clone.style.position = 'fixed';
             clone.style.left = '-100000px';
             clone.style.top = '0';
-            clone.style.margin = '0';
-            clone.style.transform = 'none';
+            clone.style.width = `${Math.max(cardEl.offsetWidth, 300)}px`;
             clone.style.zIndex = '-1';
-
-            // Retira apenas a área de ações do print.
-            const actionsRow = clone.querySelector('.card-actions-row');
-            if (actionsRow) actionsRow.remove();
+            clone.style.display = 'block';
 
             document.body.appendChild(clone);
 
             try {
-                const image = clone.querySelector('.card-img');
-                if (image) {
-                    const originalSrc = image.getAttribute('src') || image.src;
-                    const dataUrl = await getImageDataUrlForCanvas(originalSrc);
+                // Remove elementos que não fazem sentido na imagem compartilhada.
+                clone.querySelectorAll('.card-actions-row, .type-selector, .platform-selector, .platform-heading')
+                    .forEach(el => el.remove());
 
-                    if (dataUrl) {
-                        image.removeAttribute('srcset');
-                        image.src = dataUrl;
-                    }
+                const originalImg = cardEl.querySelector('.card-img');
+                const cloneImg = clone.querySelector('.card-img');
 
-                    // Garante que a imagem já esteja efetivamente carregada antes do canvas.
-                    if (!image.complete) {
-                        await new Promise(resolve => {
-                            image.addEventListener('load', resolve, { once: true });
-                            image.addEventListener('error', resolve, { once: true });
-                        });
-                    }
+                if (originalImg && cloneImg) {
+                    const safeImage = await loadImageForCanvas(originalImg);
 
-                    if (image.decode) {
-                        try {
-                            await image.decode();
-                        } catch (_) {}
-                    }
+                    // Usa a imagem preparada pelo proxy dentro do clone.
+                    cloneImg.src = safeImage.src || originalImg.src;
+                    cloneImg.crossOrigin = 'anonymous';
+                    cloneImg.style.aspectRatio = '1 / 1';
+                    cloneImg.style.objectFit = 'cover';
+
+                    await new Promise((resolve, reject) => {
+                        if (cloneImg.complete && cloneImg.naturalWidth > 0) {
+                            resolve();
+                            return;
+                        }
+                        cloneImg.onload = resolve;
+                        cloneImg.onerror = () => reject(new Error('A capa não pôde ser inserida no PNG.'));
+                    });
                 }
 
-                // Pequena espera para o navegador finalizar layout/imagem.
-                await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-
-                return await html2canvas(clone, {
-                    scale: Math.min(3, Math.max(2, window.devicePixelRatio || 1)),
+                const canvas = await html2canvas(clone, {
+                    backgroundColor: null,
                     useCORS: true,
                     allowTaint: false,
-                    backgroundColor: '#13171d',
-                    logging: false,
-                    imageTimeout: 15000,
-                    removeContainer: true
+                    imageTimeout: 10000,
+                    scale: Math.min(window.devicePixelRatio || 1, 2),
+                    logging: false
                 });
+
+                return canvas;
             } finally {
                 clone.remove();
             }
         }
 
-        // --- GERAR PRINT DO CARD E COMPARTILHAR PELO WHATSAPP ---
+        function showShareStatus(text) {
+            const toast = document.getElementById('shareStatusToast');
+            if (!toast) return;
+            toast.textContent = text;
+            toast.classList.add('show');
+            clearTimeout(window.__shareToastTimer);
+            window.__shareToastTimer = setTimeout(() => toast.classList.remove('show'), 5000);
+        }
+
+
+        function showShareStatus(text) {
+            const toast = document.getElementById('shareStatusToast');
+            if (!toast) return;
+            toast.textContent = text;
+            toast.classList.add('show');
+            clearTimeout(window.__shareToastTimer);
+            window.__shareToastTimer = setTimeout(() => toast.classList.remove('show'), 4500);
+        }
+
+        window.__mcoShareErrorHandler = function (message) {
+            const toast = document.getElementById('shareStatusToast');
+            if (toast) {
+                toast.textContent = message || 'Não foi possível compartilhar. Tente novamente.';
+                toast.classList.add('show');
+                clearTimeout(window.__shareToastTimer);
+                window.__shareToastTimer = setTimeout(() => toast.classList.remove('show'), 5000);
+            }
+        };
+
         function isMobileDevice() {
-            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(navigator.userAgent);
+            const ua = navigator.userAgent || navigator.vendor || window.opera || '';
+            const touchPoints = navigator.maxTouchPoints || 0;
+
+            return /android|iphone|ipad|ipod|iemobile|opera mini|mobile/i.test(ua)
+                || (navigator.platform === 'MacIntel' && touchPoints > 1);
         }
 
         async function shareGameOffer(event, gameId) {
@@ -2306,61 +2510,57 @@
             const cardEl = event.currentTarget.closest('.card');
             if (!game || !cardEl) return;
 
-            const priceLines = [];
-            game.platforms.forEach(platform => {
-                ['Primária', 'Secundária'].forEach(type => {
-                    const option = getPlatformOption(game, platform, type);
-                    if (option.price > 0) {
-                        priceLines.push(`🎮 ${platform} • ${type}: R$ ${option.price.toFixed(2).replace('.', ',')}`);
-                    }
-                });
-            });
-
             const discount = getDiscountPercent(game);
-            const discountLine = discount > 0 ? `📉 Desconto: -${discount}%
-` : '';
+            const offerLine = discount > 0
+                ? `💰 A partir de R$ ${game.mainPrice.toFixed(2).replace('.', ',')} (-${discount}%)`
+                : `💰 A partir de R$ ${game.mainPrice.toFixed(2).replace('.', ',')}`;
 
             const message =
-                `🎮 *MCO GAMES*
-
-` +
-                `Confira esta oferta:
-` +
-                `🕹️ *${game.name}*
-` +
-                `${priceLines.join('\n')}
-` +
-                `${discountLine}
-` +
+                `🎮 *MCO GAMES*\n\n` +
+                `Confira esta oferta:\n` +
+                `🕹️ *${game.name}* (${(game.platforms || []).join(' / ') || 'Plataforma não informada'})\n` +
+                `${offerLine}\n\n` +
                 `Esse e mais jogos, acesse: ${SHARE_URL}`;
 
             const actionsRow = cardEl.querySelector('.card-actions-row');
             const previousDisplay = actionsRow ? actionsRow.style.display : '';
 
+            // No PC, abre uma aba imediatamente para evitar bloqueio de pop-up.
+            // Ela só será usada pelo WhatsApp Web depois que a imagem for gerada.
+            let whatsappWindow = null;
+            const desktop = !isMobileDevice();
+
+            if (desktop) {
+                whatsappWindow = window.open('about:blank', '_blank');
+                if (whatsappWindow) {
+                    try {
+                        whatsappWindow.document.title = 'Preparando WhatsApp…';
+                    } catch (_) {}
+                }
+            }
+
             try {
                 if (actionsRow) actionsRow.style.display = 'none';
 
-                const canvas = await html2canvas(cardEl, {
-                    scale: 2,
-                    useCORS: true,
-                    allowTaint: false,
-                    backgroundColor: '#13171d',
-                    logging: false
-                });
+                showShareStatus('Gerando a imagem da oferta…');
 
+                const canvas = await buildPrintableCard(cardEl);
                 const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-                if (!blob) throw new Error('Não foi possível gerar a imagem da oferta.');
+
+                if (!blob) throw new Error('Não foi possível gerar o PNG.');
 
                 const safeName = game.name
-                    .replace(/[^a-zA-Z0-9À-ÿ]/g, '_')
-                    .replace(/_+/g, '_');
-                const fileName = `MCO_GAMES_${safeName}.png`;
+                    .normalize('NFD')
+                    .replace(/[\u0300-\u036f]/g, '')
+                    .replace(/[^a-zA-Z0-9]+/g, '_')
+                    .replace(/^_+|_+$/g, '');
+
+                const fileName = `MCO_GAMES_${safeName || 'oferta'}.png`;
                 const file = new File([blob], fileName, { type: 'image/png' });
 
-                // CELULAR:
-                // Usa o compartilhamento nativo, pois é a forma mais adequada de entregar
-                // a imagem ao WhatsApp em aparelhos móveis.
-                if (isMobileDevice()) {
+                if (!desktop) {
+                    // CELULAR: usa o compartilhamento nativo, que permite enviar
+                    // imagem + texto diretamente para o WhatsApp.
                     const canShareFile = !!(
                         navigator.share &&
                         navigator.canShare &&
@@ -2374,177 +2574,156 @@
                                 text: message,
                                 title: `Oferta MCO GAMES - ${game.name}`
                             });
+                            showShareStatus('Compartilhado com sucesso.');
                             return;
-                        } catch (shareError) {
-                            if (shareError && shareError.name === 'AbortError') return;
-                            console.warn('Compartilhamento nativo falhou no celular:', shareError);
+                        } catch (err) {
+                            // Cancelar o menu nativo não é um erro para o usuário.
+                            if (err && err.name === 'AbortError') return;
+                            console.warn('Compartilhamento nativo não disponível:', err);
                         }
                     }
 
-                    // Fallback mobile: salva a imagem e abre o WhatsApp com o texto pronto.
-                    const mobileImageUrl = URL.createObjectURL(blob);
-                    const mobileLink = document.createElement('a');
-                    mobileLink.href = mobileImageUrl;
-                    mobileLink.download = fileName;
-                    mobileLink.style.display = 'none';
-                    document.body.appendChild(mobileLink);
-                    mobileLink.click();
-                    mobileLink.remove();
+                    // Fallback móvel: salva a imagem e abre o WhatsApp com o texto.
+                    const mobileUrl = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = mobileUrl;
+                    a.download = fileName;
+                    a.style.display = 'none';
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+
+                    showShareStatus('A imagem foi salva. Abrindo o WhatsApp…');
 
                     setTimeout(() => {
-                        URL.revokeObjectURL(mobileImageUrl);
+                        URL.revokeObjectURL(mobileUrl);
                         window.location.href = `https://wa.me/?text=${encodeURIComponent(message)}`;
                     }, 700);
 
                     return;
                 }
 
-                // COMPUTADOR:
-                // Evita o compartilhamento do Windows e também evita o download automático
-                // sempre que o navegador permitir escrever uma imagem no clipboard.
-                //
-                // Fluxo:
-                // 1) abre o WhatsApp Web imediatamente (evita bloqueio de pop-up);
-                // 2) copia o PNG para a área de transferência;
-                // 3) deixa a mensagem pronta no WhatsApp;
-                // 4) você usa Ctrl+V no WhatsApp para colar a imagem.
-                const whatsappWindow = window.open(
-                    `https://web.whatsapp.com/send?text=${encodeURIComponent(message)}`,
-                    '_blank'
-                );
-
-                let copiedToClipboard = false;
+                // PC: primeiro tenta copiar a imagem para Ctrl+V.
+                let copied = false;
 
                 if (navigator.clipboard && window.ClipboardItem) {
                     try {
-                        const clipboardItem = new ClipboardItem({
-                            'image/png': blob
-                        });
-
-                        await navigator.clipboard.write([clipboardItem]);
-                        copiedToClipboard = true;
-                    } catch (clipboardError) {
-                        console.warn('Não foi possível copiar a imagem para o clipboard:', clipboardError);
+                        await navigator.clipboard.write([
+                            new ClipboardItem({ 'image/png': blob })
+                        ]);
+                        copied = true;
+                    } catch (err) {
+                        console.warn('Não foi possível copiar o PNG para o clipboard:', err);
                     }
                 }
 
-                if (!copiedToClipboard) {
-                    // Fallback: caso o navegador não permita clipboard de imagem,
-                    // mantém o PNG disponível para salvamento manual.
-                    const imageUrl = URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.href = imageUrl;
-                    link.download = fileName;
-                    link.style.display = 'none';
-                    document.body.appendChild(link);
-                    link.click();
-                    link.remove();
+                // Abre o WhatsApp Web com o texto, independentemente do clipboard.
+                const whatsappUrl =
+                    `https://web.whatsapp.com/send?text=${encodeURIComponent(message)}`;
 
-                    setTimeout(() => {
-                        URL.revokeObjectURL(imageUrl);
-                    }, 5000);
+                if (whatsappWindow && !whatsappWindow.closed) {
+                    whatsappWindow.location.href = whatsappUrl;
+                } else {
+                    whatsappWindow = window.open(whatsappUrl, '_blank');
                 }
 
-                // Mantém a aba do WhatsApp aberta. Se ela tiver sido bloqueada pelo navegador,
-                // tenta novamente depois da operação de clipboard/download.
-                if (!whatsappWindow || whatsappWindow.closed) {
-                    window.open(
-                        `https://web.whatsapp.com/send?text=${encodeURIComponent(message)}`,
-                        '_blank'
-                    );
+                if (copied) {
+                    showShareStatus('Imagem copiada! No WhatsApp, use Ctrl+V para colar a capa.');
+                } else {
+                    // Fallback PC: download garantido.
+                    const desktopUrl = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = desktopUrl;
+                    a.download = fileName;
+                    a.style.display = 'none';
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+
+                    showShareStatus('PNG salvo. Anexe a imagem no WhatsApp.');
+                    setTimeout(() => URL.revokeObjectURL(desktopUrl), 5000);
                 }
 
             } catch (err) {
-                if (err && err.name !== 'AbortError') {
-                    console.error('Erro ao gerar/compartilhar o print:', err);
+                console.error('Erro no compartilhamento:', err);
+
+                if (whatsappWindow && !whatsappWindow.closed) {
+                    try { whatsappWindow.close(); } catch (_) {}
                 }
+
+                showShareStatus(
+                    err && err.message
+                        ? `Não foi possível gerar a imagem: ${err.message}`
+                        : 'Não foi possível gerar a imagem. Tente novamente.'
+                );
             } finally {
                 if (actionsRow) actionsRow.style.display = previousDisplay || 'flex';
             }
         }
 
+
         function createCardElement(game) {
             const card = document.createElement('div');
             card.className = 'card';
 
-            const selectedItem = selectedCart.find(i => i.gameId === game.id);
-            const selectedPlatform = getSelectedPlatform(game);
-            const primarySelected = !!selectedItem && selectedItem.platform === selectedPlatform && selectedItem.type === 'Primária';
-            const secondarySelected = !!selectedItem && selectedItem.platform === selectedPlatform && selectedItem.type === 'Secundária';
+            const selectedItem = getSelectedItem(game.id);
+            const selectedPlatform = selectedItem ? selectedItem.platform : getDefaultPlatform(game);
+            const selectedType = selectedItem ? selectedItem.type : '';
 
             if (selectedItem) card.classList.add('selected');
 
             const discount = getDiscountPercent(game);
+            const platformList = game.platforms || [];
+            const data = getPlatformData(game, selectedPlatform);
 
-            let platformButtonsHtml = '';
-            if (game.platforms.length > 1) {
-                platformButtonsHtml = `
-                    <div class="platform-selector">
-                        ${game.platforms.map(platform => `
-                            <button type="button" class="platform-choice-btn ${selectedPlatform === platform ? 'active' : ''}"
-                                onclick="toggleSelectPlatform('${game.id}', '${platform}')">
-                                ${platform}
-                            </button>
+            let platformHtml = '';
+            if (platformList.length > 1) {
+                platformHtml = `
+                    <div class="platform-heading">Plataforma</div>
+                    <div class="platform-selector" aria-label="Escolha a plataforma">
+                        ${platformList.map(platform => `
+                            <button type="button"
+                                class="platform-btn ${selectedPlatform === platform ? 'active' : ''}"
+                                aria-pressed="${selectedPlatform === platform ? 'true' : 'false'}"
+                                onclick="selectPlatform('${game.id}', '${platform}')">${platform}</button>
                         `).join('')}
-                    </div>
-                    ${!selectedPlatform ? '<div class="platform-help">Escolha a plataforma</div>' : ''}
-                `;
+                    </div>`;
+            } else if (platformList.length === 1) {
+                platformHtml = `
+                    <div class="platform-heading">Plataforma</div>
+                    <div class="platform-single">${escapeHtml(platformList[0])}</div>`;
             }
 
+            const primaryAvailable = data.primary > 0;
+            const secondaryAvailable = data.secondary > 0;
             let buttonsHtml = '';
-            if (selectedPlatform) {
-                const primary = getPlatformOption(game, selectedPlatform, 'Primária');
-                const secondary = getPlatformOption(game, selectedPlatform, 'Secundária');
 
-                const primaryTxt = `<span class="media-label">Primária (${primary.stock} Un)</span><br><span class="media-price">R$ ${primary.price.toFixed(2).replace('.', ',')}</span>`;
-                const secondaryTxt = `<span class="media-label">Secundária (${secondary.stock} Un)</span><br><span class="media-price">R$ ${secondary.price.toFixed(2).replace('.', ',')}</span>`;
+            if (primaryAvailable || secondaryAvailable) {
+                const primaryTxt = primaryAvailable
+                    ? `<span class="media-label">Primária${data.stockPrimary > 0 ? ` (${data.stockPrimary} Un)` : ''}</span><br><span class="media-price">R$ ${data.primary.toFixed(2).replace('.', ',')}</span>`
+                    : '';
+                const secondaryTxt = secondaryAvailable
+                    ? `<span class="media-label">Secundária${data.stockSecondary > 0 ? ` (${data.stockSecondary} Un)` : ''}</span><br><span class="media-price">R$ ${data.secondary.toFixed(2).replace('.', ',')}</span>`
+                    : '';
 
-                if (primary.price > 0 && secondary.price > 0) {
-                    buttonsHtml = `
-                        <div class="type-selector">
-                            <button class="type-btn ${primarySelected ? 'active' : ''}" onclick="toggleSelectType('${game.id}', 'Primária')">
-                                ${primaryTxt}
-                            </button>
-                            <button class="type-btn ${secondarySelected ? 'active' : ''}" onclick="toggleSelectType('${game.id}', 'Secundária')">
-                                ${secondaryTxt}
-                            </button>
-                        </div>
-                    `;
-                } else if (primary.price > 0) {
-                    buttonsHtml = `
-                        <div class="type-selector">
-                            <button class="type-btn ${primarySelected ? 'active' : ''}" style="width:100%" onclick="toggleSelectType('${game.id}', 'Primária')">
-                                ${primaryTxt}
-                            </button>
-                        </div>
-                    `;
-                } else if (secondary.price > 0) {
-                    buttonsHtml = `
-                        <div class="type-selector">
-                            <button class="type-btn ${secondarySelected ? 'active' : ''}" style="width:100%" onclick="toggleSelectType('${game.id}', 'Secundária')">
-                                ${secondaryTxt}
-                            </button>
-                        </div>
-                    `;
-                }
+                buttonsHtml = `
+                    <div class="type-selector">
+                        ${primaryAvailable ? `<button type="button" class="type-btn ${selectedType === 'Primária' ? 'active' : ''}" onclick="toggleSelectType('${game.id}', 'Primária')">${primaryTxt}</button>` : ''}
+                        ${secondaryAvailable ? `<button type="button" class="type-btn ${selectedType === 'Secundária' ? 'active' : ''}" onclick="toggleSelectType('${game.id}', 'Secundária')">${secondaryTxt}</button>` : ''}
+                    </div>`;
             }
 
-            let timerHtml = '';
-            if (game.targetDate) {
-                timerHtml = `<div class="timer-badge" data-target="${escapeHtml(game.targetDate)}">⏳ Carregando...</div>`;
-            }
-
-            const preorderHtml = isPreorderGame(game)
-                ? `<span class="preorder-label">🚀 PRÉ-VENDA</span>`
-                : '';
-
-            const buyEnabled = !!selectedItem;
+            const timerHtml = game.targetDate
+                ? `<div class="timer-badge" data-target="${escapeHtml(game.targetDate)}">⏳ Carregando...</div>` : '';
+            const preorderHtml = isPreorderGame(game) ? `<span class="preorder-label">🚀 PRÉ-VENDA</span>` : '';
+            const platformTag = platformList.length ? platformList.join(' / ') : 'Plataforma não informada';
 
             card.innerHTML = `
                 <div class="card-img-container">
                     ${preorderHtml}
-                    <span class="platform-tag">${escapeHtml(game.platform)}</span>
-                    <img src="${escapeHtml(game.img)}" alt="${escapeHtml(game.name)}" class="card-img" loading="lazy" onerror="this.src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTnOXAQFE6SWdIZy6b4OpXDWYJUjkIbnYx7gQLCRunJ3w&s=10'">
+                    <span class="platform-tag">${escapeHtml(platformTag)}</span>
+                    <img src="${escapeHtml(game.img)}" alt="${escapeHtml(game.name)}" class="card-img" loading="lazy"
+                         onerror="this.onerror=null;this.src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTnOXAQFE6SWdIZy6b4OpXDWYJUjkIbnYx7gQLCRunJ3w&s=10';">
                 </div>
                 <div class="card-info">
                     <div class="card-title">${escapeHtml(game.name)}</div>
@@ -2556,34 +2735,24 @@
                             ${discount > 0 ? `<span class="discount-inline">-${discount}%</span>` : ''}
                         </div>
                     </div>
-                    ${platformButtonsHtml}
+                    ${platformHtml}
                     ${buttonsHtml}
                     <div class="card-actions-row">
-                        <button
-                            class="btn-buy-direct"
-                            ${buyEnabled ? '' : 'disabled'}
-                            ${buyEnabled ? '' : 'aria-disabled="true"'}
-                            title="${buyEnabled ? 'Comprar este jogo' : (selectedPlatform ? 'Selecione Primária ou Secundária primeiro' : 'Escolha PS4 ou PS5 primeiro')}"
-                            onclick="buyGameDirect(event, '${game.id}')"
-                        >
-                            🛒 Comprar
-                        </button>
+                        <button class="btn-buy-direct" ${selectedItem ? '' : 'disabled'} ${selectedItem ? '' : 'aria-disabled="true"'}
+                                title="${selectedItem ? 'Comprar este jogo' : 'Selecione a plataforma e depois Primária ou Secundária'}"
+                                onclick="buyGameDirect(event, '${game.id}')">🛒 Comprar</button>
                         <button class="btn-share-circle" onclick="shareGameOffer(event, '${game.id}')" title="Compartilhar oferta no WhatsApp">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                                <path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984 0 1.762.459 3.48 1.332 5.001l-1.416 5.17 5.291-1.387c1.467.8 3.123 1.22 4.78 1.22h.005c5.507 0 9.991-4.479 9.992-9.985 0-2.667-1.038-5.175-2.925-7.063C17.195 3.039 14.68 2 12.012 2zm5.833 14.283c-.244.686-1.42 1.309-1.96 1.365-.506.052-1.168.082-1.644 1.317.295.148.467.123.639-.074.172-.197.737-.859.933-1.154.295.295.393-.246.664-.148.27.098 1.716.81 2.011.957.295.148.491.221.564.344.073.123.073.712-.171 1.398z"/>
+                                <path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984 0 1.762.459 3.48 1.332 5.001l-1.416 5.17 5.291-1.387c1.467.8 3.123 1.22 4.78 1.22h.005c5.507 0 9.991-4.479 9.992-9.985 0-2.667-1.038-5.175-2.925-7.063C17.195 3.039 14.68 2 12.012 2z"/>
                             </svg>
                         </button>
                     </div>
-                </div>
-            `;
+                </div>`;
 
             card.querySelectorAll('.type-btn').forEach(btn => {
-                const duration = (5.8 + Math.random() * 4.8).toFixed(2);
-                const delay = (-Math.random() * 8).toFixed(2);
-                btn.style.setProperty('--type-glow-duration', `${duration}s`);
-                btn.style.setProperty('--type-glow-delay', `${delay}s`);
+                btn.style.setProperty('--type-glow-duration', `${(5.8 + Math.random() * 4.8).toFixed(2)}s`);
+                btn.style.setProperty('--type-glow-delay', `${(-Math.random() * 8).toFixed(2)}s`);
             });
-
             return card;
         }
 
@@ -3257,7 +3426,7 @@
                 cardEl.innerHTML = `
                     <div>
                         <h5>${escapeHtml(item.name)}</h5>
-                        <p>${escapeHtml(item.platform)} • ${escapeHtml(item.type)} — R$ ${item.price.toFixed(2).replace('.', ',')}</p>
+                        <p>${escapeHtml(item.type)} — R$ ${item.price.toFixed(2).replace('.', ',')}</p>
                     </div>
                     <span class="remove-item" onclick="event.stopPropagation(); toggleSelectType('${item.gameId}', '${item.type}'); openModal();">✕</span>
                 `;
@@ -3349,7 +3518,6 @@
         function closeModal() {
             document.getElementById('modalOverlay').classList.remove('active');
             document.getElementById('modalDrawer').classList.remove('active');
-            closePurchaseConfirmation();
             closePaymentModal();
         }
 
