@@ -2053,7 +2053,9 @@
                     : "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTnOXAQFE6SWdIZy6b4OpXDWYJUjkIbnYx7gQLCRunJ3w&s=10";
 
                 parsedGames.push({
-                    id: text(row[C.id]) || `${sheetName}-${i}`,
+                    // Mesmo jogo pode existir em mais de uma aba; o ID da planilha sozinho não pode ser a chave interna.
+                    id: `${categoryKey(category)}::${text(row[C.id]) || `${sheetName}-${i}`}`,
+                    sheetId: text(row[C.id]) || `${sheetName}-${i}`,
                     name,
                     platform: platforms.length ? platforms.join(' / ') : 'Plataforma não informada',
                     platforms,
@@ -2685,7 +2687,7 @@
                             <button type="button"
                                 class="platform-btn ${selectedPlatform === platform ? 'active' : ''}"
                                 aria-pressed="${selectedPlatform === platform ? 'true' : 'false'}"
-                                onclick="selectPlatform('${game.id}', '${platform}')">${platform}</button>
+                                onclick="event.stopPropagation(); selectPlatform('${game.id}', '${platform}')">${platform}</button>
                         `).join('')}
                     </div>`;
             } else if (platformList.length === 1) {
@@ -2708,8 +2710,8 @@
 
                 buttonsHtml = `
                     <div class="type-selector">
-                        ${primaryAvailable ? `<button type="button" class="type-btn ${selectedType === 'Primária' ? 'active' : ''}" onclick="toggleSelectType('${game.id}', 'Primária')">${primaryTxt}</button>` : ''}
-                        ${secondaryAvailable ? `<button type="button" class="type-btn ${selectedType === 'Secundária' ? 'active' : ''}" onclick="toggleSelectType('${game.id}', 'Secundária')">${secondaryTxt}</button>` : ''}
+                        ${primaryAvailable ? `<button type="button" class="type-btn ${selectedType === 'Primária' ? 'active' : ''}" onclick="event.stopPropagation(); toggleSelectType('${game.id}', 'Primária')">${primaryTxt}</button>` : ''}
+                        ${secondaryAvailable ? `<button type="button" class="type-btn ${selectedType === 'Secundária' ? 'active' : ''}" onclick="event.stopPropagation(); toggleSelectType('${game.id}', 'Secundária')">${secondaryTxt}</button>` : ''}
                     </div>`;
             }
 
