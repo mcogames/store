@@ -719,36 +719,55 @@
         }
 
         .platform-choice-btn {
+            position: relative;
             flex: 1;
             min-width: 0;
-            background: #111720;
+            background: #171d26;
             border: 1px solid #303946;
-            color: #cfd6df;
-            padding: 7px 5px;
+            color: #fff;
+            padding: 7px 6px;
             border-radius: 7px;
             cursor: pointer;
-            font-size: 0.64rem;
+            font-size: 0.68rem;
             font-weight: 900;
-            transition: all .18s ease;
+            text-align: center;
+            transition: all .2s ease;
+            overflow: hidden;
         }
 
         .platform-choice-btn:hover {
-            background: #1d2632;
             transform: translateY(-1px);
+            background: #222a35;
         }
 
         .platform-choice-btn.active {
-            background: rgba(0,230,118,.12);
-            color: var(--accent-green);
+            background: rgba(0, 230, 118, .12);
             border-color: var(--accent-green);
-            box-shadow: 0 0 10px rgba(0,230,118,.14);
+            color: var(--accent-green);
+            box-shadow: 0 0 0 1px rgba(0,230,118,.12), 0 0 10px rgba(0,230,118,.12);
         }
 
-        .platform-hint {
+        .platform-help {
             color: var(--text-muted);
-            font-size: .62rem;
-            font-weight: 700;
-            margin-top: 2px;
+            font-size: .66rem;
+            text-align: center;
+            padding: 2px 0 0;
+        }
+
+        .platform-choice-btn:not(.active)::after {
+            content: "";
+            position: absolute;
+            inset: -1px;
+            border-radius: inherit;
+            border: 1px solid rgba(0,230,118,.0);
+            animation: platformChoicePulse 7s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes platformChoicePulse {
+            0%, 72%, 100% { opacity: 0; box-shadow: 0 0 0 rgba(0,230,118,0); }
+            78% { opacity: .16; box-shadow: 0 0 7px rgba(0,230,118,.16); }
+            83% { opacity: .04; box-shadow: 0 0 11px rgba(0,230,118,.08); }
         }
 
         .type-selector {
@@ -1163,25 +1182,6 @@
         }
 
         /* --- CAMADA DE PAGAMENTO --- */
-        .purchase-confirm-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,.72); backdrop-filter: blur(5px);
-            display:none; align-items:center; justify-content:center; z-index:430; padding:18px;
-        }
-        .purchase-confirm-overlay.active { display:flex; }
-        .purchase-confirm-card { width:min(430px,100%); background:#151a21; border:1px solid #303946;
-            border-radius:16px; padding:22px; box-shadow:0 20px 60px rgba(0,0,0,.55); }
-        .purchase-confirm-badge { width:44px;height:44px;border-radius:12px;display:grid;place-items:center;
-            background:rgba(0,230,118,.10);border:1px solid rgba(0,230,118,.25);color:var(--accent-green);margin-bottom:14px; }
-        .purchase-confirm-card h2 { margin:0 0 8px;color:#fff;font-size:1.12rem; }
-        .purchase-confirm-card p { color:#aeb7c3;line-height:1.5;font-size:.88rem;margin:0 0 16px; }
-        .purchase-confirm-summary { background:#0e1319;border:1px solid #2a323d;border-radius:12px;padding:14px;margin-bottom:16px; }
-        .purchase-confirm-summary strong { display:block;color:#fff;font-size:.98rem;margin-bottom:6px; }
-        .purchase-confirm-summary span { color:var(--accent-green);font-weight:800;font-size:.82rem; }
-        .purchase-confirm-actions { display:grid;grid-template-columns:1fr 1fr;gap:10px; }
-        .purchase-confirm-actions button { min-height:44px;border-radius:10px;border:1px solid #333d49;cursor:pointer;font-weight:900; }
-        .purchase-confirm-cancel { background:#202731;color:#d7dde5; }
-        .purchase-confirm-ok { background:var(--accent-green);color:#001b0c;border-color:var(--accent-green)!important; }
-
         .payment-overlay {
             position: fixed;
             inset: 0;
@@ -1413,6 +1413,7 @@
             .search-results-title { align-items: flex-start; flex-direction: column; }
         }
     </style>
+<!-- A planilha original é mantida: A=ID, B=Jogo, C=Plataforma, D=Categoria, E=De, F/G=Primária, H/I=Secundária, J=Data, K=Capa. -->
 </head>
 <body>
 
@@ -1541,24 +1542,46 @@
         </div>
     </div>
 
-    <!-- CAMADA DE PAGAMENTO -->
-    <div class="purchase-confirm-overlay" id="purchaseConfirmOverlay" role="dialog" aria-modal="true" aria-labelledby="purchaseConfirmTitle" onclick="handlePurchaseConfirmOverlay(event)">
-        <div class="purchase-confirm-card" onclick="event.stopPropagation()">
-            <div class="purchase-confirm-badge">✓</div>
-            <h2 id="purchaseConfirmTitle">Confirme sua escolha</h2>
-            <p>Você está comprando:</p>
-            <div class="purchase-confirm-summary">
-                <strong id="purchaseConfirmProduct">Jogo</strong>
-                <span id="purchaseConfirmChoice">Conta Primária • PS4</span>
+    <!-- CAMADA DE CONFIRMAÇÃO DA PLATAFORMA -->
+    <div class="payment-overlay" id="purchaseConfirmOverlay" onclick="handlePurchaseConfirmOverlayClick(event)">
+        <div class="payment-modal" onclick="event.stopPropagation()">
+            <div class="payment-header">
+                <div>
+                    <span>CONFIRME SUA ESCOLHA</span>
+                    <h2>Confira o produto</h2>
+                </div>
+                <button class="close-btn" type="button" onclick="closePurchaseConfirmation()">✕</button>
             </div>
-            <p>Confira a plataforma, o tipo de conta e o valor antes de continuar para o pagamento.</p>
-            <div class="purchase-confirm-actions">
-                <button type="button" class="purchase-confirm-cancel" onclick="closePurchaseConfirm()">Voltar</button>
-                <button type="button" class="purchase-confirm-ok" onclick="confirmPurchaseChoice()">Sim, está correto</button>
+            <div class="payment-body">
+                <div class="payment-total-box">
+                    <small>Você está comprando</small>
+                    <strong id="confirmGameName">Jogo</strong>
+                </div>
+                <div class="selected-item-card" style="margin-bottom:14px;">
+                    <div>
+                        <h5 id="confirmPlatformText">PS5</h5>
+                        <p id="confirmTypeText">Conta Primária</p>
+                    </div>
+                    <strong id="confirmPriceText">R$ 0,00</strong>
+                </div>
+                <div class="payment-question">Está correto?</div>
+                <div class="payment-methods">
+                    <button type="button" class="payment-method-btn" onclick="confirmPurchaseSelection()">
+                        <span class="method-icon">✅</span>
+                        <strong>Sim, está correto</strong>
+                        <small>Continuar para escolher o pagamento.</small>
+                    </button>
+                    <button type="button" class="payment-method-btn" onclick="closePurchaseConfirmation()">
+                        <span class="method-icon">↩️</span>
+                        <strong>Voltar</strong>
+                        <small>Alterar plataforma ou tipo de conta.</small>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- CAMADA DE PAGAMENTO -->
     <div class="payment-overlay" id="paymentOverlay" onclick="handlePaymentOverlayClick(event)">
         <div class="payment-modal" onclick="event.stopPropagation()">
             <div class="payment-header">
@@ -1628,6 +1651,7 @@
 
         let games = [];
         let selectedCart = [];
+        const selectedPlatformByGame = new Map();
         let expandedCategories = new Set();
         let expandedFeatureCategories = new Set();
         const carouselIntervals = new Map();
@@ -1894,155 +1918,142 @@
             });
         }
 
-        function normalizeSheetHeader(value) {
-            return String(value ?? '')
+        function normalizeGameName(value) {
+            return String(value || '')
                 .normalize('NFD')
                 .replace(/[\u0300-\u036f]/g, '')
                 .trim()
+                .replace(/\s+/g, ' ')
                 .toLowerCase();
         }
 
-        function buildHeaderMap(headers) {
-            const map = {};
-            headers.forEach((header, index) => {
-                const key = normalizeSheetHeader(header);
-                if (key) map[key] = index;
+        function normalizePlatform(value) {
+            const s = String(value || '').toUpperCase().replace(/\s+/g, '');
+            const result = [];
+            if (s.includes('PS4')) result.push('PS4');
+            if (s.includes('PS5')) result.push('PS5');
+            return result.length ? result : ['PS4'];
+        }
+
+        function applyPlatformRowToGame(game, rowPlatform, pricePrimary, stockPrimary, priceSecondary, stockSecondary) {
+            const platforms = normalizePlatform(rowPlatform);
+            platforms.forEach(platform => {
+                if (!game.platformData[platform]) {
+                    game.platformData[platform] = { primary: 0, primaryStock: 0, secondary: 0, secondaryStock: 0 };
+                }
+
+                // Mantém a linha original da planilha como fonte. Se houver duas linhas
+                // para o mesmo jogo (PS4 e PS5), cada uma abastece sua própria plataforma.
+                if (pricePrimary > 0 || stockPrimary > 0) {
+                    game.platformData[platform].primary = pricePrimary;
+                    game.platformData[platform].primaryStock = stockPrimary;
+                }
+                if (priceSecondary > 0 || stockSecondary > 0) {
+                    game.platformData[platform].secondary = priceSecondary;
+                    game.platformData[platform].secondaryStock = stockSecondary;
+                }
             });
-            return map;
         }
 
-        function getSheetValue(row, headerMap, ...names) {
-            for (const name of names) {
-                const idx = headerMap[normalizeSheetHeader(name)];
-                if (idx !== undefined) return row[idx];
-            }
-            return '';
-        }
-
-        function parseSheetMoney(value) {
-            if (value === null || value === undefined) return 0;
-            const raw = String(value).trim();
-            if (!raw) return 0;
-            // Handles both 1.234,56 and 1234.56.
-            const cleaned = raw.replace(/R\$/gi, '').replace(/\s/g, '');
-            if (cleaned.includes(',') && cleaned.includes('.')) {
-                return parseFloat(cleaned.replace(/\./g, '').replace(',', '.')) || 0;
-            }
-            if (cleaned.includes(',')) return parseFloat(cleaned.replace(',', '.')) || 0;
-            return parseFloat(cleaned.replace(/[^0-9.-]/g, '')) || 0;
-        }
-
-        function parseSheetStock(value) {
-            if (value === null || value === undefined) return 0;
-            const n = parseInt(String(value).replace(/[^0-9-]/g, ''), 10);
-            return Number.isFinite(n) ? Math.max(0, n) : 0;
-        }
-
-        function getAvailablePlatforms(game) {
-            const platforms = [];
-            if (game.ps4Primary > 0 || game.ps4Secondary > 0) platforms.push('PS4');
-            if (game.ps5Primary > 0 || game.ps5Secondary > 0) platforms.push('PS5');
-            return platforms;
-        }
-
-        function getPriceForSelection(game, platform, type) {
-            if (platform === 'PS4') return type === 'Primária' ? game.ps4Primary : game.ps4Secondary;
-            if (platform === 'PS5') return type === 'Primária' ? game.ps5Primary : game.ps5Secondary;
-            return 0;
-        }
-
-        function getStockForSelection(game, platform, type) {
-            if (platform === 'PS4') return type === 'Primária' ? game.stockPs4Primary : game.stockPs4Secondary;
-            if (platform === 'PS5') return type === 'Primária' ? game.stockPs5Primary : game.stockPs5Secondary;
-            return 0;
-        }
-
-        function getOfferPrices(game) {
-            const prices = [];
-            const combos = [
-                ['PS4', 'Primária', game.ps4Primary],
-                ['PS4', 'Secundária', game.ps4Secondary],
-                ['PS5', 'Primária', game.ps5Primary],
-                ['PS5', 'Secundária', game.ps5Secondary]
-            ];
-            combos.forEach(([platform, type, price]) => {
-                if (price > 0) prices.push({ platform, type, price });
+        function finalizeUnifiedGame(game) {
+            game.platforms = Object.keys(game.platformData).filter(platform => {
+                const p = game.platformData[platform];
+                return p.primary > 0 || p.secondary > 0 || p.primaryStock > 0 || p.secondaryStock > 0;
             });
-            return prices;
+
+            if (!game.platforms.length) game.platforms = ['PS4'];
+            game.platform = game.platforms.join(' / ');
+
+            const values = [];
+            game.platforms.forEach(platform => {
+                const p = game.platformData[platform];
+                if (p.primary > 0 && p.primaryStock > 0) values.push(p.primary);
+                if (p.secondary > 0 && p.secondaryStock > 0) values.push(p.secondary);
+            });
+            if (!values.length) {
+                game.platforms.forEach(platform => {
+                    const p = game.platformData[platform];
+                    if (p.primary > 0) values.push(p.primary);
+                    if (p.secondary > 0) values.push(p.secondary);
+                });
+            }
+
+            game.mainPrice = values.length ? Math.min(...values) : 0;
+
+            // Compatibilidade com partes antigas do site.
+            const defaultPlatform = game.platforms[0];
+            const defaultData = game.platformData[defaultPlatform] || {};
+            game.pricePrimary = defaultData.primary || 0;
+            game.stockPrimary = defaultData.primaryStock || 0;
+            game.priceSecondary = defaultData.secondary || 0;
+            game.stockSecondary = defaultData.secondaryStock || 0;
+            return game;
         }
 
         function parseCsvData(rows) {
             games = [];
-            if (!Array.isArray(rows) || rows.length < 2) {
-                showError();
-                return;
-            }
-
-            const headers = rows[0];
-            const headerMap = buildHeaderMap(headers);
+            const grouped = new Map();
 
             for (let i = 1; i < rows.length; i++) {
                 const row = rows[i];
-                if (!row || !row.length) continue;
+                if (!row || row.length < 2) continue;
 
-                const name = String(getSheetValue(row, headerMap, 'Jogo', 'Nome') || '').trim();
-                if (!name || /^(nome|jogo)$/i.test(name)) continue;
+                // A PLANILHA ORIGINAL NÃO É ALTERADA:
+                // A ID continua na A, Jogo B, Plataforma C, Categoria D,
+                // preço antigo E, Primária F/G, Secundária H/I, data J e Capa K.
+                const name = row[1] ? row[1].trim() : '';
+                if (!name || name.toLowerCase() === 'nome' || name.toLowerCase() === 'jogo') continue;
 
-                const category = String(getSheetValue(row, headerMap, 'Categoria') || 'Catálogo').trim() || 'Catálogo';
-                const targetDate = String(getSheetValue(row, headerMap, 'Data de lançamento', 'Data de lancamento', 'Data') || '').trim();
-                const oldPrice = parseSheetMoney(getSheetValue(row, headerMap, 'Preço de referência', 'Preco de referencia', 'Preço antigo', 'Preco antigo', 'De'));
-
-                const ps4Primary = parseSheetMoney(getSheetValue(row, headerMap, 'PS4 Primária', 'PS4 Primaria'));
-                const ps4Secondary = parseSheetMoney(getSheetValue(row, headerMap, 'PS4 Secundária', 'PS4 Secundaria'));
-                const ps5Primary = parseSheetMoney(getSheetValue(row, headerMap, 'PS5 Primária', 'PS5 Primaria'));
-                const ps5Secondary = parseSheetMoney(getSheetValue(row, headerMap, 'PS5 Secundária', 'PS5 Secundaria'));
-
-                const stockPs4Primary = parseSheetStock(getSheetValue(row, headerMap, 'Estoque PS4 Primária', 'Estoque PS4 Primaria'));
-                const stockPs4Secondary = parseSheetStock(getSheetValue(row, headerMap, 'Estoque PS4 Secundária', 'Estoque PS4 Secundaria'));
-                const stockPs5Primary = parseSheetStock(getSheetValue(row, headerMap, 'Estoque PS5 Primária', 'Estoque PS5 Primaria'));
-                const stockPs5Secondary = parseSheetStock(getSheetValue(row, headerMap, 'Estoque PS5 Secundária', 'Estoque PS5 Secundaria'));
-
-                const imgRaw = String(getSheetValue(row, headerMap, 'Capa') || '').trim();
-                const imgUrl = /^https?:\/\//i.test(imgRaw)
+                const platformRaw = row[2] ? row[2].trim() : 'PS4';
+                const category = row[3] ? row[3].trim() : 'Catálogo';
+                const oldPrice = parsePrice(row[4]);
+                const pricePrimary = parsePrice(row[5]);
+                const stockPrimary = row[6] ? (parseInt(row[6].toString().replace(/\D/g, '')) || 0) : 0;
+                const priceSecondary = parsePrice(row[7]);
+                const stockSecondary = row[8] ? (parseInt(row[8].toString().replace(/\D/g, '')) || 0) : 0;
+                const targetDate = row[9] ? row[9].trim() : '';
+                const imgRaw = row[10] ? row[10].trim() : '';
+                const imgUrl = (imgRaw && imgRaw.startsWith('http'))
                     ? imgRaw
-                    : 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTnOXAQFE6SWdIZy6b4OpXDWYJUjkIbnYx7gQLCRunJ3w&s=10';
+                    : "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTnOXAQFE6SWdIZy6b4OpXDWYJUjkIbnYx7gQLCRunJ3w&s=10";
 
-                const platformList = [];
-                if (ps4Primary > 0 || ps4Secondary > 0) platformList.push('PS4');
-                if (ps5Primary > 0 || ps5Secondary > 0) platformList.push('PS5');
+                // Unifica apenas linhas que representam o mesmo jogo e a mesma categoria.
+                // Assim PS4 e PS5 continuam sendo cadastrados separadamente na planilha,
+                // mas aparecem como UM único produto no site.
+                const key = `${normalizeGameName(name)}||${categoryKey(category)}`;
+                let game = grouped.get(key);
 
-                const offerPrices = [ps4Primary, ps4Secondary, ps5Primary, ps5Secondary].filter(v => v > 0);
-                const mainPrice = offerPrices.length ? Math.min(...offerPrices) : 0;
+                if (!game) {
+                    game = {
+                        id: row[0] && row[0].trim() ? row[0].trim() : `game-${i}`,
+                        name,
+                        category,
+                        oldPrice: oldPrice > 0 ? oldPrice : 0,
+                        targetDate,
+                        img: imgUrl,
+                        platformData: {},
+                        _firstIndex: i
+                    };
+                    grouped.set(key, game);
+                } else {
+                    // Usa a primeira capa válida, mas aceita a da linha seguinte se a primeira faltar.
+                    if (!game.img || game.img.includes('encrypted-tbn0')) {
+                        if (imgRaw && imgRaw.startsWith('http')) game.img = imgRaw;
+                    }
+                    if (!game.oldPrice && oldPrice > 0) game.oldPrice = oldPrice;
+                    if (!game.targetDate && targetDate) game.targetDate = targetDate;
+                }
 
-                const game = {
-                    id: `${name}-${i}`,
-                    name,
-                    description: String(getSheetValue(row, headerMap, 'Descrição', 'Descricao') || '').trim(),
-                    platform: platformList.length ? platformList.join(' / ') : 'Plataforma não informada',
-                    platforms: platformList,
-                    selectedPlatform: platformList.length === 1 ? platformList[0] : null,
-                    category,
-                    oldPrice,
-                    ps4Primary,
-                    ps4Secondary,
-                    ps5Primary,
-                    ps5Secondary,
-                    stockPs4Primary,
-                    stockPs4Secondary,
-                    stockPs5Primary,
-                    stockPs5Secondary,
-                    pricePrimary: platformList.length === 1 ? getPriceForSelection({ps4Primary,ps4Secondary,ps5Primary,ps5Secondary}, platformList[0], 'Primária') : 0,
-                    priceSecondary: platformList.length === 1 ? getPriceForSelection({ps4Primary,ps4Secondary,ps5Primary,ps5Secondary}, platformList[0], 'Secundária') : 0,
-                    stockPrimary: platformList.length === 1 ? getStockForSelection({stockPs4Primary,stockPs4Secondary,stockPs5Primary,stockPs5Secondary}, platformList[0], 'Primária') : 0,
-                    stockSecondary: platformList.length === 1 ? getStockForSelection({stockPs4Primary,stockPs4Secondary,stockPs5Primary,stockPs5Secondary}, platformList[0], 'Secundária') : 0,
-                    mainPrice,
-                    targetDate,
-                    img: imgUrl
-                };
-
-                games.push(game);
+                applyPlatformRowToGame(game, platformRaw, pricePrimary, stockPrimary, priceSecondary, stockSecondary);
             }
 
+            games = Array.from(grouped.values())
+                .sort((a, b) => a._firstIndex - b._firstIndex)
+                .map(finalizeUnifiedGame);
+
+            games.forEach(game => delete game._firstIndex);
+
+            // Remove imediatamente itens vencidos de Pré Venda/Promoção.
             games = games.filter(game => !shouldHideExpiredTimedGame(game));
 
             if (games.length === 0) {
@@ -2085,7 +2096,33 @@
             });
         }
 
-        function refreshAllGameViews() {
+        function getSelectedPlatform(game) {
+            if (!game) return null;
+            if (game.platforms.length === 1) return game.platforms[0];
+            return selectedPlatformByGame.get(game.id) || null;
+        }
+
+        function getPlatformOption(game, platform, type) {
+            if (!game || !platform || !game.platformData[platform]) return { price: 0, stock: 0 };
+            const data = game.platformData[platform];
+            return type === 'Primária'
+                ? { price: data.primary || 0, stock: data.primaryStock || 0 }
+                : { price: data.secondary || 0, stock: data.secondaryStock || 0 };
+        }
+
+        function toggleSelectPlatform(gameId, platform) {
+            const game = games.find(g => g.id === gameId);
+            if (!game || !game.platformData[platform]) return;
+
+            const current = selectedPlatformByGame.get(gameId);
+            if (current === platform) {
+                return;
+            }
+
+            selectedPlatformByGame.set(gameId, platform);
+            // Trocar PS4/PS5 invalida a escolha de Primária/Secundária anterior.
+            selectedCart = selectedCart.filter(item => item.gameId !== gameId);
+
             renderLaunchCarousel();
             renderPreorderCarousel();
             renderPromotionCarousel();
@@ -2093,29 +2130,18 @@
             updateBottomBar();
         }
 
-        function selectPlatform(gameId, platform) {
-            const game = games.find(g => g.id === gameId);
-            if (!game || !game.platforms.includes(platform)) return;
-
-            game.selectedPlatform = platform;
-            // Trocar a plataforma cancela uma escolha anterior daquele jogo para evitar comprar a combinação errada.
-            selectedCart = selectedCart.filter(item => item.gameId !== gameId);
-            refreshAllGameViews();
-        }
-
         function toggleSelectType(gameId, type) {
             const game = games.find(g => g.id === gameId);
             if (!game) return;
 
-            const platform = game.selectedPlatform || (game.platforms.length === 1 ? game.platforms[0] : null);
+            const platform = getSelectedPlatform(game);
             if (!platform) return;
 
-            const price = getPriceForSelection(game, platform, type);
-            const stock = getStockForSelection(game, platform, type);
-            if (!(price > 0)) return;
+            const option = getPlatformOption(game, platform, type);
+            if (!option.price || option.stock <= 0) return;
 
             const idx = selectedCart.findIndex(i => i.gameId === gameId);
-            if (idx > -1 && selectedCart[idx].platform === platform && selectedCart[idx].type === type) {
+            if (idx > -1 && selectedCart[idx].type === type && selectedCart[idx].platform === platform) {
                 selectedCart.splice(idx, 1);
             } else {
                 selectedCart = selectedCart.filter(i => i.gameId !== gameId);
@@ -2124,17 +2150,45 @@
                     name: game.name,
                     platform,
                     type,
-                    price,
-                    stock
+                    price: option.price
                 });
             }
 
-            refreshAllGameViews();
+            renderLaunchCarousel();
+            renderPreorderCarousel();
+            renderPromotionCarousel();
+            renderGames();
+            updateBottomBar();
         }
 
-        // --- COMPRA DIRETA NO WHATSAPP PELO CARD ---
-        let pendingPurchaseGameId = null;
+        // --- CONFIRMAÇÃO DA PLATAFORMA/TIPO ANTES DO PAGAMENTO ---
+        function openPurchaseConfirmation(gameId) {
+            const game = games.find(g => g.id === gameId);
+            const cartItem = selectedCart.find(i => i.gameId === gameId);
+            if (!game || !cartItem) return;
 
+            document.getElementById('confirmGameName').innerText = game.name;
+            document.getElementById('confirmPlatformText').innerText = `🎮 Plataforma: ${cartItem.platform}`;
+            document.getElementById('confirmTypeText').innerText = `Conta ${cartItem.type}`;
+            document.getElementById('confirmPriceText').innerText = `R$ ${cartItem.price.toFixed(2).replace('.', ',')}`;
+            document.getElementById('purchaseConfirmOverlay').classList.add('active');
+        }
+
+        function closePurchaseConfirmation() {
+            const el = document.getElementById('purchaseConfirmOverlay');
+            if (el) el.classList.remove('active');
+        }
+
+        function handlePurchaseConfirmOverlayClick(event) {
+            if (event.target && event.target.id === 'purchaseConfirmOverlay') closePurchaseConfirmation();
+        }
+
+        function confirmPurchaseSelection() {
+            closePurchaseConfirmation();
+            openPaymentModal();
+        }
+
+        // --- COMPRA DIRETA NO CARD: confirmação -> pagamento ---
         function buyGameDirect(event, gameId) {
             event.stopPropagation();
             const game = games.find(g => g.id === gameId);
@@ -2143,37 +2197,7 @@
             const cartItem = selectedCart.find(i => i.gameId === gameId);
             if (!cartItem) return;
 
-            pendingPurchaseGameId = gameId;
-
-            const overlay = document.getElementById('purchaseConfirmOverlay');
-            document.getElementById('purchaseConfirmProduct').innerText = game.name;
-            document.getElementById('purchaseConfirmChoice').innerText =
-                `${cartItem.type} • ${cartItem.platform} • R$ ${cartItem.price.toFixed(2).replace('.', ',')}`;
-
-            overlay.classList.add('active');
-            document.body.classList.add('modal-open');
-        }
-
-        function closePurchaseConfirm() {
-            const overlay = document.getElementById('purchaseConfirmOverlay');
-            if (overlay) overlay.classList.remove('active');
-            pendingPurchaseGameId = null;
-            document.body.classList.remove('modal-open');
-        }
-
-        function handlePurchaseConfirmOverlay(event) {
-            if (event.target.id === 'purchaseConfirmOverlay') closePurchaseConfirm();
-        }
-
-        function confirmPurchaseChoice() {
-            if (!pendingPurchaseGameId) return;
-
-            closePurchaseConfirm();
-
-            // Mantém o fluxo de pagamento existente: PIX ou cartão.
-            if (typeof openPaymentModal === 'function') {
-                openPaymentModal();
-            }
+            openPurchaseConfirmation(gameId);
         }
 
         // --- PREPARAR IMAGENS EXTERNAS PARA O HTML2CANVAS ---
@@ -2282,17 +2306,32 @@
             const cardEl = event.currentTarget.closest('.card');
             if (!game || !cardEl) return;
 
+            const priceLines = [];
+            game.platforms.forEach(platform => {
+                ['Primária', 'Secundária'].forEach(type => {
+                    const option = getPlatformOption(game, platform, type);
+                    if (option.price > 0) {
+                        priceLines.push(`🎮 ${platform} • ${type}: R$ ${option.price.toFixed(2).replace('.', ',')}`);
+                    }
+                });
+            });
+
             const discount = getDiscountPercent(game);
-            const priceLines = getOfferPrices(game).map(item =>
-                `🎮 ${item.platform} • ${item.type}: R$ ${item.price.toFixed(2).replace('.', ',')}`
-            );
+            const discountLine = discount > 0 ? `📉 Desconto: -${discount}%
+` : '';
 
             const message =
-                `🎮 *MCO GAMES*\n\n` +
-                `Confira esta oferta:\n` +
-                `🕹️ *${game.name}* (${game.platform})\n` +
-                `${priceLines.join('\n')}\n` +
-                (discount > 0 ? `📉 Desconto: *-${discount}%*\n\n` : `\n`) +
+                `🎮 *MCO GAMES*
+
+` +
+                `Confira esta oferta:
+` +
+                `🕹️ *${game.name}*
+` +
+                `${priceLines.join('\n')}
+` +
+                `${discountLine}
+` +
                 `Esse e mais jogos, acesse: ${SHARE_URL}`;
 
             const actionsRow = cardEl.querySelector('.card-actions-row');
@@ -2312,21 +2351,37 @@
                 const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
                 if (!blob) throw new Error('Não foi possível gerar a imagem da oferta.');
 
-                const safeName = game.name.replace(/[^a-zA-Z0-9À-ÿ]/g, '_').replace(/_+/g, '_');
+                const safeName = game.name
+                    .replace(/[^a-zA-Z0-9À-ÿ]/g, '_')
+                    .replace(/_+/g, '_');
                 const fileName = `MCO_GAMES_${safeName}.png`;
                 const file = new File([blob], fileName, { type: 'image/png' });
 
+                // CELULAR:
+                // Usa o compartilhamento nativo, pois é a forma mais adequada de entregar
+                // a imagem ao WhatsApp em aparelhos móveis.
                 if (isMobileDevice()) {
-                    const canShareFile = !!(navigator.share && navigator.canShare && navigator.canShare({ files: [file] }));
+                    const canShareFile = !!(
+                        navigator.share &&
+                        navigator.canShare &&
+                        navigator.canShare({ files: [file] })
+                    );
+
                     if (canShareFile) {
                         try {
-                            await navigator.share({ files: [file], text: message, title: `Oferta MCO GAMES - ${game.name}` });
+                            await navigator.share({
+                                files: [file],
+                                text: message,
+                                title: `Oferta MCO GAMES - ${game.name}`
+                            });
                             return;
                         } catch (shareError) {
                             if (shareError && shareError.name === 'AbortError') return;
+                            console.warn('Compartilhamento nativo falhou no celular:', shareError);
                         }
                     }
 
+                    // Fallback mobile: salva a imagem e abre o WhatsApp com o texto pronto.
                     const mobileImageUrl = URL.createObjectURL(blob);
                     const mobileLink = document.createElement('a');
                     mobileLink.href = mobileImageUrl;
@@ -2335,24 +2390,47 @@
                     document.body.appendChild(mobileLink);
                     mobileLink.click();
                     mobileLink.remove();
+
                     setTimeout(() => {
                         URL.revokeObjectURL(mobileImageUrl);
                         window.location.href = `https://wa.me/?text=${encodeURIComponent(message)}`;
                     }, 700);
+
                     return;
                 }
 
-                const whatsappWindow = window.open(`https://web.whatsapp.com/send?text=${encodeURIComponent(message)}`, '_blank');
+                // COMPUTADOR:
+                // Evita o compartilhamento do Windows e também evita o download automático
+                // sempre que o navegador permitir escrever uma imagem no clipboard.
+                //
+                // Fluxo:
+                // 1) abre o WhatsApp Web imediatamente (evita bloqueio de pop-up);
+                // 2) copia o PNG para a área de transferência;
+                // 3) deixa a mensagem pronta no WhatsApp;
+                // 4) você usa Ctrl+V no WhatsApp para colar a imagem.
+                const whatsappWindow = window.open(
+                    `https://web.whatsapp.com/send?text=${encodeURIComponent(message)}`,
+                    '_blank'
+                );
+
                 let copiedToClipboard = false;
 
                 if (navigator.clipboard && window.ClipboardItem) {
                     try {
-                        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+                        const clipboardItem = new ClipboardItem({
+                            'image/png': blob
+                        });
+
+                        await navigator.clipboard.write([clipboardItem]);
                         copiedToClipboard = true;
-                    } catch (_) {}
+                    } catch (clipboardError) {
+                        console.warn('Não foi possível copiar a imagem para o clipboard:', clipboardError);
+                    }
                 }
 
                 if (!copiedToClipboard) {
+                    // Fallback: caso o navegador não permita clipboard de imagem,
+                    // mantém o PNG disponível para salvamento manual.
                     const imageUrl = URL.createObjectURL(blob);
                     const link = document.createElement('a');
                     link.href = imageUrl;
@@ -2361,14 +2439,25 @@
                     document.body.appendChild(link);
                     link.click();
                     link.remove();
-                    setTimeout(() => URL.revokeObjectURL(imageUrl), 5000);
+
+                    setTimeout(() => {
+                        URL.revokeObjectURL(imageUrl);
+                    }, 5000);
                 }
 
+                // Mantém a aba do WhatsApp aberta. Se ela tiver sido bloqueada pelo navegador,
+                // tenta novamente depois da operação de clipboard/download.
                 if (!whatsappWindow || whatsappWindow.closed) {
-                    window.open(`https://web.whatsapp.com/send?text=${encodeURIComponent(message)}`, '_blank');
+                    window.open(
+                        `https://web.whatsapp.com/send?text=${encodeURIComponent(message)}`,
+                        '_blank'
+                    );
                 }
+
             } catch (err) {
-                if (err && err.name !== 'AbortError') console.error('Erro ao gerar/compartilhar o print:', err);
+                if (err && err.name !== 'AbortError') {
+                    console.error('Erro ao gerar/compartilhar o print:', err);
+                }
             } finally {
                 if (actionsRow) actionsRow.style.display = previousDisplay || 'flex';
             }
@@ -2379,67 +2468,82 @@
             card.className = 'card';
 
             const selectedItem = selectedCart.find(i => i.gameId === game.id);
-            const selectedPlatform = selectedItem ? selectedItem.platform : game.selectedPlatform;
-            const selectedType = selectedItem ? selectedItem.type : null;
+            const selectedPlatform = getSelectedPlatform(game);
+            const primarySelected = !!selectedItem && selectedItem.platform === selectedPlatform && selectedItem.type === 'Primária';
+            const secondarySelected = !!selectedItem && selectedItem.platform === selectedPlatform && selectedItem.type === 'Secundária';
 
             if (selectedItem) card.classList.add('selected');
 
             const discount = getDiscountPercent(game);
-            const platforms = getAvailablePlatforms(game);
-            const platformLabel = platforms.length ? platforms.join(' / ') : 'Plataforma não informada';
 
-            let platformHtml = '';
-            if (platforms.length > 1) {
-                platformHtml = `
-                    <div class="platform-selector" aria-label="Escolha a plataforma">
-                        ${platforms.map(platform => `
+            let platformButtonsHtml = '';
+            if (game.platforms.length > 1) {
+                platformButtonsHtml = `
+                    <div class="platform-selector">
+                        ${game.platforms.map(platform => `
                             <button type="button" class="platform-choice-btn ${selectedPlatform === platform ? 'active' : ''}"
-                                onclick="selectPlatform('${escapeHtml(game.id)}', '${platform}')">
+                                onclick="toggleSelectPlatform('${game.id}', '${platform}')">
                                 ${platform}
                             </button>
                         `).join('')}
                     </div>
-                    ${selectedPlatform ? '' : '<div class="platform-hint">Escolha PS4 ou PS5 para ver os valores.</div>'}
+                    ${!selectedPlatform ? '<div class="platform-help">Escolha a plataforma</div>' : ''}
                 `;
             }
 
-            const canShowTypes = platforms.length === 1 || !!selectedPlatform;
-            const currentPlatform = selectedPlatform || platforms[0];
             let buttonsHtml = '';
+            if (selectedPlatform) {
+                const primary = getPlatformOption(game, selectedPlatform, 'Primária');
+                const secondary = getPlatformOption(game, selectedPlatform, 'Secundária');
 
-            if (canShowTypes && currentPlatform) {
-                const primaryPrice = getPriceForSelection(game, currentPlatform, 'Primária');
-                const secondaryPrice = getPriceForSelection(game, currentPlatform, 'Secundária');
-                const primaryStock = getStockForSelection(game, currentPlatform, 'Primária');
-                const secondaryStock = getStockForSelection(game, currentPlatform, 'Secundária');
-                const primarySelected = selectedType === 'Primária';
-                const secondarySelected = selectedType === 'Secundária';
+                const primaryTxt = `<span class="media-label">Primária (${primary.stock} Un)</span><br><span class="media-price">R$ ${primary.price.toFixed(2).replace('.', ',')}</span>`;
+                const secondaryTxt = `<span class="media-label">Secundária (${secondary.stock} Un)</span><br><span class="media-price">R$ ${secondary.price.toFixed(2).replace('.', ',')}</span>`;
 
-                const primaryTxt = `<span class="media-label">Primária (${primaryStock} Un)</span><br><span class="media-price">R$ ${primaryPrice.toFixed(2).replace('.', ',')}</span>`;
-                const secondaryTxt = `<span class="media-label">Secundária (${secondaryStock} Un)</span><br><span class="media-price">R$ ${secondaryPrice.toFixed(2).replace('.', ',')}</span>`;
-
-                const primaryBtn = primaryPrice > 0 ? `
-                    <button type="button" class="type-btn ${primarySelected ? 'active' : ''}" onclick="toggleSelectType('${escapeHtml(game.id)}', 'Primária')">
-                        ${primaryTxt}
-                    </button>` : '';
-                const secondaryBtn = secondaryPrice > 0 ? `
-                    <button type="button" class="type-btn ${secondarySelected ? 'active' : ''}" onclick="toggleSelectType('${escapeHtml(game.id)}', 'Secundária')">
-                        ${secondaryTxt}
-                    </button>` : '';
-
-                buttonsHtml = `<div class="type-selector">${primaryBtn}${secondaryBtn}</div>`;
+                if (primary.price > 0 && secondary.price > 0) {
+                    buttonsHtml = `
+                        <div class="type-selector">
+                            <button class="type-btn ${primarySelected ? 'active' : ''}" onclick="toggleSelectType('${game.id}', 'Primária')">
+                                ${primaryTxt}
+                            </button>
+                            <button class="type-btn ${secondarySelected ? 'active' : ''}" onclick="toggleSelectType('${game.id}', 'Secundária')">
+                                ${secondaryTxt}
+                            </button>
+                        </div>
+                    `;
+                } else if (primary.price > 0) {
+                    buttonsHtml = `
+                        <div class="type-selector">
+                            <button class="type-btn ${primarySelected ? 'active' : ''}" style="width:100%" onclick="toggleSelectType('${game.id}', 'Primária')">
+                                ${primaryTxt}
+                            </button>
+                        </div>
+                    `;
+                } else if (secondary.price > 0) {
+                    buttonsHtml = `
+                        <div class="type-selector">
+                            <button class="type-btn ${secondarySelected ? 'active' : ''}" style="width:100%" onclick="toggleSelectType('${game.id}', 'Secundária')">
+                                ${secondaryTxt}
+                            </button>
+                        </div>
+                    `;
+                }
             }
 
             let timerHtml = '';
-            if (game.targetDate) timerHtml = `<div class="timer-badge" data-target="${escapeHtml(game.targetDate)}">⏳ Carregando...</div>`;
+            if (game.targetDate) {
+                timerHtml = `<div class="timer-badge" data-target="${escapeHtml(game.targetDate)}">⏳ Carregando...</div>`;
+            }
 
-            const preorderHtml = isPreorderGame(game) ? `<span class="preorder-label">🚀 PRÉ-VENDA</span>` : '';
-            const hasSelection = !!selectedItem;
+            const preorderHtml = isPreorderGame(game)
+                ? `<span class="preorder-label">🚀 PRÉ-VENDA</span>`
+                : '';
+
+            const buyEnabled = !!selectedItem;
 
             card.innerHTML = `
                 <div class="card-img-container">
                     ${preorderHtml}
-                    <span class="platform-tag">${escapeHtml(platformLabel)}</span>
+                    <span class="platform-tag">${escapeHtml(game.platform)}</span>
                     <img src="${escapeHtml(game.img)}" alt="${escapeHtml(game.name)}" class="card-img" loading="lazy" onerror="this.src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTnOXAQFE6SWdIZy6b4OpXDWYJUjkIbnYx7gQLCRunJ3w&s=10'">
                 </div>
                 <div class="card-info">
@@ -2452,15 +2556,21 @@
                             ${discount > 0 ? `<span class="discount-inline">-${discount}%</span>` : ''}
                         </div>
                     </div>
-                    ${platformHtml}
+                    ${platformButtonsHtml}
                     ${buttonsHtml}
                     <div class="card-actions-row">
-                        <button class="btn-buy-direct" ${hasSelection ? '' : 'disabled'} ${hasSelection ? '' : 'aria-disabled="true"'} title="${hasSelection ? 'Comprar este jogo' : 'Escolha plataforma e tipo de conta primeiro'}" onclick="buyGameDirect(event, '${escapeHtml(game.id)}')">
+                        <button
+                            class="btn-buy-direct"
+                            ${buyEnabled ? '' : 'disabled'}
+                            ${buyEnabled ? '' : 'aria-disabled="true"'}
+                            title="${buyEnabled ? 'Comprar este jogo' : (selectedPlatform ? 'Selecione Primária ou Secundária primeiro' : 'Escolha PS4 ou PS5 primeiro')}"
+                            onclick="buyGameDirect(event, '${game.id}')"
+                        >
                             🛒 Comprar
                         </button>
-                        <button class="btn-share-circle" onclick="shareGameOffer(event, '${escapeHtml(game.id)}')" title="Compartilhar oferta no WhatsApp">
+                        <button class="btn-share-circle" onclick="shareGameOffer(event, '${game.id}')" title="Compartilhar oferta no WhatsApp">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                                <path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984 0 1.762.459 3.48 1.332 5.001l-1.416 5.17 5.291-1.387c1.467.8 3.123 1.22 4.78 1.22h.005c5.507 0 9.991-4.479 9.992-9.985 0-2.667-1.038-5.175-2.925-7.063C17.195 3.039 14.68 2 12.012 2zm5.833 14.283c-.244.686-1.42 1.309-1.96 1.365-.506.052-1.168.082-3.376-.826-2.825-1.162-4.636-4.04-4.776-4.228-.14-.188-1.141-1.517-1.141-2.893 0-1.376.721-2.054.978-2.336.257-.282.56-.352.747-.352.187 0 .374.002.538.01.176.008.412-.067.644.49.245.589.842 2.052.915 2.202.073.15.122.327.024.524-.098.197-.147.32-.293.491-.147.171-.309.383-.442.514-.148.148-.302.308-.13.603.172.295.766 1.265 1.644 2.047 1.13 1.005 2.083 1.317 2.378 1.464.295.148.467.123.639-.074.172-.197.737-.859.933-1.154.196-.295.393-.246.664-.148.27.098 1.716.81 2.011.957.295.148.491.221.564.344.073.123.073.712-.171 1.398z"/>
+                                <path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984 0 1.762.459 3.48 1.332 5.001l-1.416 5.17 5.291-1.387c1.467.8 3.123 1.22 4.78 1.22h.005c5.507 0 9.991-4.479 9.992-9.985 0-2.667-1.038-5.175-2.925-7.063C17.195 3.039 14.68 2 12.012 2zm5.833 14.283c-.244.686-1.42 1.309-1.96 1.365-.506.052-1.168.082-1.644 1.317.295.148.467.123.639-.074.172-.197.737-.859.933-1.154.295.295.393-.246.664-.148.27.098 1.716.81 2.011.957.295.148.491.221.564.344.073.123.073.712-.171 1.398z"/>
                             </svg>
                         </button>
                     </div>
@@ -2476,6 +2586,7 @@
 
             return card;
         }
+
 
         function getCategoryDisplayName(category) {
             if (isCategory({ category }, 'Lançamento em Oferta')) return 'LANÇAMENTO EM OFERTA';
@@ -2535,8 +2646,7 @@
 
             ctx.fillStyle = '#8c96a3';
             ctx.font = '600 19px Inter, Arial, sans-serif';
-            const categoryPlatforms = [...new Set(allGames.flatMap(g => g.platforms || []))].join(' / ') || 'Plataforma não informada';
-            ctx.fillText(`${allGames.length} jogo${allGames.length === 1 ? '' : 's'} disponível${allGames.length === 1 ? '' : 'is'} • ${categoryPlatforms}`, 60, 108);
+            ctx.fillText(`${allGames.length} jogo${allGames.length === 1 ? '' : 's'} disponível${allGames.length === 1 ? '' : 'is'} • PS4 / PS5`, 60, 108);
 
             const positions = [
                 { x: 60,  w: 320 },
@@ -3239,6 +3349,7 @@
         function closeModal() {
             document.getElementById('modalOverlay').classList.remove('active');
             document.getElementById('modalDrawer').classList.remove('active');
+            closePurchaseConfirmation();
             closePaymentModal();
         }
 
