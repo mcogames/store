@@ -3057,12 +3057,34 @@
             renderPromotionCarousel();
         }
 
-        function shuffleForPage(list) {
+        // A ordem aleatória é criada uma vez por categoria no carregamento.
+        // Trocar PS4/PS5 ou Primária/Secundária não embaralha novamente.
+        const categoryRandomOrders = new Map();
+
+        function getStableRandomOrder(category, list) {
+            const keyOf = game => String(
+                game.uniqueKey ?? game.id ?? game.name ?? ''
+            );
+
+            const currentKeys = list.map(keyOf);
+            const cachedKeys = categoryRandomOrders.get(category);
+
+            if (
+                cachedKeys &&
+                cachedKeys.length === currentKeys.length &&
+                cachedKeys.every(key => currentKeys.includes(key))
+            ) {
+                const byKey = new Map(list.map(game => [keyOf(game), game]));
+                return cachedKeys.map(key => byKey.get(key)).filter(Boolean);
+            }
+
             const result = [...list];
             for (let i = result.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [result[i], result[j]] = [result[j], result[i]];
             }
+
+            categoryRandomOrders.set(category, result.map(keyOf));
             return result;
         }
 
@@ -3079,7 +3101,7 @@
             // Pré-Venda mantém a ordem por lançamento; Lançamento em Oferta mantém
             // a ordem do carrossel.
             if (category !== 'Pré Venda' && category !== 'Lançamento em Oferta') {
-                allCategoryGames = shuffleForPage(allCategoryGames);
+                allCategoryGames = getStableRandomOrder(category, allCategoryGames);
             }
 
             // Pré-vendas: quem lança primeiro aparece primeiro.
