@@ -3057,6 +3057,15 @@
             renderPromotionCarousel();
         }
 
+        function shuffleForPage(list) {
+            const result = [...list];
+            for (let i = result.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [result[i], result[j]] = [result[j], result[i]];
+            }
+            return result;
+        }
+
         function renderCategoryCarousel({ sectionId, gridId, category, maxItems = 6 }) {
             const section = document.getElementById(sectionId);
             const container = document.getElementById(gridId);
@@ -3065,6 +3074,13 @@
             if (!section || !container || !extraContainer || !expandRow) return;
 
             let allCategoryGames = games.filter(game => isCategory(game, category));
+
+            // Nas categorias comuns, a ordem muda a cada carregamento da página.
+            // Pré-Venda mantém a ordem por lançamento; Lançamento em Oferta mantém
+            // a ordem do carrossel.
+            if (category !== 'Pré Venda' && category !== 'Lançamento em Oferta') {
+                allCategoryGames = shuffleForPage(allCategoryGames);
+            }
 
             // Pré-vendas: quem lança primeiro aparece primeiro.
             // Jogos sem uma data válida ficam depois dos que possuem data,
