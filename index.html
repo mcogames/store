@@ -2517,10 +2517,41 @@
                 ? `💰 A partir de R$ ${game.mainPrice.toFixed(2).replace('.', ',')} (-${discount}%)`
                 : `💰 A partir de R$ ${game.mainPrice.toFixed(2).replace('.', ',')}`;
 
+            const formatSharePrice = value =>
+                `R$ ${Number(value || 0).toFixed(2).replace('.', ',')}`;
+
+            const shareOptions = [];
+
+            // No texto do compartilhamento mostramos todos os preços disponíveis,
+            // mantendo a imagem exatamente como está ("A partir de...").
+            const ps5Data = getPlatformData(game, 'PS5');
+            const ps4Data = getPlatformData(game, 'PS4');
+
+            if (ps5Data.primary > 0 || ps5Data.secondary > 0) {
+                shareOptions.push(
+                    `🟦 *PS5*`,
+                    ...(ps5Data.primary > 0 ? [`• Primária: ${formatSharePrice(ps5Data.primary)}`] : []),
+                    ...(ps5Data.secondary > 0 ? [`• Secundária: ${formatSharePrice(ps5Data.secondary)}`] : [])
+                );
+            }
+
+            if (ps4Data.primary > 0 || ps4Data.secondary > 0) {
+                shareOptions.push(
+                    `🟦 *PS4*`,
+                    ...(ps4Data.primary > 0 ? [`• Primária: ${formatSharePrice(ps4Data.primary)}`] : []),
+                    ...(ps4Data.secondary > 0 ? [`• Secundária: ${formatSharePrice(ps4Data.secondary)}`] : [])
+                );
+            }
+
+            const shareOptionsText = shareOptions.length
+                ? shareOptions.join('\n')
+                : 'Valores sob consulta.';
+
             const message =
                 `🎮 *MCO GAMES*\n\n` +
                 `Confira esta oferta:\n` +
-                `🕹️ *${game.name}* (${(game.platforms || []).join(' / ') || 'Plataforma não informada'})\n` +
+                `🕹️ *${game.name}*\n\n` +
+                `${shareOptionsText}\n\n` +
                 `${offerLine}\n\n` +
                 `Esse e mais jogos, acesse: ${SHARE_URL}`;
 
