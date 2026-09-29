@@ -24,8 +24,8 @@
         :root {
             --bg-color: #0b0d10;
             --card-bg: #13171d;
-            --accent-green: #00e676;
-            --accent-green-dark: #00b359;
+            --accent-green: #18B8FF;
+            --accent-green-dark: #0878D1;
             --border-color: #202630;
             --text-main: #ffffff;
             --text-muted: #8c96a3;
@@ -67,7 +67,7 @@
         }
 
         .brand-icon {
-            background: linear-gradient(135deg, var(--accent-green), #00b359);
+            background: linear-gradient(135deg, var(--accent-green), var(--accent-green-dark));
             color: #000;
             width: 38px;
             height: 38px;
@@ -381,7 +381,7 @@
         .search-input:focus {
             border-color: var(--accent-green);
             background: #111820;
-            box-shadow: 0 0 0 3px rgba(0,230,118,0.09);
+            box-shadow: 0 0 0 3px rgba(24,184,255,0.09);
         }
 
         .search-icon {
@@ -433,7 +433,7 @@
 
         .category-select:focus {
             border-color: var(--accent-green);
-            box-shadow: 0 0 0 3px rgba(0,230,118,0.09);
+            box-shadow: 0 0 0 3px rgba(24,184,255,0.09);
         }
 
         .search-results-title {
@@ -725,7 +725,7 @@
         .platform-selector { margin: 0 0 9px; }
         .platform-btn { min-height: 34px; padding: 7px 8px; }
         .platform-btn.active {
-            box-shadow: 0 0 0 1px rgba(0,230,118,.10), 0 0 14px rgba(0,230,118,.10);
+            box-shadow: 0 0 0 1px rgba(24,184,255,.10), 0 0 14px rgba(24,184,255,.10);
         }
         .card-img-container .card-img {
             aspect-ratio: 1 / 1;
@@ -761,7 +761,7 @@
         .platform-btn.active {
             background: rgba(0, 230, 118, .10);
             border-color: rgba(0, 230, 118, .70);
-            color: #00e676;
+            color: var(--accent-green);
             box-shadow: 0 0 12px rgba(0, 230, 118, .08);
         }
 
@@ -815,7 +815,7 @@
                 90deg,
                 transparent,
                 rgba(255,255,255,0.10),
-                rgba(0,230,118,0.12),
+                rgba(24,184,255,0.12),
                 transparent
             );
             transform: skewX(-18deg);
@@ -1218,7 +1218,7 @@
         .purchase-confirm-card { width:min(430px,100%); background:#151a21; border:1px solid #303946;
             border-radius:16px; padding:22px; box-shadow:0 20px 60px rgba(0,0,0,.55); }
         .purchase-confirm-badge { width:44px;height:44px;border-radius:12px;display:grid;place-items:center;
-            background:rgba(0,230,118,.10);border:1px solid rgba(0,230,118,.25);color:var(--accent-green);margin-bottom:14px; }
+            background:rgba(24,184,255,.10);border:1px solid rgba(24,184,255,.25);color:var(--accent-green);margin-bottom:14px; }
         .purchase-confirm-card h2 { margin:0 0 8px;color:#fff;font-size:1.12rem; }
         .purchase-confirm-card p { color:#aeb7c3;line-height:1.5;font-size:.88rem;margin:0 0 16px; }
         .purchase-confirm-summary { background:#0e1319;border:1px solid #2a323d;border-radius:12px;padding:14px;margin-bottom:16px; }
@@ -1227,7 +1227,7 @@
         .purchase-confirm-actions { display:grid;grid-template-columns:1fr 1fr;gap:10px; }
         .purchase-confirm-actions button { min-height:44px;border-radius:10px;border:1px solid #333d49;cursor:pointer;font-weight:900; }
         .purchase-confirm-cancel { background:#202731;color:#d7dde5; }
-        .purchase-confirm-ok { background:var(--accent-green);color:#001b0c;border-color:var(--accent-green)!important; }
+        .purchase-confirm-ok { background:var(--accent-green);color:#00111a;border-color:var(--accent-green)!important; }
 
         .payment-overlay {
             position: fixed;
@@ -1330,7 +1330,7 @@
         .payment-method-btn:hover {
             transform: translateY(-2px);
             border-color: var(--accent-green);
-            background: rgba(0,230,118,0.08);
+            background: rgba(24,184,255,0.08);
         }
 
         .payment-method-btn .method-icon {
@@ -2805,8 +2805,8 @@
 
             // Faixa de destaque.
             const accentGradient = ctx.createLinearGradient(0, 0, 1200, 0);
-            accentGradient.addColorStop(0, '#00e676');
-            accentGradient.addColorStop(1, '#00b359');
+            accentGradient.addColorStop(0, '#18B8FF');
+            accentGradient.addColorStop(1, '#0878D1');
             ctx.fillStyle = accentGradient;
             ctx.fillRect(0, 0, 1200, 7);
 
@@ -2908,7 +2908,7 @@
             }
 
             // Rodapé.
-            ctx.fillStyle = '#00e676';
+            ctx.fillStyle = '#18B8FF';
             ctx.font = '800 20px Inter, Arial, sans-serif';
             ctx.fillText('MCO GAMES', 60, 530);
 
@@ -3064,7 +3064,29 @@
             const expandRow = document.getElementById(`${gridId}Expand`);
             if (!section || !container || !extraContainer || !expandRow) return;
 
-            const allCategoryGames = games.filter(game => isCategory(game, category));
+            let allCategoryGames = games.filter(game => isCategory(game, category));
+
+            // Pré-vendas: quem lança primeiro aparece primeiro.
+            // Jogos sem uma data válida ficam depois dos que possuem data,
+            // mantendo a ordem original entre eles.
+            if (isCategory({ category }, 'Pré Venda')) {
+                allCategoryGames = allCategoryGames
+                    .map((game, index) => ({
+                        game,
+                        index,
+                        launchTime: parseTargetDate(game.targetDate)?.getTime() ?? null
+                    }))
+                    .sort((a, b) => {
+                        if (a.launchTime !== null && b.launchTime !== null) {
+                            return a.launchTime - b.launchTime;
+                        }
+                        if (a.launchTime !== null) return -1;
+                        if (b.launchTime !== null) return 1;
+                        return a.index - b.index;
+                    })
+                    .map(item => item.game);
+            }
+
             const visibleGames = allCategoryGames.slice(0, maxItems);
             const extraGames = allCategoryGames.slice(maxItems);
             const isExpanded = expandedFeatureCategories.has(categoryKey(category));
