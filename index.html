@@ -2638,20 +2638,10 @@
                         console.warn('Não foi possível copiar o texto:', err);
                     }
                 }
-
-                const whatsappUrl =
-                    `https://web.whatsapp.com/send?text=${encodeURIComponent(message)}`;
-
-                if (whatsappWindow && !whatsappWindow.closed) {
-                    whatsappWindow.location.href = whatsappUrl;
-                } else {
-                    whatsappWindow = window.open(whatsappUrl, '_blank');
-                }
-
-                showShareStatus(
+showShareStatus(
                     textCopied
-                        ? 'Imagem salva e texto copiado. Arraste o PNG para o WhatsApp e envie.'
-                        : 'Imagem salva. O WhatsApp foi aberto; arraste o PNG para a conversa.'
+                        ? 'Imagem salva e texto copiado. Agora é só abrir o WhatsApp e enviar.'
+                        : 'Imagem salva. O texto está pronto para colar no WhatsApp.'
                 );
 
             } catch (err) {
@@ -2952,18 +2942,15 @@
                 }
             }
 
-            // Rodapé.
+            // Rodapé: sem URL na imagem. O link continua disponível no texto
+            // do compartilhamento do WhatsApp.
             ctx.fillStyle = '#18B8FF';
             ctx.font = '800 20px Inter, Arial, sans-serif';
             ctx.fillText('MCO GAMES', 60, 530);
 
             ctx.fillStyle = '#8c96a3';
             ctx.font = '500 18px Inter, Arial, sans-serif';
-            ctx.fillText('Confira a categoria completa no site:', 60, 558);
-
-            ctx.fillStyle = '#ffffff';
-            ctx.font = '700 18px Inter, Arial, sans-serif';
-            ctx.fillText(getCategoryShareUrl(category), 390, 558);
+            ctx.fillText('Confira esta categoria completa no site MCO GAMES', 60, 558);
 
             ctx.fillStyle = '#66717e';
             ctx.font = '500 14px Inter, Arial, sans-serif';
@@ -3047,10 +3034,37 @@
                 // 1) baixa a capa automaticamente;
                 // 2) copia somente o texto;
                 // 3) abre o WhatsApp Web com a mensagem pronta.
-                const whatsappUrl =
-                    `https://web.whatsapp.com/send?text=${encodeURIComponent(message)}`;
+                // Copia o texto ANTES de abrir o WhatsApp, porque alguns
+                // navegadores perdem o gesto de usuário depois do window.open().
+                let textCopied = false;
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    try {
+                        await navigator.clipboard.writeText(message);
+                        textCopied = true;
+                    } catch (clipboardError) {
+                        console.warn('Clipboard API falhou:', clipboardError);
+                    }
+                }
 
-                const whatsappWindow = window.open(whatsappUrl, '_blank');
+                // Fallback para Chrome/Brave quando a Clipboard API for bloqueada.
+                if (!textCopied) {
+                    try {
+                        const ta = document.createElement('textarea');
+                        ta.value = message;
+                        ta.setAttribute('readonly', '');
+                        ta.style.position = 'fixed';
+                        ta.style.left = '-9999px';
+                        ta.style.top = '0';
+                        document.body.appendChild(ta);
+                        ta.focus();
+                        ta.select();
+                        ta.setSelectionRange(0, ta.value.length);
+                        textCopied = document.execCommand('copy');
+                        ta.remove();
+                    } catch (copyFallbackError) {
+                        console.warn('Fallback de cópia falhou:', copyFallbackError);
+                    }
+                }
 
                 const url = URL.createObjectURL(blob);
                 const link = document.createElement('a');
@@ -3060,21 +3074,12 @@
                 link.click();
                 link.remove();
                 setTimeout(() => URL.revokeObjectURL(url), 5000);
-
-                let textCopied = false;
-                if (navigator.clipboard && navigator.clipboard.writeText) {
-                    try {
-                        await navigator.clipboard.writeText(message);
-                        textCopied = true;
-                    } catch (clipboardError) {
-                        console.warn('Não foi possível copiar o texto:', clipboardError);
-                    }
-                }
+window.open(whatsappUrl, '_blank');
 
                 showCategoryShareStatus(
                     textCopied
-                        ? 'Capa salva e texto copiado. Arraste o PNG para o WhatsApp e envie.'
-                        : 'Capa salva. Arraste o PNG para o WhatsApp e envie.'
+                        ? 'Capa salva e texto copiado. Agora é só abrir o WhatsApp e enviar.'
+                        : 'Capa salva. O navegador bloqueou a cópia automática do texto.'
                 );
             } catch (error) {
                 console.error('Erro ao compartilhar categoria:', error);
