@@ -3045,11 +3045,10 @@
                     return;
                 }
 
-                // Computador: copia a capa para o clipboard e abre o WhatsApp Web.
-                const whatsappWindow = window.open(
-                    `https://web.whatsapp.com/send?text=${encodeURIComponent(message)}`,
-                    '_blank'
-                );
+                // COMPUTADOR: prepara o WhatsApp e tenta colocar a capa no
+                // clipboard para que ela possa ser colada com Ctrl+V.
+                // A aba em branco é aberta imediatamente para evitar bloqueio de pop-up.
+                let whatsappWindow = window.open('about:blank', '_blank');
 
                 let copied = false;
 
@@ -3064,9 +3063,22 @@
                     }
                 }
 
-                if (copied) {
-                    showCategoryShareStatus('Capa copiada. Use Ctrl+V no WhatsApp.');
+                const whatsappUrl =
+                    `https://web.whatsapp.com/send?text=${encodeURIComponent(message)}`;
+
+                if (whatsappWindow && !whatsappWindow.closed) {
+                    whatsappWindow.location.href = whatsappUrl;
                 } else {
+                    whatsappWindow = window.open(whatsappUrl, '_blank');
+                }
+
+                if (copied) {
+                    showCategoryShareStatus(
+                        'Capa copiada! No WhatsApp, use Ctrl+V para colar a imagem e depois envie.'
+                    );
+                } else {
+                    // Fallback: se o navegador não permitir Clipboard API,
+                    // salva a capa automaticamente para anexar no WhatsApp.
                     const url = URL.createObjectURL(blob);
                     const link = document.createElement('a');
                     link.href = url;
@@ -3077,13 +3089,6 @@
 
                     showCategoryShareStatus('Capa salva. Anexe o PNG no WhatsApp.');
                     setTimeout(() => URL.revokeObjectURL(url), 5000);
-                }
-
-                if (!whatsappWindow || whatsappWindow.closed) {
-                    window.open(
-                        `https://web.whatsapp.com/send?text=${encodeURIComponent(message)}`,
-                        '_blank'
-                    );
                 }
             } catch (error) {
                 console.error('Erro ao compartilhar categoria:', error);
