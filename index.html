@@ -2615,21 +2615,30 @@
                     return;
                 }
 
-                // PC: primeiro tenta copiar a imagem para Ctrl+V.
-                let copied = false;
+                // PC: fluxo confiável.
+                // 1) baixa a imagem automaticamente;
+                // 2) copia somente o texto para o clipboard;
+                // 3) abre o WhatsApp Web com a mensagem pronta.
+                const desktopUrl = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = desktopUrl;
+                a.download = fileName;
+                a.style.display = 'none';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                setTimeout(() => URL.revokeObjectURL(desktopUrl), 5000);
 
-                if (navigator.clipboard && window.ClipboardItem) {
+                let textCopied = false;
+                if (navigator.clipboard && navigator.clipboard.writeText) {
                     try {
-                        await navigator.clipboard.write([
-                            new ClipboardItem({ 'image/png': blob })
-                        ]);
-                        copied = true;
+                        await navigator.clipboard.writeText(message);
+                        textCopied = true;
                     } catch (err) {
-                        console.warn('Não foi possível copiar o PNG para o clipboard:', err);
+                        console.warn('Não foi possível copiar o texto:', err);
                     }
                 }
 
-                // Abre o WhatsApp Web com o texto, independentemente do clipboard.
                 const whatsappUrl =
                     `https://web.whatsapp.com/send?text=${encodeURIComponent(message)}`;
 
@@ -2639,22 +2648,11 @@
                     whatsappWindow = window.open(whatsappUrl, '_blank');
                 }
 
-                if (copied) {
-                    showShareStatus('Imagem copiada! No WhatsApp, use Ctrl+V para colar a capa.');
-                } else {
-                    // Fallback PC: download garantido.
-                    const desktopUrl = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = desktopUrl;
-                    a.download = fileName;
-                    a.style.display = 'none';
-                    document.body.appendChild(a);
-                    a.click();
-                    a.remove();
-
-                    showShareStatus('PNG salvo. Anexe a imagem no WhatsApp.');
-                    setTimeout(() => URL.revokeObjectURL(desktopUrl), 5000);
-                }
+                showShareStatus(
+                    textCopied
+                        ? 'Imagem salva e texto copiado. Arraste o PNG para o WhatsApp e envie.'
+                        : 'Imagem salva. O WhatsApp foi aberto; arraste o PNG para a conversa.'
+                );
 
             } catch (err) {
                 console.error('Erro no compartilhamento:', err);
@@ -3045,51 +3043,39 @@
                     return;
                 }
 
-                // COMPUTADOR: prepara o WhatsApp e tenta colocar a capa no
-                // clipboard para que ela possa ser colada com Ctrl+V.
-                // A aba em branco é aberta imediatamente para evitar bloqueio de pop-up.
-                let whatsappWindow = window.open('about:blank', '_blank');
-
-                let copied = false;
-
-                if (navigator.clipboard && window.ClipboardItem) {
-                    try {
-                        await navigator.clipboard.write([
-                            new ClipboardItem({ 'image/png': blob })
-                        ]);
-                        copied = true;
-                    } catch (clipboardError) {
-                        console.warn('Não foi possível copiar a capa:', clipboardError);
-                    }
-                }
-
+                // Computador: fluxo confiável.
+                // 1) baixa a capa automaticamente;
+                // 2) copia somente o texto;
+                // 3) abre o WhatsApp Web com a mensagem pronta.
                 const whatsappUrl =
                     `https://web.whatsapp.com/send?text=${encodeURIComponent(message)}`;
 
-                if (whatsappWindow && !whatsappWindow.closed) {
-                    whatsappWindow.location.href = whatsappUrl;
-                } else {
-                    whatsappWindow = window.open(whatsappUrl, '_blank');
+                const whatsappWindow = window.open(whatsappUrl, '_blank');
+
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = fileName;
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                setTimeout(() => URL.revokeObjectURL(url), 5000);
+
+                let textCopied = false;
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    try {
+                        await navigator.clipboard.writeText(message);
+                        textCopied = true;
+                    } catch (clipboardError) {
+                        console.warn('Não foi possível copiar o texto:', clipboardError);
+                    }
                 }
 
-                if (copied) {
-                    showCategoryShareStatus(
-                        'Capa copiada! No WhatsApp, use Ctrl+V para colar a imagem e depois envie.'
-                    );
-                } else {
-                    // Fallback: se o navegador não permitir Clipboard API,
-                    // salva a capa automaticamente para anexar no WhatsApp.
-                    const url = URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = fileName;
-                    document.body.appendChild(link);
-                    link.click();
-                    link.remove();
-
-                    showCategoryShareStatus('Capa salva. Anexe o PNG no WhatsApp.');
-                    setTimeout(() => URL.revokeObjectURL(url), 5000);
-                }
+                showCategoryShareStatus(
+                    textCopied
+                        ? 'Capa salva e texto copiado. Arraste o PNG para o WhatsApp e envie.'
+                        : 'Capa salva. Arraste o PNG para o WhatsApp e envie.'
+                );
             } catch (error) {
                 console.error('Erro ao compartilhar categoria:', error);
                 showCategoryShareStatus('Não foi possível preparar a capa.');
