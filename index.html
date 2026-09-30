@@ -156,6 +156,85 @@
             margin: 20px 0;
         }
 
+
+        /* Loading MCO Games — animação neon inspirada na estética PlayStation, sem uso de marca oficial */
+        .game-loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .game-loading-symbols {
+            position: relative;
+            width: 78px;
+            height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .game-loading-symbols span {
+            position: absolute;
+            font-size: 1.45rem;
+            font-weight: 900;
+            line-height: 1;
+            color: #20a4ff;
+            text-shadow: 0 0 5px rgba(32,164,255,.35), 0 0 12px rgba(32,164,255,.18);
+            animation: mcoSymbolFloat 1.8s ease-in-out infinite;
+            opacity: .45;
+        }
+
+        .game-loading-symbols span:nth-child(1) { left: 2px; top: 14px; animation-delay: 0s; }
+        .game-loading-symbols span:nth-child(2) { left: 22px; top: 0; animation-delay: .18s; }
+        .game-loading-symbols span:nth-child(3) { right: 20px; top: 2px; animation-delay: .36s; }
+        .game-loading-symbols span:nth-child(4) { right: 0; top: 15px; animation-delay: .54s; }
+
+        .game-loading-core {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #20a4ff;
+            box-shadow: 0 0 7px rgba(32,164,255,.55), 0 0 18px rgba(32,164,255,.25);
+            animation: mcoCorePulse 1.4s ease-in-out infinite;
+        }
+
+        .game-loading-bar {
+            width: min(180px, 65%);
+            height: 3px;
+            overflow: hidden;
+            border-radius: 999px;
+            background: rgba(32,164,255,.08);
+        }
+
+        .game-loading-bar::after {
+            content: '';
+            display: block;
+            width: 42%;
+            height: 100%;
+            border-radius: inherit;
+            background: #20a4ff;
+            box-shadow: 0 0 8px rgba(32,164,255,.5);
+            animation: mcoLoadingSweep 1.35s ease-in-out infinite;
+        }
+
+        @keyframes mcoSymbolFloat {
+            0%, 100% { transform: translateY(2px) scale(.96); opacity: .3; }
+            50% { transform: translateY(-3px) scale(1.03); opacity: .72; }
+        }
+
+        @keyframes mcoCorePulse {
+            0%, 100% { transform: scale(.7); opacity: .45; }
+            50% { transform: scale(1.15); opacity: .9; }
+        }
+
+        @keyframes mcoLoadingSweep {
+            0% { transform: translateX(-130%); }
+            100% { transform: translateX(250%); }
+        }
+
         .status-box.error {
             border-color: var(--error-red);
             color: var(--error-red);
@@ -1460,6 +1539,38 @@
             .search-results-title { align-items: flex-start; flex-direction: column; }
         }
     </style>
+
+<script>
+async function copyShareText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        try {
+            await navigator.clipboard.writeText(text);
+            return true;
+        } catch (e) {
+            console.warn('Clipboard API bloqueada:', e);
+        }
+    }
+
+    // Fallback para Chrome/Brave quando a Clipboard API não estiver disponível.
+    try {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        const ok = document.execCommand('copy');
+        ta.remove();
+        return ok;
+    } catch (e) {
+        console.warn('Fallback de cópia falhou:', e);
+        return false;
+    }
+}
+</script>
+
 </head>
 <body>
 
@@ -1500,8 +1611,15 @@
         </div>
 
         <div id="loadingContainer" class="status-box">
-            <🎮 <strong>Preparando os jogos...</strong></h3>
-            <p>Sincronizando as ofertas da MCO Games.</p>
+            <div class="game-loading" aria-label="Carregando jogos">
+                <div class="game-loading-symbols" aria-hidden="true">
+                    <span>△</span><span>○</span><span>×</span><span>□</span>
+                    <i class="game-loading-core"></i>
+                </div>
+                <h3>🎮 <strong>Preparando os jogos...</strong></h3>
+                <div class="game-loading-bar" aria-hidden="true"></div>
+                <p>Sincronizando as ofertas da MCO Games.</p>
+            </div>
         </div>
 
         <div id="errorContainer" class="status-box error" style="display: none;">
@@ -2632,7 +2750,7 @@
                 let textCopied = false;
                 if (navigator.clipboard && navigator.clipboard.writeText) {
                     try {
-                        await navigator.clipboard.writeText(message);
+                        await copyShareText(message);
                         textCopied = true;
                     } catch (err) {
                         console.warn('Não foi possível copiar o texto:', err);
@@ -3039,7 +3157,7 @@ showShareStatus(
                 let textCopied = false;
                 if (navigator.clipboard && navigator.clipboard.writeText) {
                     try {
-                        await navigator.clipboard.writeText(message);
+                        await copyShareText(message);
                         textCopied = true;
                     } catch (clipboardError) {
                         console.warn('Clipboard API falhou:', clipboardError);
