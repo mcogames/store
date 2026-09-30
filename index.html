@@ -1500,8 +1500,8 @@
         </div>
 
         <div id="loadingContainer" class="status-box">
-            <h3>⏳ A carregar catálogo completo...</h3>
-            <p>Sincronizando todos os jogos da sua planilha do Google Sheets.</p>
+            <🎮 <strong>Preparando os jogos...</strong></h3>
+            <p>Sincronizando as ofertas da MCO Games.</p>
         </div>
 
         <div id="errorContainer" class="status-box error" style="display: none;">
@@ -2795,9 +2795,46 @@
             }, 2600);
         }
 
+        const categorySharePools = new Map();
+
+        function shuffleCategorySharePool(category, gamesList) {
+            const pool = [...gamesList];
+            for (let i = pool.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [pool[i], pool[j]] = [pool[j], pool[i]];
+            }
+            return pool;
+        }
+
+        function getCategoryShareGames(category, allGames, amount = 3) {
+            const keyOf = game => String(game.uniqueKey ?? game.id ?? game.name ?? '');
+            const available = [...allGames];
+            let pool = categorySharePools.get(category) || [];
+            const availableKeys = new Set(available.map(keyOf));
+
+            // Remove jogos que já não existem na categoria.
+            pool = pool.filter(game => availableKeys.has(keyOf(game)));
+
+            if (pool.length < amount) {
+                // Reabastece com uma nova ordem aleatória. Se houver jogos suficientes,
+                // tenta não repetir os que acabaram de aparecer no último compartilhamento.
+                const last = categorySharePools.get(`${category}::last`) || [];
+                const lastKeys = new Set(last.map(keyOf));
+                const preferred = available.filter(game => !lastKeys.has(keyOf(game)));
+                const fallback = available.filter(game => lastKeys.has(keyOf(game)));
+                pool = shuffleCategorySharePool(category, preferred.length >= amount ? preferred : available);
+                if (pool.length < amount) pool = shuffleCategorySharePool(category, [...preferred, ...fallback]);
+            }
+
+            const selected = pool.slice(0, Math.min(amount, pool.length));
+            categorySharePools.set(category, pool.slice(selected.length));
+            categorySharePools.set(`${category}::last`, selected);
+            return selected;
+        }
+
         async function buildCategoryShareCanvas(category) {
             const allGames = games.filter(game => isCategory(game, category));
-            const featuredGames = allGames.slice(0, 3);
+            const featuredGames = getCategoryShareGames(category, allGames, 3);
 
             const canvas = document.createElement('canvas');
             canvas.width = 1200;
