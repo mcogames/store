@@ -1835,7 +1835,14 @@ async function copyShareText(text) {
         // Se necessário, informe o GID real da aba em IMAGE_SHEET_GID.
         const IMAGE_SHEET_NAME = "IMAGENS";
         const IMAGE_SHEET_GID = "2127405738";
-        const brandAssets = { logo: null, ps4: null, ps5: null };
+        // URLs diretas confirmadas pelo usuário. Usadas como fonte principal para evitar
+        // depender da publicação/consulta CSV da aba IMAGENS.
+        const BRAND_ASSET_URLS = {
+            logo: "https://i.ibb.co/N61qb6J4/Logo-MCO-Games-em-Azul-Vibranted.png",
+            ps4: "https://i.ibb.co/9ks87KbN/ps4.png",
+            ps5: "https://i.ibb.co/qFXVh154/ps5-ok.png"
+        };
+        const brandAssets = { ...BRAND_ASSET_URLS };
         const brandAssetImages = { logo: null, ps4: null, ps5: null };
         let brandAssetsReady = Promise.resolve();
         const SHARE_URL = "https://mcogames.github.io/store/";
@@ -2311,6 +2318,45 @@ async function copyShareText(text) {
         }
 
         async function loadBrandAssetsFromSheet() {
+            // Os links diretos são a fonte principal; a planilha continua como fallback.
+            const loadDirectAssets = async () => {
+                const loaded = await Promise.all([
+                    preloadBrandAsset(BRAND_ASSET_URLS.logo),
+                    preloadBrandAsset(BRAND_ASSET_URLS.ps4),
+                    preloadBrandAsset(BRAND_ASSET_URLS.ps5)
+                ]);
+                brandAssets.logo = BRAND_ASSET_URLS.logo;
+                brandAssets.ps4 = BRAND_ASSET_URLS.ps4;
+                brandAssets.ps5 = BRAND_ASSET_URLS.ps5;
+                brandAssetImages.logo = loaded[0];
+                brandAssetImages.ps4 = loaded[1];
+                brandAssetImages.ps5 = loaded[2];
+
+                // Exibe a logo mesmo se o servidor não permitir CORS para canvas.
+                const siteLogo = document.getElementById('siteLogoImage');
+                const fallback = document.getElementById('siteLogoFallback');
+                if (siteLogo && fallback) {
+                    siteLogo.onload = () => {
+                        siteLogo.style.display = 'block';
+                        fallback.style.display = 'none';
+                    };
+                    siteLogo.onerror = () => {
+                        siteLogo.style.display = 'none';
+                        fallback.style.display = 'flex';
+                    };
+                    siteLogo.src = BRAND_ASSET_URLS.logo;
+                }
+                return loaded.some(Boolean);
+            };
+
+            try {
+                const directLoaded = await loadDirectAssets();
+                if (directLoaded) return;
+            } catch (error) {
+                console.warn('Não foi possível pré-carregar os links diretos das imagens.', error);
+            }
+
+            // Fallback: tenta ler os links atualizados da aba IMAGENS sem interromper o catálogo.
             try {
                 const rows = await new Promise((resolve, reject) => {
                     Papa.parse(buildImageSheetCsvUrl(), {
@@ -2325,9 +2371,9 @@ async function copyShareText(text) {
                     const url = String(row[1] || '').trim();
                     if (key && url) mapping[key] = url;
                 });
-                brandAssets.logo = mapping['LOGO MCO GAMES'] || null;
-                brandAssets.ps4 = mapping['ICONE PS4'] || null;
-                brandAssets.ps5 = mapping['ICONE PS5'] || null;
+                brandAssets.logo = mapping['LOGO MCO GAMES'] || BRAND_ASSET_URLS.logo;
+                brandAssets.ps4 = mapping['ICONE PS4'] || BRAND_ASSET_URLS.ps4;
+                brandAssets.ps5 = mapping['ICONE PS5'] || BRAND_ASSET_URLS.ps5;
 
                 const loaded = await Promise.all([
                     preloadBrandAsset(brandAssets.logo),
@@ -2338,18 +2384,16 @@ async function copyShareText(text) {
                 brandAssetImages.ps4 = loaded[1];
                 brandAssetImages.ps5 = loaded[2];
 
-                if (brandAssetImages.logo) {
-                    const siteLogo = document.getElementById('siteLogoImage');
-                    const fallback = document.getElementById('siteLogoFallback');
-                    if (siteLogo && fallback) {
-                        siteLogo.src = brandAssets.logo;
-                        siteLogo.style.display = 'block';
-                        fallback.style.display = 'none';
-                    }
+                const siteLogo = document.getElementById('siteLogoImage');
+                const fallback = document.getElementById('siteLogoFallback');
+                if (siteLogo && fallback) {
+                    siteLogo.src = brandAssets.logo;
+                    siteLogo.onload = () => { siteLogo.style.display = 'block'; fallback.style.display = 'none'; };
+                    siteLogo.onerror = () => { siteLogo.style.display = 'none'; fallback.style.display = 'flex'; };
                 }
             } catch (error) {
-                // Aba opcional: a loja continua funcionando com a logo e os ícones de reserva.
-                console.warn('Não foi possível carregar a aba IMAGENS; usando recursos padrão.', error);
+                // Recursos externos são opcionais: o catálogo deve continuar funcionando.
+                console.warn('Não foi possível carregar a aba IMAGENS; usando URLs diretas.', error);
             }
         }
 
