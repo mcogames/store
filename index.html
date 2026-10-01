@@ -2602,7 +2602,7 @@ async function copyShareText(text) {
             const title = String(game.name || 'Jogo');
             ctx.textAlign = 'left';
             ctx.fillStyle = '#ffffff';
-            let titleFont = 92;
+            let titleFont = 82;
             ctx.font = `900 ${titleFont}px Arial, sans-serif`;
             const titleMaxW = W - 220;
             const words = title.split(/\s+/);
@@ -2628,13 +2628,13 @@ async function copyShareText(text) {
                 }
                 if (line) titleLines.push(line);
             }
-            const titleY = 2670;
+            const titleY = 2600;
             ctx.font = `900 ${titleFont}px Arial, sans-serif`;
-            titleLines.slice(0, 2).forEach((t, i) => ctx.fillText(t, 130, titleY + i * (titleFont + 12), titleMaxW));
+            titleLines.slice(0, 2).forEach((t, i) => ctx.fillText(t, 130, titleY + i * (titleFont + 10), titleMaxW));
 
             const dateLabel = preorder ? 'LANÇAMENTO' : (promotion ? 'ENCERRAMENTO' : '');
             const countdown = game.targetDate ? getCountdownString(game.targetDate) : null;
-            let infoY = titleY + Math.min(titleLines.length, 2) * (titleFont + 12) + 28;
+            let infoY = titleY + Math.min(titleLines.length, 2) * (titleFont + 10) + 24;
             if (dateLabel && countdown) {
                 ctx.font = '800 52px Arial, sans-serif';
                 const timerText = `⏳ ${dateLabel}: ${countdown}`;
@@ -2655,30 +2655,35 @@ async function copyShareText(text) {
             if (Number(game.ps4Primary) > 0) options.push({ label: 'PS4 PRIMÁRIA', value: Number(game.ps4Primary) });
             if (Number(game.ps4Secondary) > 0) options.push({ label: 'PS4 SECUNDÁRIA', value: Number(game.ps4Secondary) });
 
-            // Mostra somente as opções com preço positivo na planilha; nunca presume PS4/PS5.
-            const boxY = Math.min(Math.max(infoY + 20, 3150), 3370);
-            const rowH = 92;
-            const boxH = Math.max(150, options.length * rowH + 48);
+            // Quadro de preços adaptável: somente valores positivos que vieram da planilha.
+            // O bloco fica separado do título/temporizador e do rodapé para evitar sobreposição.
+            const rowH = options.length >= 4 ? 76 : 88;
+            const boxH = Math.max(112, options.length * rowH + 40);
+            const boxY = Math.max(infoY + 22, 2890);
             ctx.fillStyle = '#151b23';
             ctx.strokeStyle = '#344252';
             ctx.lineWidth = 5;
             ctx.beginPath(); ctx.roundRect(110, boxY, W - 220, boxH, 28); ctx.fill(); ctx.stroke();
             ctx.textAlign = 'left';
-            ctx.font = '800 48px Arial, sans-serif';
+            ctx.fillStyle = '#aab8c8';
+            ctx.font = '800 34px Arial, sans-serif';
+            ctx.fillText('PREÇOS POR MODALIDADE', 160, boxY + 43);
+            const priceStartY = boxY + 43 + (options.length >= 4 ? 50 : 58);
+            ctx.font = options.length >= 4 ? '800 42px Arial, sans-serif' : '800 46px Arial, sans-serif';
             options.slice(0, 4).forEach((opt, i) => {
-                const y = boxY + 76 + i * rowH;
+                const y = priceStartY + i * rowH;
                 ctx.fillStyle = '#aab8c8';
-                ctx.fillText(opt.label, 160, y);
+                ctx.textAlign = 'left';
+                ctx.fillText(opt.label, 160, y, 1120);
                 ctx.fillStyle = '#19bfff';
                 ctx.textAlign = 'right';
-                ctx.fillText(moneyText(opt.value), W - 160, y);
-                ctx.textAlign = 'left';
+                ctx.fillText(moneyText(opt.value), W - 160, y, 620);
             });
 
-            // Preço PSN e desconto só são mostrados quando existem dados válidos na planilha.
+            // Preço de referência e desconto só aparecem se a planilha tiver um valor anterior válido.
             const oldPrice = Number(game.oldPrice) || 0;
             const currentPrice = options.length ? Math.min(...options.map(o => o.value)) : (Number(game.mainPrice) || 0);
-            let footerY = Math.min(H - 300, boxY + boxH + 90);
+            let footerY = boxY + boxH + 66;
             if (oldPrice > currentPrice && currentPrice > 0) {
                 const discount = Math.round((1 - currentPrice / oldPrice) * 100);
                 ctx.textAlign = 'center';
@@ -2691,12 +2696,12 @@ async function copyShareText(text) {
                 ctx.fillStyle = '#f01262';
                 ctx.font = '900 46px Arial, sans-serif';
                 ctx.fillText(`-${discount}%`, W / 2, footerY + 162);
-                footerY += 210;
+                footerY += 190;
             }
             ctx.textAlign = 'center';
             ctx.fillStyle = '#19bfff';
-            ctx.font = '900 56px Arial, sans-serif';
-            ctx.fillText('CONFIRA ESTA OFERTA', W / 2, Math.min(H - 150, footerY + 40));
+            ctx.font = '900 52px Arial, sans-serif';
+            ctx.fillText('CONFIRA ESTA OFERTA', W / 2, Math.min(H - 190, footerY + 38));
             ctx.fillStyle = '#c5d4e8';
             ctx.font = '500 40px Arial, sans-serif';
             ctx.fillText('mcogames.github.io/store', W / 2, H - 90);
