@@ -2542,14 +2542,17 @@ async function copyShareText(text) {
 
             // Fundo inspirado diretamente no cartão escuro/neon da MCO Games.
             const bg = ctx.createLinearGradient(0, 0, W, H);
-            bg.addColorStop(0, '#080b10');
-            bg.addColorStop(0.55, '#11161d');
-            bg.addColorStop(1, '#070a0f');
+            bg.addColorStop(0, '#00101f');
+            bg.addColorStop(0.55, '#001629');
+            bg.addColorStop(1, '#000b16');
             ctx.fillStyle = bg;
             ctx.fillRect(0, 0, W, H);
-            ctx.strokeStyle = '#26313d';
-            ctx.lineWidth = 10;
+            ctx.strokeStyle = '#087fff';
+            ctx.shadowColor = '#087fff';
+            ctx.shadowBlur = 18;
+            ctx.lineWidth = 7;
             ctx.beginPath(); ctx.roundRect(36, 36, W - 72, H - 72, 72); ctx.stroke();
+            ctx.shadowBlur = 0;
 
             // Marca no topo, sem inventar características do jogo.
             ctx.textAlign = 'center';
@@ -2565,11 +2568,14 @@ async function copyShareText(text) {
             const cover = await loadImageForCanvas(originalImg);
 
             // Moldura grande; a capa mantém a proporção original e não é cortada.
-            const panel = { x: 110, y: 370, w: 1940, h: 2180 };
-            ctx.fillStyle = '#0b1017';
-            ctx.strokeStyle = '#2a3541';
-            ctx.lineWidth = 8;
+            const panel = { x: 110, y: 370, w: 1940, h: 1700 };
+            ctx.fillStyle = '#00101d';
+            ctx.strokeStyle = '#087fff';
+            ctx.shadowColor = '#087fff';
+            ctx.shadowBlur = 14;
+            ctx.lineWidth = 6;
             ctx.beginPath(); ctx.roundRect(panel.x, panel.y, panel.w, panel.h, 48); ctx.fill(); ctx.stroke();
+            ctx.shadowBlur = 0;
 
             const pad = 42;
             const maxW = panel.w - pad * 2;
@@ -2630,8 +2636,8 @@ async function copyShareText(text) {
                 ctx.font = '800 52px Arial, sans-serif';
                 const timerText = `⏳ ${dateLabel}: ${countdown}`;
                 const timerW = Math.min(W - 260, ctx.measureText(timerText).width + 56);
-                ctx.fillStyle = '#29220b';
-                ctx.strokeStyle = '#a97816';
+                ctx.fillStyle = '#06172a';
+                ctx.strokeStyle = '#ffe000';
                 ctx.lineWidth = 4;
                 ctx.beginPath(); ctx.roundRect(130, infoY, timerW, 88, 18); ctx.fill(); ctx.stroke();
                 ctx.fillStyle = '#ffd36a';
@@ -2650,20 +2656,23 @@ async function copyShareText(text) {
             // O bloco fica separado do título/temporizador e do rodapé para evitar sobreposição.
             const rowH = options.length >= 4 ? 76 : 88;
             const boxH = Math.max(112, options.length * rowH + 40);
-            const boxY = Math.max(infoY + 22, 2890);
-            ctx.fillStyle = '#151b23';
-            ctx.strokeStyle = '#344252';
+            const boxY = Math.max(infoY + 28, 2260);
+            ctx.fillStyle = '#00172a';
+            ctx.strokeStyle = '#087fff';
+            ctx.shadowColor = '#087fff';
+            ctx.shadowBlur = 14;
             ctx.lineWidth = 5;
             ctx.beginPath(); ctx.roundRect(110, boxY, W - 220, boxH, 28); ctx.fill(); ctx.stroke();
+            ctx.shadowBlur = 0;
             ctx.textAlign = 'left';
-            ctx.fillStyle = '#aab8c8';
-            ctx.font = '800 34px Arial, sans-serif';
-            ctx.fillText('OPÇÕES DISPONÍVEIS', 160, boxY + 43);
-            const priceStartY = boxY + 43 + (options.length >= 4 ? 50 : 58);
+            ctx.fillStyle = '#19bfff';
+            ctx.font = '900 54px Arial, sans-serif';
+            ctx.fillText('◆  OPÇÕES DISPONÍVEIS', 160, boxY + 62);
+            const priceStartY = boxY + 62 + (options.length >= 4 ? 50 : 58);
             ctx.font = options.length >= 4 ? '800 42px Arial, sans-serif' : '800 46px Arial, sans-serif';
             options.slice(0, 4).forEach((opt, i) => {
                 const y = priceStartY + i * rowH;
-                ctx.fillStyle = '#aab8c8';
+                ctx.fillStyle = '#d8e9ff';
                 ctx.textAlign = 'left';
                 ctx.fillText(opt.label, 160, y, 1120);
                 ctx.fillStyle = '#19bfff';
