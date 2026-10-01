@@ -2529,6 +2529,120 @@ async function copyShareText(text) {
             throw new Error('A capa não pôde ser carregada para a imagem de compartilhamento.');
         }
 
+        // Gera somente a arte de compartilhamento individual em formato vertical 9:16 4K.
+        // A capa original é apenas encaixada (contain): sem recorte, filtro, distorção ou conversão de proporção.
+        async function buildGameSharePoster(game, cardEl) {
+            const W = 2160, H = 3840;
+            const canvas = document.createElement('canvas');
+            canvas.width = W;
+            canvas.height = H;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) throw new Error('Canvas não disponível.');
+
+            const bg = ctx.createLinearGradient(0, 0, W, H);
+            bg.addColorStop(0, '#030817');
+            bg.addColorStop(0.52, '#07172d');
+            bg.addColorStop(1, '#02050c');
+            ctx.fillStyle = bg;
+            ctx.fillRect(0, 0, W, H);
+
+            // Brilhos neon discretos no fundo.
+            ctx.save();
+            ctx.globalAlpha = 0.8;
+            const glow = ctx.createLinearGradient(0, 0, W, H);
+            glow.addColorStop(0, '#0878ff');
+            glow.addColorStop(0.5, '#13c9ff');
+            glow.addColorStop(1, '#0750b8');
+            ctx.strokeStyle = glow;
+            ctx.lineWidth = 12;
+            ctx.beginPath(); ctx.moveTo(0, 250); ctx.lineTo(650, 0); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(W, 300); ctx.lineTo(1500, 0); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(0, H - 250); ctx.lineTo(700, H); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(W, H - 350); ctx.lineTo(1450, H); ctx.stroke();
+            ctx.restore();
+
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '900 132px Arial, sans-serif';
+            ctx.fillText('MCO GAMES', W / 2, 270);
+            ctx.fillStyle = '#19bfff';
+            ctx.font = '700 52px Arial, sans-serif';
+            ctx.fillText('SUA LOJA DIGITAL', W / 2, 360);
+
+            // Painel para a capa: usa a proporção natural da imagem e não a corta.
+            const originalImg = cardEl && cardEl.querySelector('.card-img');
+            if (!originalImg) throw new Error('Não encontrei a capa original do jogo.');
+            const safeImage = await loadImageForCanvas(originalImg);
+            const cover = new Image();
+            cover.crossOrigin = 'anonymous';
+            cover.src = safeImage.src || originalImg.src;
+            await new Promise((resolve, reject) => {
+                if (cover.complete && cover.naturalWidth > 0) return resolve();
+                cover.onload = resolve;
+                cover.onerror = () => reject(new Error('A capa original não pôde ser carregada.'));
+            });
+
+            const panel = { x: 180, y: 520, w: 1800, h: 2180 };
+            ctx.fillStyle = 'rgba(4, 12, 26, 0.92)';
+            ctx.strokeStyle = '#087fff';
+            ctx.lineWidth = 8;
+            ctx.beginPath(); ctx.roundRect(panel.x, panel.y, panel.w, panel.h, 42); ctx.fill(); ctx.stroke();
+
+            const pad = 70;
+            const maxW = panel.w - pad * 2;
+            const maxH = panel.h - pad * 2;
+            const scale = Math.min(maxW / cover.naturalWidth, maxH / cover.naturalHeight);
+            const drawW = cover.naturalWidth * scale;
+            const drawH = cover.naturalHeight * scale;
+            const drawX = panel.x + (panel.w - drawW) / 2;
+            const drawY = panel.y + (panel.h - drawH) / 2;
+            // Sem crop e sem deformar a arte da capa: apenas dimensionamento proporcional para caber.
+            ctx.drawImage(cover, drawX, drawY, drawW, drawH);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '900 96px Arial, sans-serif';
+            const title = String(game.name || 'Jogo');
+            let titleFont = 96;
+            while (ctx.measureText(title).width > W - 220 && titleFont > 54) {
+                titleFont -= 4;
+                ctx.font = `900 ${titleFont}px Arial, sans-serif`;
+            }
+            ctx.fillText(title, W / 2, 2860, W - 220);
+
+            ctx.fillStyle = '#19bfff';
+            ctx.font = '800 54px Arial, sans-serif';
+            ctx.fillText('DISPONÍVEL PARA PS4 E PS5', W / 2, 2960);
+
+            const moneyText = value => `R$ ${Number(value).toFixed(2).replace('.', ',')}`;
+            const options = [];
+            if (game.ps5Primary > 0) options.push(`PS5 PRIMÁRIA  ${moneyText(game.ps5Primary)}`);
+            if (game.ps5Secondary > 0) options.push(`PS5 SECUNDÁRIA  ${moneyText(game.ps5Secondary)}`);
+            if (game.ps4Primary > 0) options.push(`PS4 PRIMÁRIA  ${moneyText(game.ps4Primary)}`);
+            if (game.ps4Secondary > 0) options.push(`PS4 SECUNDÁRIA  ${moneyText(game.ps4Secondary)}`);
+
+            ctx.font = '700 48px Arial, sans-serif';
+            const lineHeight = 78;
+            const maxLines = 4;
+            const shownOptions = options.slice(0, maxLines);
+            const boxH = Math.max(140, shownOptions.length * lineHeight + 54);
+            const boxY = 3040;
+            ctx.fillStyle = 'rgba(0, 26, 55, 0.92)';
+            ctx.strokeStyle = '#0b9cff';
+            ctx.lineWidth = 4;
+            ctx.beginPath(); ctx.roundRect(220, boxY, W - 440, boxH, 28); ctx.fill(); ctx.stroke();
+            ctx.fillStyle = '#ffffff';
+            shownOptions.forEach((line, i) => ctx.fillText(line, W / 2, boxY + 64 + i * lineHeight));
+
+            ctx.fillStyle = '#19bfff';
+            ctx.font = '900 76px Arial, sans-serif';
+            ctx.fillText('CONFIRA ESTA OFERTA', W / 2, 3590);
+            ctx.fillStyle = '#c5d4e8';
+            ctx.font = '500 42px Arial, sans-serif';
+            ctx.fillText('mcogames.github.io/store', W / 2, 3680);
+            ctx.textAlign = 'start';
+            return canvas;
+        }
+
         async function buildPrintableCard(cardEl) {
             if (typeof html2canvas === 'undefined') {
                 throw new Error('html2canvas não foi carregado.');
@@ -2665,7 +2779,7 @@ async function copyShareText(text) {
 
                 showShareStatus('Gerando a imagem da oferta…');
 
-                const canvas = await buildPrintableCard(cardEl);
+                const canvas = await buildGameSharePoster(game, cardEl);
                 const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
 
                 if (!blob) throw new Error('Não foi possível gerar o PNG.');
