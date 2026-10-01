@@ -1542,32 +1542,30 @@
 
 <script>
 async function copyShareText(text) {
-    if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
         try {
             await navigator.clipboard.writeText(text);
             return true;
-        } catch (error) {
-            console.warn('Clipboard API bloqueada; tentando alternativa.', error);
+        } catch (e) {
+            console.warn('Clipboard API bloqueada:', e);
         }
     }
 
+    // Fallback para Chrome/Brave quando a Clipboard API não estiver disponível.
     try {
-        const textarea = document.createElement('textarea');
-        textarea.value = text;
-        textarea.setAttribute('readonly', '');
-        textarea.style.position = 'fixed';
-        textarea.style.left = '-9999px';
-        textarea.style.top = '0';
-        textarea.style.opacity = '0';
-        document.body.appendChild(textarea);
-        textarea.focus();
-        textarea.select();
-        textarea.setSelectionRange(0, textarea.value.length);
-        const copied = document.execCommand('copy');
-        textarea.remove();
-        return copied === true;
-    } catch (error) {
-        console.warn('Fallback de cópia falhou.', error);
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        const ok = document.execCommand('copy');
+        ta.remove();
+        return ok;
+    } catch (e) {
+        console.warn('Fallback de cópia falhou:', e);
         return false;
     }
 }
@@ -2578,7 +2576,7 @@ async function copyShareText(text) {
                     useCORS: true,
                     allowTaint: false,
                     imageTimeout: 10000,
-                    scale: Math.max(3, Math.min((window.devicePixelRatio || 1) * 3, 4)),
+                    scale: Math.min(window.devicePixelRatio || 1, 2),
                     logging: false
                 });
 
@@ -2752,15 +2750,16 @@ async function copyShareText(text) {
                 let textCopied = false;
                 if (navigator.clipboard && navigator.clipboard.writeText) {
                     try {
-                        textCopied = await copyShareText(message);
+                        await copyShareText(message);
+                        textCopied = true;
                     } catch (err) {
                         console.warn('Não foi possível copiar o texto:', err);
                     }
                 }
 showShareStatus(
                     textCopied
-                        ? 'Imagem salva e texto copiado. Agora é só colar no WhatsApp.'
-                        : 'Imagem salva, mas a cópia automática falhou. Selecione e copie o texto manualmente.'
+                        ? 'Imagem salva e texto copiado. Agora é só abrir o WhatsApp e enviar.'
+                        : 'Imagem salva. O texto está pronto para colar no WhatsApp.'
                 );
 
             } catch (err) {
@@ -2944,19 +2943,11 @@ showShareStatus(
             const featuredGames = getCategoryShareGames(category, allGames, 3);
 
             const canvas = document.createElement('canvas');
-            // Renderização 2x para o PNG final, mantendo o mesmo layout visual.
-            canvas.width = 2400;
-            canvas.height = 1260;
+            canvas.width = 1200;
+            canvas.height = 630;
 
             const ctx = canvas.getContext('2d');
             if (!ctx) throw new Error('Canvas não disponível.');
-
-            ctx.imageSmoothingEnabled = true;
-            ctx.imageSmoothingQuality = 'high';
-
-            // Trabalha com as mesmas coordenadas visuais de 1200x630,
-            // mas salva o resultado em 2400x1260 para maior nitidez.
-            ctx.scale(2, 2);
 
             // Fundo.
             const bgGradient = ctx.createLinearGradient(0, 0, 1200, 630);
@@ -3166,7 +3157,8 @@ showShareStatus(
                 let textCopied = false;
                 if (navigator.clipboard && navigator.clipboard.writeText) {
                     try {
-                        textCopied = await copyShareText(message);
+                        await copyShareText(message);
+                        textCopied = true;
                     } catch (clipboardError) {
                         console.warn('Clipboard API falhou:', clipboardError);
                     }
@@ -3200,12 +3192,12 @@ showShareStatus(
                 link.click();
                 link.remove();
                 setTimeout(() => URL.revokeObjectURL(url), 5000);
-
+window.open(whatsappUrl, '_blank');
 
                 showCategoryShareStatus(
                     textCopied
-                        ? 'Capa salva e texto copiado. Agora é só colar no WhatsApp.'
-                        : 'Capa salva, mas a cópia automática falhou. Selecione e copie o texto manualmente.'
+                        ? 'Capa salva e texto copiado. Agora é só abrir o WhatsApp e enviar.'
+                        : 'Capa salva. O navegador bloqueou a cópia automática do texto.'
                 );
             } catch (error) {
                 console.error('Erro ao compartilhar categoria:', error);
@@ -3697,7 +3689,7 @@ showShareStatus(
             if (method === 'CARD') {
                 const message = buildWhatsAppOrderMessage('CARD');
                 const whatsappUrl = `https://wa.me/${PHONE_NUMBER}?text=${encodeURIComponent(message)}`;
-
+                window.open(whatsappUrl, '_blank');
                 closePaymentModal();
                 closeModal();
                 return;
@@ -3735,7 +3727,7 @@ showShareStatus(
         function sendPixOrderToWhatsApp() {
             const message = buildWhatsAppOrderMessage('PIX');
             const whatsappUrl = `https://wa.me/${PHONE_NUMBER}?text=${encodeURIComponent(message)}`;
-
+            window.open(whatsappUrl, '_blank');
             closePaymentModal();
             closeModal();
         }
