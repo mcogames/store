@@ -79,17 +79,43 @@
             font-size: 1.2rem;
         }
 
+        /* Logo MCO Games: letras MCO em azul vazado (cor do fundo da loja). */
+        .brand-logo-mark {
+            background: linear-gradient(135deg, #19bfff, #087fff);
+            color: #101318;
+            min-width: 62px;
+            height: 42px;
+            padding: 0 5px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 950;
+            font-size: 1.22rem;
+            letter-spacing: -1.5px;
+            line-height: 1;
+            box-shadow: 0 0 12px rgba(8, 127, 255, 0.20);
+        }
+
+        .brand-wordmark {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 1px;
+        }
+
         .brand-title {
-            font-weight: 800;
+            font-weight: 900;
             font-size: 1.1rem;
             letter-spacing: 0.5px;
         }
 
         .brand-subtitle {
             font-size: 0.7rem;
-            color: var(--accent-green);
-            font-weight: 700;
+            color: #19bfff;
+            font-weight: 800;
             text-transform: uppercase;
+            letter-spacing: 0.15px;
         }
 
         .header-actions {
@@ -1578,10 +1604,10 @@ async function copyShareText(text) {
 
     <header>
         <div class="brand">
-            <div class="brand-icon">🎮</div>
-            <div>
-                <div class="brand-title">MCO GAMES</div>
-                <div class="brand-subtitle">Sua Loja Digital</div>
+            <div class="brand-logo-mark" aria-label="MCO">MCO</div>
+            <div class="brand-wordmark">
+                <div class="brand-title">GAMES</div>
+                <div class="brand-subtitle">SUA LOJA DIGITAL</div>
             </div>
         </div>
         <div class="header-actions">
@@ -2554,11 +2580,24 @@ async function copyShareText(text) {
             ctx.beginPath(); ctx.roundRect(36, 36, W - 72, H - 72, 72); ctx.stroke();
             ctx.shadowBlur = 0;
 
-            // Marca no topo, sem inventar características do jogo.
+            // Logo MCO Games em duas cores: MCO azul com letras na cor do fundo,
+            // criando o efeito vazado; GAMES branco e subtítulo azul-ciano.
+            ctx.textAlign = 'left';
+            const logoY = 78;
+            const markX = 420;
+            const markW = 500;
+            const markH = 142;
+            ctx.fillStyle = '#19bfff';
+            ctx.beginPath(); ctx.roundRect(markX, logoY, markW, markH, 44); ctx.fill();
+            ctx.fillStyle = '#00101f';
+            ctx.font = '900 112px Arial, sans-serif';
             ctx.textAlign = 'center';
+            ctx.fillText('MCO', markX + markW / 2, logoY + 106);
+            ctx.textAlign = 'left';
             ctx.fillStyle = '#ffffff';
             ctx.font = '900 132px Arial, sans-serif';
-            ctx.fillText('MCO GAMES', W / 2, 210);
+            ctx.fillText('GAMES', markX + markW + 28, logoY + 116);
+            ctx.textAlign = 'center';
             ctx.fillStyle = '#19bfff';
             ctx.font = '700 48px Arial, sans-serif';
             ctx.fillText('SUA LOJA DIGITAL', W / 2, 286);
