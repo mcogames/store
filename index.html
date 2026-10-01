@@ -1823,7 +1823,8 @@ async function copyShareText(text) {
     <script>
         const PHONE_NUMBER = "5599981810222";
         const SHEET_ID = "1-2aBMm0Bp8TgfmhkbBqmuRwyFI84uapDE_jXKfgIYJ0";
-        const SHEET_CSV_BASE = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=`;
+        // Fonte publicada original do catálogo: manter separada da planilha editável usada para a aba IMAGENS.
+        const SHEET_CSV_BASE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTbnddE66aBmhilS8BtFkch5qx41mzkZOiVtVeMxzHJRXljT3qevVZFGf4jU8o1LNZHuHL_3bnIGqRg/pub?output=csv&gid=";
         const SHEET_TABS = [
             { gid: "307634723", sheet: "LANCAMENTO.EM.OFERTA", category: "Lançamento em Oferta" },
             { gid: "0",         sheet: "PREVENDA",              category: "Pré Venda" },
@@ -2289,7 +2290,7 @@ async function copyShareText(text) {
         function buildImageSheetCsvUrl() {
             const cacheBust = Date.now();
             if (IMAGE_SHEET_GID) {
-                return `${SHEET_CSV_BASE}${encodeURIComponent(IMAGE_SHEET_GID)}&cb=${cacheBust}`;
+                return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${encodeURIComponent(IMAGE_SHEET_GID)}&cb=${cacheBust}`;
             }
             return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(IMAGE_SHEET_NAME)}&cb=${cacheBust}`;
         }
