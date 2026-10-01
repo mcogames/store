@@ -2581,7 +2581,7 @@ async function copyShareText(text) {
             const drawY = panel.y + (panel.h - drawH) / 2;
             ctx.drawImage(cover, drawX, drawY, drawW, drawH);
 
-            // Selo da categoria, usando apenas a categoria verdadeira da aba da planilha.
+            // Selo da categoria no canto superior esquerdo da arte, baseado na aba real da planilha.
             const preorder = isCategory(game, 'Pré Venda');
             const promotion = isCategory(game, 'Promoção');
             let categoryLabel = '';
@@ -2598,43 +2598,34 @@ async function copyShareText(text) {
             ctx.fillStyle = '#ffffff';
             ctx.fillText(categoryLabel, 184, 375);
 
-            // Nome do jogo e temporizador. O rótulo descreve a data da planilha sem inventar outra.
+            // Nome do jogo em caixa azul no canto inferior direito da área da capa.
+            // A capa continua encaixada proporcionalmente, sem corte nem esticamento.
             const title = String(game.name || 'Jogo');
-            ctx.textAlign = 'left';
-            ctx.fillStyle = '#ffffff';
-            let titleFont = 82;
+            let titleFont = 48;
+            const titleMaxW = Math.min(1040, panel.w - 100);
             ctx.font = `900 ${titleFont}px Arial, sans-serif`;
-            const titleMaxW = W - 220;
-            const words = title.split(/\s+/);
-            const titleLines = [];
-            let line = '';
-            for (const word of words) {
-                const test = line ? `${line} ${word}` : word;
-                if (ctx.measureText(test).width > titleMaxW && line) {
-                    titleLines.push(line);
-                    line = word;
-                } else line = test;
-            }
-            if (line) titleLines.push(line);
-            while (titleLines.length > 2 && titleFont > 62) {
-                titleFont -= 4;
+            while (ctx.measureText(title).width > titleMaxW - 70 && titleFont > 30) {
+                titleFont -= 2;
                 ctx.font = `900 ${titleFont}px Arial, sans-serif`;
-                titleLines.length = 0;
-                line = '';
-                for (const word of words) {
-                    const test = line ? `${line} ${word}` : word;
-                    if (ctx.measureText(test).width > titleMaxW && line) { titleLines.push(line); line = word; }
-                    else line = test;
-                }
-                if (line) titleLines.push(line);
             }
-            const titleY = 2600;
+            const titleBoxW = Math.min(titleMaxW, ctx.measureText(title).width + 70);
+            const titleBoxH = 100;
+            const titleBoxX = panel.x + panel.w - titleBoxW - 22;
+            const titleBoxY = panel.y + panel.h - titleBoxH - 22;
+            ctx.fillStyle = '#087fff';
+            ctx.strokeStyle = '#19bfff';
+            ctx.lineWidth = 4;
+            ctx.beginPath(); ctx.roundRect(titleBoxX, titleBoxY, titleBoxW, titleBoxH, 18); ctx.fill(); ctx.stroke();
+            ctx.fillStyle = '#ffffff';
             ctx.font = `900 ${titleFont}px Arial, sans-serif`;
-            titleLines.slice(0, 2).forEach((t, i) => ctx.fillText(t, 130, titleY + i * (titleFont + 10), titleMaxW));
+            ctx.textAlign = 'center';
+            ctx.fillText(`🎮 ${title}`, titleBoxX + titleBoxW / 2, titleBoxY + 64, titleBoxW - 36);
+            ctx.textAlign = 'left';
 
+            // Contador logo abaixo da capa; a data e a categoria vêm da planilha.
             const dateLabel = preorder ? 'LANÇAMENTO' : (promotion ? 'ENCERRAMENTO' : '');
             const countdown = game.targetDate ? getCountdownString(game.targetDate) : null;
-            let infoY = titleY + Math.min(titleLines.length, 2) * (titleFont + 10) + 24;
+            let infoY = panel.y + panel.h + 42;
             if (dateLabel && countdown) {
                 ctx.font = '800 52px Arial, sans-serif';
                 const timerText = `⏳ ${dateLabel}: ${countdown}`;
@@ -2667,7 +2658,7 @@ async function copyShareText(text) {
             ctx.textAlign = 'left';
             ctx.fillStyle = '#aab8c8';
             ctx.font = '800 34px Arial, sans-serif';
-            ctx.fillText('PREÇOS POR MODALIDADE', 160, boxY + 43);
+            ctx.fillText('OPÇÕES DISPONÍVEIS', 160, boxY + 43);
             const priceStartY = boxY + 43 + (options.length >= 4 ? 50 : 58);
             ctx.font = options.length >= 4 ? '800 42px Arial, sans-serif' : '800 46px Arial, sans-serif';
             options.slice(0, 4).forEach((opt, i) => {
@@ -2701,7 +2692,7 @@ async function copyShareText(text) {
             ctx.textAlign = 'center';
             ctx.fillStyle = '#19bfff';
             ctx.font = '900 52px Arial, sans-serif';
-            ctx.fillText('CONFIRA ESTA OFERTA', W / 2, Math.min(H - 190, footerY + 38));
+            ctx.fillText('CONFIRA ESTA E OUTRAS OFERTAS', W / 2, Math.min(H - 190, footerY + 38), W - 220);
             ctx.fillStyle = '#c5d4e8';
             ctx.font = '500 40px Arial, sans-serif';
             ctx.fillText('mcogames.github.io/store', W / 2, H - 90);
