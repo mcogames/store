@@ -1822,7 +1822,8 @@ async function copyShareText(text) {
 
     <script>
         const PHONE_NUMBER = "5599981810222";
-        const SHEET_PUB_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTbnddE66aBmhilS8BtFkch5qx41mzkZOiVtVeMxzHJRXljT3qevVZFGf4jU8o1LNZHuHL_3bnIGqRg/pub";
+        const SHEET_ID = "1-2aBMm0Bp8TgfmhkbBqmuRwyFI84uapDE_jXKfgIYJ0";
+        const SHEET_CSV_BASE = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=`;
         const SHEET_TABS = [
             { gid: "307634723", sheet: "LANCAMENTO.EM.OFERTA", category: "Lançamento em Oferta" },
             { gid: "0",         sheet: "PREVENDA",              category: "Pré Venda" },
@@ -1832,7 +1833,7 @@ async function copyShareText(text) {
         // Aba IMAGENS: coluna A = nome do recurso; coluna B = URL pública direta.
         // Se necessário, informe o GID real da aba em IMAGE_SHEET_GID.
         const IMAGE_SHEET_NAME = "IMAGENS";
-        const IMAGE_SHEET_GID = "";
+        const IMAGE_SHEET_GID = "2127405738";
         const brandAssets = { logo: null, ps4: null, ps5: null };
         const brandAssetImages = { logo: null, ps4: null, ps5: null };
         let brandAssetsReady = Promise.resolve();
@@ -2105,7 +2106,7 @@ async function copyShareText(text) {
             // Cada categoria é uma aba diferente. O gid é o identificador real
             // da aba no Google Sheets publicado como CSV.
             const cacheBust = Date.now();
-            return `${SHEET_PUB_URL}?gid=${tab.gid}&single=true&output=csv&cb=${cacheBust}`;
+            return `${SHEET_CSV_BASE}${encodeURIComponent(tab.gid)}&cb=${cacheBust}`;
         }
 
         function parseSheetCsv(sheetName, category, rows) {
@@ -2288,9 +2289,9 @@ async function copyShareText(text) {
         function buildImageSheetCsvUrl() {
             const cacheBust = Date.now();
             if (IMAGE_SHEET_GID) {
-                return `${SHEET_PUB_URL}?gid=${encodeURIComponent(IMAGE_SHEET_GID)}&single=true&output=csv&cb=${cacheBust}`;
+                return `${SHEET_CSV_BASE}${encodeURIComponent(IMAGE_SHEET_GID)}&cb=${cacheBust}`;
             }
-            return `${SHEET_PUB_URL}?sheet=${encodeURIComponent(IMAGE_SHEET_NAME)}&output=csv&cb=${cacheBust}`;
+            return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(IMAGE_SHEET_NAME)}&cb=${cacheBust}`;
         }
 
         function normalizeImageAssetName(value) {
