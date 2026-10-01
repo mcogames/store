@@ -2652,11 +2652,13 @@ async function copyShareText(text) {
             if (Number(game.ps4Primary) > 0) options.push({ label: 'PS4 PRIMÁRIA', value: Number(game.ps4Primary) });
             if (Number(game.ps4Secondary) > 0) options.push({ label: 'PS4 SECUNDÁRIA', value: Number(game.ps4Secondary) });
 
-            // Quadro de preços adaptável: somente valores positivos que vieram da planilha.
-            // O bloco fica separado do título/temporizador e do rodapé para evitar sobreposição.
-            const rowH = options.length >= 4 ? 76 : 88;
-            const boxH = Math.max(112, options.length * rowH + 40);
-            const boxY = Math.max(infoY + 28, 2260);
+            // Quadro de preços em linhas e colunas, com identificador visual de PS4/PS5.
+            // Só mostra opções com preço positivo vindo da planilha; o bloco acompanha a quantidade de opções.
+            const rowH = options.length >= 4 ? 82 : 94;
+            const headerH = 104;
+            const boxH = Math.max(150, headerH + options.length * rowH + 22);
+            // Mantém o quadro mais próximo da capa/contador e elimina o vão excessivo.
+            const boxY = Math.max(infoY + 24, panel.y + panel.h + (dateLabel && countdown ? 176 : 64));
             ctx.fillStyle = '#00172a';
             ctx.strokeStyle = '#087fff';
             ctx.shadowColor = '#087fff';
@@ -2667,23 +2669,45 @@ async function copyShareText(text) {
             ctx.textAlign = 'left';
             ctx.fillStyle = '#19bfff';
             ctx.font = '900 54px Arial, sans-serif';
-            ctx.fillText('◆  OPÇÕES DISPONÍVEIS', 160, boxY + 62);
-            const priceStartY = boxY + 62 + (options.length >= 4 ? 50 : 58);
-            ctx.font = options.length >= 4 ? '800 42px Arial, sans-serif' : '800 46px Arial, sans-serif';
+            ctx.fillText('◆  OPÇÕES DISPONÍVEIS', 160, boxY + 64);
+            ctx.strokeStyle = '#087fff';
+            ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(150, boxY + 82); ctx.lineTo(W - 150, boxY + 82); ctx.stroke();
+            const priceStartY = boxY + headerH;
             options.slice(0, 4).forEach((opt, i) => {
                 const y = priceStartY + i * rowH;
-                ctx.fillStyle = '#d8e9ff';
+                const isPs5 = opt.label.startsWith('PS5');
+                const platform = isPs5 ? 'PS5' : 'PS4';
+                const accountType = opt.label.includes('SECUNDÁRIA') ? 'SECUNDÁRIA' : 'PRIMÁRIA';
+                // Ícone de plataforma em coluna própria; rótulo da conta e preço ficam alinhados.
+                ctx.fillStyle = '#f4f8ff';
+                ctx.font = '900 42px Arial, sans-serif';
                 ctx.textAlign = 'left';
-                ctx.fillText(opt.label, 160, y, 1120);
+                ctx.fillText('🎮', 160, y + 4);
+                ctx.fillStyle = '#d8e9ff';
+                ctx.font = '900 42px Arial, sans-serif';
+                ctx.fillText(platform, 230, y + 4, 260);
+                ctx.strokeStyle = '#087fff';
+                ctx.lineWidth = 3;
+                ctx.beginPath(); ctx.moveTo(480, y - 36); ctx.lineTo(480, y + 18); ctx.stroke();
+                ctx.fillStyle = '#8bd8ff';
+                ctx.font = '700 36px Arial, sans-serif';
+                ctx.fillText(accountType, 525, y + 4, 500);
                 ctx.fillStyle = '#19bfff';
+                ctx.font = '900 44px Arial, sans-serif';
                 ctx.textAlign = 'right';
-                ctx.fillText(moneyText(opt.value), W - 160, y, 620);
+                ctx.fillText(moneyText(opt.value), W - 160, y + 4, 620);
+                if (i < Math.min(options.length, 4) - 1) {
+                    ctx.strokeStyle = 'rgba(8,127,255,0.55)';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath(); ctx.moveTo(150, y + 30); ctx.lineTo(W - 150, y + 30); ctx.stroke();
+                }
             });
 
             // Preço de referência e desconto só aparecem se a planilha tiver um valor anterior válido.
             const oldPrice = Number(game.oldPrice) || 0;
             const currentPrice = options.length ? Math.min(...options.map(o => o.value)) : (Number(game.mainPrice) || 0);
-            let footerY = boxY + boxH + 66;
+            let footerY = boxY + boxH + 54;
             if (oldPrice > currentPrice && currentPrice > 0) {
                 const discount = Math.round((1 - currentPrice / oldPrice) * 100);
                 ctx.textAlign = 'center';
