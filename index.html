@@ -2654,20 +2654,11 @@ async function copyShareText(text) {
 
             const actionsRow = cardEl.querySelector('.card-actions-row');
             const previousDisplay = actionsRow ? actionsRow.style.display : '';
-
-            // No PC, abre uma aba imediatamente para evitar bloqueio de pop-up.
-            // Ela só será usada pelo WhatsApp Web depois que a imagem for gerada.
-            let whatsappWindow = null;
             const desktop = !isMobileDevice();
 
-            if (desktop) {
-                whatsappWindow = window.open('about:blank', '_blank');
-                if (whatsappWindow) {
-                    try {
-                        whatsappWindow.document.title = 'Preparando WhatsApp…';
-                    } catch (_) {}
-                }
-            }
+            // Inicia a cópia enquanto ainda estamos dentro do clique do usuário.
+            // O resultado será confirmado somente depois de terminar a geração da imagem.
+            const desktopCopyPromise = desktop ? copyShareText(message) : null;
 
             try {
                 if (actionsRow) actionsRow.style.display = 'none';
@@ -2733,10 +2724,7 @@ async function copyShareText(text) {
                     return;
                 }
 
-                // PC: fluxo confiável.
-                // 1) baixa a imagem automaticamente;
-                // 2) copia somente o texto para o clipboard;
-                // 3) abre o WhatsApp Web com a mensagem pronta.
+                // PC: baixa a imagem e copia o texto, sem abrir o WhatsApp.
                 const desktopUrl = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = desktopUrl;
@@ -2748,26 +2736,20 @@ async function copyShareText(text) {
                 setTimeout(() => URL.revokeObjectURL(desktopUrl), 5000);
 
                 let textCopied = false;
-                if (navigator.clipboard && navigator.clipboard.writeText) {
-                    try {
-                        await copyShareText(message);
-                        textCopied = true;
-                    } catch (err) {
-                        console.warn('Não foi possível copiar o texto:', err);
-                    }
+                try {
+                    textCopied = desktopCopyPromise ? await desktopCopyPromise : false;
+                } catch (err) {
+                    console.warn('Não foi possível copiar o texto:', err);
                 }
-showShareStatus(
+
+                showShareStatus(
                     textCopied
-                        ? 'Imagem salva e texto copiado. Agora é só abrir o WhatsApp e enviar.'
-                        : 'Imagem salva. O texto está pronto para colar no WhatsApp.'
+                        ? 'Imagem salva e texto copiado. Abra o WhatsApp e cole o texto.'
+                        : 'Imagem salva, mas não foi possível copiar o texto automaticamente. Tente copiar manualmente.'
                 );
 
             } catch (err) {
                 console.error('Erro no compartilhamento:', err);
-
-                if (whatsappWindow && !whatsappWindow.closed) {
-                    try { whatsappWindow.close(); } catch (_) {}
-                }
 
                 showShareStatus(
                     err && err.message
@@ -3093,6 +3075,8 @@ showShareStatus(
                 `Confira ${categoryGames.length} jogo${categoryGames.length === 1 ? '' : 's'} dessa categoria.\n\n` +
                 `👉 ${shareUrl}`;
 
+            const desktopCopyPromise = !isMobileDevice() ? copyShareText(message) : null;
+
             try {
                 showCategoryShareStatus('Preparando a capa para compartilhar…');
 
@@ -3148,42 +3132,7 @@ showShareStatus(
                     return;
                 }
 
-                // Computador: fluxo confiável.
-                // 1) baixa a capa automaticamente;
-                // 2) copia somente o texto;
-                // 3) abre o WhatsApp Web com a mensagem pronta.
-                // Copia o texto ANTES de abrir o WhatsApp, porque alguns
-                // navegadores perdem o gesto de usuário depois do window.open().
-                let textCopied = false;
-                if (navigator.clipboard && navigator.clipboard.writeText) {
-                    try {
-                        await copyShareText(message);
-                        textCopied = true;
-                    } catch (clipboardError) {
-                        console.warn('Clipboard API falhou:', clipboardError);
-                    }
-                }
-
-                // Fallback para Chrome/Brave quando a Clipboard API for bloqueada.
-                if (!textCopied) {
-                    try {
-                        const ta = document.createElement('textarea');
-                        ta.value = message;
-                        ta.setAttribute('readonly', '');
-                        ta.style.position = 'fixed';
-                        ta.style.left = '-9999px';
-                        ta.style.top = '0';
-                        document.body.appendChild(ta);
-                        ta.focus();
-                        ta.select();
-                        ta.setSelectionRange(0, ta.value.length);
-                        textCopied = document.execCommand('copy');
-                        ta.remove();
-                    } catch (copyFallbackError) {
-                        console.warn('Fallback de cópia falhou:', copyFallbackError);
-                    }
-                }
-
+                // Computador: baixa a capa e copia o texto, sem abrir o WhatsApp.
                 const url = URL.createObjectURL(blob);
                 const link = document.createElement('a');
                 link.href = url;
@@ -3192,12 +3141,18 @@ showShareStatus(
                 link.click();
                 link.remove();
                 setTimeout(() => URL.revokeObjectURL(url), 5000);
-window.open(whatsappUrl, '_blank');
+
+                let textCopied = false;
+                try {
+                    textCopied = desktopCopyPromise ? await desktopCopyPromise : false;
+                } catch (clipboardError) {
+                    console.warn('Cópia do texto falhou:', clipboardError);
+                }
 
                 showCategoryShareStatus(
                     textCopied
-                        ? 'Capa salva e texto copiado. Agora é só abrir o WhatsApp e enviar.'
-                        : 'Capa salva. O navegador bloqueou a cópia automática do texto.'
+                        ? 'Capa salva e texto copiado. Abra o WhatsApp e cole o texto.'
+                        : 'Capa salva, mas não foi possível copiar o texto automaticamente. Tente copiar manualmente.'
                 );
             } catch (error) {
                 console.error('Erro ao compartilhar categoria:', error);
