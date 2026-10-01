@@ -65,6 +65,17 @@
             align-items: center;
             gap: 10px;
         }
+        .brand-fallback {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .brand-asset-logo {
+            height: 44px;
+            max-width: min(260px, 52vw);
+            width: auto;
+            object-fit: contain;
+        }
 
         .brand-icon {
             background: linear-gradient(135deg, var(--accent-green), var(--accent-green-dark));
@@ -1604,10 +1615,13 @@ async function copyShareText(text) {
 
     <header>
         <div class="brand">
-            <div class="brand-logo-mark" aria-label="MCO">MCO</div>
-            <div class="brand-wordmark">
-                <div class="brand-title">GAMES</div>
-                <div class="brand-subtitle">SUA LOJA DIGITAL</div>
+            <img id="siteLogoImage" class="brand-asset-logo" alt="MCO Games — Sua Loja Digital" style="display:none">
+            <div id="siteLogoFallback" class="brand-fallback">
+                <div class="brand-logo-mark" aria-label="MCO">MCO</div>
+                <div class="brand-wordmark">
+                    <div class="brand-title">GAMES</div>
+                    <div class="brand-subtitle">SUA LOJA DIGITAL</div>
+                </div>
             </div>
         </div>
         <div class="header-actions">
@@ -1815,6 +1829,13 @@ async function copyShareText(text) {
             { gid: "903469329", sheet: "PROMOCAO",              category: "Promoção" },
             { gid: "212181136", sheet: "CATALOGO",              category: "Catálogo" }
         ];
+        // Aba IMAGENS: coluna A = nome do recurso; coluna B = URL pública direta.
+        // Se necessário, informe o GID real da aba em IMAGE_SHEET_GID.
+        const IMAGE_SHEET_NAME = "IMAGENS";
+        const IMAGE_SHEET_GID = "";
+        const brandAssets = { logo: null, ps4: null, ps5: null };
+        const brandAssetImages = { logo: null, ps4: null, ps5: null };
+        let brandAssetsReady = Promise.resolve();
         const SHARE_URL = "https://mcogames.github.io/store/";
         const PIX_KEY = "pixmcogames@gmail.com";
         const CATEGORY_VISIBLE_LIMIT = 4;
@@ -2264,6 +2285,72 @@ async function copyShareText(text) {
             });
         }
 
+        function buildImageSheetCsvUrl() {
+            const cacheBust = Date.now();
+            if (IMAGE_SHEET_GID) {
+                return `${SHEET_PUB_URL}?gid=${encodeURIComponent(IMAGE_SHEET_GID)}&single=true&output=csv&cb=${cacheBust}`;
+            }
+            return `${SHEET_PUB_URL}?sheet=${encodeURIComponent(IMAGE_SHEET_NAME)}&output=csv&cb=${cacheBust}`;
+        }
+
+        function normalizeImageAssetName(value) {
+            return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toUpperCase();
+        }
+
+        function preloadBrandAsset(url) {
+            return new Promise(resolve => {
+                if (!url || !/^https?:\/\//i.test(url)) return resolve(null);
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.onload = () => resolve(img);
+                img.onerror = () => resolve(null);
+                img.src = url;
+            });
+        }
+
+        async function loadBrandAssetsFromSheet() {
+            try {
+                const rows = await new Promise((resolve, reject) => {
+                    Papa.parse(buildImageSheetCsvUrl(), {
+                        download: true, header: false, skipEmptyLines: true,
+                        complete: result => result && Array.isArray(result.data) ? resolve(result.data) : reject(new Error('Aba IMAGENS vazia')),
+                        error: () => reject(new Error('Não foi possível ler a aba IMAGENS'))
+                    });
+                });
+                const mapping = {};
+                rows.forEach(row => {
+                    const key = normalizeImageAssetName(row[0]);
+                    const url = String(row[1] || '').trim();
+                    if (key && url) mapping[key] = url;
+                });
+                brandAssets.logo = mapping['LOGO MCO GAMES'] || null;
+                brandAssets.ps4 = mapping['ICONE PS4'] || null;
+                brandAssets.ps5 = mapping['ICONE PS5'] || null;
+
+                const loaded = await Promise.all([
+                    preloadBrandAsset(brandAssets.logo),
+                    preloadBrandAsset(brandAssets.ps4),
+                    preloadBrandAsset(brandAssets.ps5)
+                ]);
+                brandAssetImages.logo = loaded[0];
+                brandAssetImages.ps4 = loaded[1];
+                brandAssetImages.ps5 = loaded[2];
+
+                if (brandAssetImages.logo) {
+                    const siteLogo = document.getElementById('siteLogoImage');
+                    const fallback = document.getElementById('siteLogoFallback');
+                    if (siteLogo && fallback) {
+                        siteLogo.src = brandAssets.logo;
+                        siteLogo.style.display = 'block';
+                        fallback.style.display = 'none';
+                    }
+                }
+            } catch (error) {
+                // Aba opcional: a loja continua funcionando com a logo e os ícones de reserva.
+                console.warn('Não foi possível carregar a aba IMAGENS; usando recursos padrão.', error);
+            }
+        }
+
         async function fetchCatalogFromSheets() {
             try {
                 // Lê as quatro abas em paralelo.
@@ -2580,6 +2667,15 @@ async function copyShareText(text) {
             ctx.beginPath(); ctx.roundRect(36, 36, W - 72, H - 72, 72); ctx.stroke();
             ctx.shadowBlur = 0;
 
+            await brandAssetsReady;
+            if (brandAssetImages.logo) {
+                const logo = brandAssetImages.logo;
+                const maxLogoW = 1320, maxLogoH = 230;
+                const scale = Math.min(maxLogoW / logo.naturalWidth, maxLogoH / logo.naturalHeight);
+                const logoW = logo.naturalWidth * scale;
+                const logoH = logo.naturalHeight * scale;
+                ctx.drawImage(logo, (W - logoW) / 2, 70, logoW, logoH);
+            } else {
             // Logo MCO Games em duas cores: MCO azul com letras na cor do fundo,
             // criando o efeito vazado; GAMES branco e subtítulo azul-ciano.
             ctx.textAlign = 'left';
@@ -2601,6 +2697,8 @@ async function copyShareText(text) {
             ctx.fillStyle = '#19bfff';
             ctx.font = '700 48px Arial, sans-serif';
             ctx.fillText('SUA LOJA DIGITAL', W / 2, 286);
+
+            }
 
             const originalImg = cardEl && cardEl.querySelector('.card-img');
             if (!originalImg) throw new Error('Não encontrei a capa original do jogo.');
@@ -2694,7 +2792,7 @@ async function copyShareText(text) {
             // Quadro de preços em linhas e colunas, com identificador visual de PS4/PS5.
             // Só mostra opções com preço positivo vindo da planilha; o bloco acompanha a quantidade de opções.
             const rowH = options.length >= 4 ? 82 : 94;
-            const headerH = 104;
+            const headerH = 130;
             const boxH = Math.max(150, headerH + options.length * rowH + 22);
             // Mantém o quadro mais próximo da capa/contador e elimina o vão excessivo.
             const boxY = Math.max(infoY + 24, panel.y + panel.h + (dateLabel && countdown ? 176 : 64));
@@ -2708,10 +2806,10 @@ async function copyShareText(text) {
             ctx.textAlign = 'left';
             ctx.fillStyle = '#19bfff';
             ctx.font = '900 54px Arial, sans-serif';
-            ctx.fillText('◆  OPÇÕES DISPONÍVEIS', 160, boxY + 64);
+            ctx.fillText('◆  OPÇÕES DISPONÍVEIS', 160, boxY + 78);
             ctx.strokeStyle = '#087fff';
             ctx.lineWidth = 2;
-            ctx.beginPath(); ctx.moveTo(150, boxY + 82); ctx.lineTo(W - 150, boxY + 82); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(150, boxY + 98); ctx.lineTo(W - 150, boxY + 98); ctx.stroke();
             const priceStartY = boxY + headerH;
             options.slice(0, 4).forEach((opt, i) => {
                 const y = priceStartY + i * rowH;
@@ -2719,16 +2817,30 @@ async function copyShareText(text) {
                 const platform = isPs5 ? 'PS5' : 'PS4';
                 const accountType = opt.label.includes('SECUNDÁRIA') ? 'SECUNDÁRIA' : 'PRIMÁRIA';
                 // Ícone de plataforma em coluna própria; rótulo da conta e preço ficam alinhados.
-                ctx.fillStyle = '#f4f8ff';
-                ctx.font = '900 42px Arial, sans-serif';
                 ctx.textAlign = 'left';
-                ctx.fillText('🎮', 160, y + 4);
-                ctx.fillStyle = '#d8e9ff';
-                ctx.font = '900 42px Arial, sans-serif';
-                ctx.fillText(platform, 230, y + 4, 260);
-                ctx.strokeStyle = '#087fff';
-                ctx.lineWidth = 3;
-                ctx.beginPath(); ctx.moveTo(480, y - 36); ctx.lineTo(480, y + 18); ctx.stroke();
+                const platformIcon = isPs5 ? brandAssetImages.ps5 : brandAssetImages.ps4;
+                if (platformIcon) {
+                    const iconH = 44;
+                    const ratio = platformIcon.naturalWidth / Math.max(1, platformIcon.naturalHeight);
+                    const iconW = Math.min(110, iconH * ratio);
+                    ctx.drawImage(platformIcon, 155, y - 32, iconW, iconH);
+                    ctx.fillStyle = '#d8e9ff';
+                    ctx.font = '900 36px Arial, sans-serif';
+                    ctx.fillText(platform, 275, y + 4, 170);
+                    ctx.strokeStyle = '#087fff';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath(); ctx.moveTo(480, y - 36); ctx.lineTo(480, y + 18); ctx.stroke();
+                } else {
+                    ctx.fillStyle = '#f4f8ff';
+                    ctx.font = '900 42px Arial, sans-serif';
+                    ctx.fillText('🎮', 160, y + 4);
+                    ctx.fillStyle = '#d8e9ff';
+                    ctx.font = '900 42px Arial, sans-serif';
+                    ctx.fillText(platform, 230, y + 4, 260);
+                    ctx.strokeStyle = '#087fff';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath(); ctx.moveTo(480, y - 36); ctx.lineTo(480, y + 18); ctx.stroke();
+                }
                 ctx.fillStyle = '#8bd8ff';
                 ctx.font = '700 36px Arial, sans-serif';
                 ctx.fillText(accountType, 525, y + 4, 500);
@@ -3942,6 +4054,7 @@ async function copyShareText(text) {
             closePaymentModal();
         }
 
+        brandAssetsReady = loadBrandAssetsFromSheet();
         fetchCatalogFromSheets();
     </script>
 </body>
