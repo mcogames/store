@@ -2529,8 +2529,9 @@ async function copyShareText(text) {
             throw new Error('A capa não pôde ser carregada para a imagem de compartilhamento.');
         }
 
-        // Gera somente a arte de compartilhamento individual em formato vertical 9:16 4K.
-        // A capa original é apenas encaixada (contain): sem recorte, filtro, distorção ou conversão de proporção.
+        // Gera a arte individual vertical 9:16 em alta resolução, seguindo o visual dos cartões da loja.
+        // A capa é encaixada proporcionalmente (contain), sem corte, filtro ou distorção.
+        // Plataformas e preços vêm exclusivamente dos campos preenchidos na planilha.
         async function buildGameSharePoster(game, cardEl) {
             const W = 2160, H = 3840;
             const canvas = document.createElement('canvas');
@@ -2539,56 +2540,38 @@ async function copyShareText(text) {
             const ctx = canvas.getContext('2d');
             if (!ctx) throw new Error('Canvas não disponível.');
 
+            // Fundo inspirado diretamente no cartão escuro/neon da MCO Games.
             const bg = ctx.createLinearGradient(0, 0, W, H);
-            bg.addColorStop(0, '#030817');
-            bg.addColorStop(0.52, '#07172d');
-            bg.addColorStop(1, '#02050c');
+            bg.addColorStop(0, '#080b10');
+            bg.addColorStop(0.55, '#11161d');
+            bg.addColorStop(1, '#070a0f');
             ctx.fillStyle = bg;
             ctx.fillRect(0, 0, W, H);
+            ctx.strokeStyle = '#26313d';
+            ctx.lineWidth = 10;
+            ctx.beginPath(); ctx.roundRect(36, 36, W - 72, H - 72, 72); ctx.stroke();
 
-            // Brilhos neon discretos no fundo.
-            ctx.save();
-            ctx.globalAlpha = 0.8;
-            const glow = ctx.createLinearGradient(0, 0, W, H);
-            glow.addColorStop(0, '#0878ff');
-            glow.addColorStop(0.5, '#13c9ff');
-            glow.addColorStop(1, '#0750b8');
-            ctx.strokeStyle = glow;
-            ctx.lineWidth = 12;
-            ctx.beginPath(); ctx.moveTo(0, 250); ctx.lineTo(650, 0); ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(W, 300); ctx.lineTo(1500, 0); ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(0, H - 250); ctx.lineTo(700, H); ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(W, H - 350); ctx.lineTo(1450, H); ctx.stroke();
-            ctx.restore();
-
+            // Marca no topo, sem inventar características do jogo.
             ctx.textAlign = 'center';
             ctx.fillStyle = '#ffffff';
             ctx.font = '900 132px Arial, sans-serif';
-            ctx.fillText('MCO GAMES', W / 2, 270);
+            ctx.fillText('MCO GAMES', W / 2, 210);
             ctx.fillStyle = '#19bfff';
-            ctx.font = '700 52px Arial, sans-serif';
-            ctx.fillText('SUA LOJA DIGITAL', W / 2, 360);
+            ctx.font = '700 48px Arial, sans-serif';
+            ctx.fillText('SUA LOJA DIGITAL', W / 2, 286);
 
-            // Painel para a capa: usa a proporção natural da imagem e não a corta.
             const originalImg = cardEl && cardEl.querySelector('.card-img');
             if (!originalImg) throw new Error('Não encontrei a capa original do jogo.');
-            const safeImage = await loadImageForCanvas(originalImg);
-            const cover = new Image();
-            cover.crossOrigin = 'anonymous';
-            cover.src = safeImage.src || originalImg.src;
-            await new Promise((resolve, reject) => {
-                if (cover.complete && cover.naturalWidth > 0) return resolve();
-                cover.onload = resolve;
-                cover.onerror = () => reject(new Error('A capa original não pôde ser carregada.'));
-            });
+            const cover = await loadImageForCanvas(originalImg);
 
-            const panel = { x: 180, y: 520, w: 1800, h: 2180 };
-            ctx.fillStyle = 'rgba(4, 12, 26, 0.92)';
-            ctx.strokeStyle = '#087fff';
+            // Moldura grande; a capa mantém a proporção original e não é cortada.
+            const panel = { x: 110, y: 370, w: 1940, h: 2180 };
+            ctx.fillStyle = '#0b1017';
+            ctx.strokeStyle = '#2a3541';
             ctx.lineWidth = 8;
-            ctx.beginPath(); ctx.roundRect(panel.x, panel.y, panel.w, panel.h, 42); ctx.fill(); ctx.stroke();
+            ctx.beginPath(); ctx.roundRect(panel.x, panel.y, panel.w, panel.h, 48); ctx.fill(); ctx.stroke();
 
-            const pad = 70;
+            const pad = 42;
             const maxW = panel.w - pad * 2;
             const maxH = panel.h - pad * 2;
             const scale = Math.min(maxW / cover.naturalWidth, maxH / cover.naturalHeight);
@@ -2596,49 +2579,127 @@ async function copyShareText(text) {
             const drawH = cover.naturalHeight * scale;
             const drawX = panel.x + (panel.w - drawW) / 2;
             const drawY = panel.y + (panel.h - drawH) / 2;
-            // Sem crop e sem deformar a arte da capa: apenas dimensionamento proporcional para caber.
             ctx.drawImage(cover, drawX, drawY, drawW, drawH);
 
+            // Selo da categoria, usando apenas a categoria verdadeira da aba da planilha.
+            const preorder = isCategory(game, 'Pré Venda');
+            const promotion = isCategory(game, 'Promoção');
+            let categoryLabel = '';
+            if (preorder) categoryLabel = '🚀 PRÉ-VENDA';
+            else if (promotion) categoryLabel = '🔥 PROMOÇÃO';
+            else if (isCategory(game, 'Lançamento em Oferta')) categoryLabel = '✨ LANÇAMENTO EM OFERTA';
+            else categoryLabel = '🎮 CATÁLOGO';
+
+            ctx.textAlign = 'left';
+            ctx.font = '900 54px Arial, sans-serif';
+            const badgeW = Math.min(W - 220, ctx.measureText(categoryLabel).width + 70);
+            ctx.fillStyle = preorder ? '#7b42ff' : (promotion ? '#f01262' : '#087fff');
+            ctx.beginPath(); ctx.roundRect(150, 315, badgeW, 88, 20); ctx.fill();
             ctx.fillStyle = '#ffffff';
-            ctx.font = '900 96px Arial, sans-serif';
+            ctx.fillText(categoryLabel, 184, 375);
+
+            // Nome do jogo e temporizador. O rótulo descreve a data da planilha sem inventar outra.
             const title = String(game.name || 'Jogo');
-            let titleFont = 96;
-            while (ctx.measureText(title).width > W - 220 && titleFont > 54) {
+            ctx.textAlign = 'left';
+            ctx.fillStyle = '#ffffff';
+            let titleFont = 92;
+            ctx.font = `900 ${titleFont}px Arial, sans-serif`;
+            const titleMaxW = W - 220;
+            const words = title.split(/\s+/);
+            const titleLines = [];
+            let line = '';
+            for (const word of words) {
+                const test = line ? `${line} ${word}` : word;
+                if (ctx.measureText(test).width > titleMaxW && line) {
+                    titleLines.push(line);
+                    line = word;
+                } else line = test;
+            }
+            if (line) titleLines.push(line);
+            while (titleLines.length > 2 && titleFont > 62) {
                 titleFont -= 4;
                 ctx.font = `900 ${titleFont}px Arial, sans-serif`;
+                titleLines.length = 0;
+                line = '';
+                for (const word of words) {
+                    const test = line ? `${line} ${word}` : word;
+                    if (ctx.measureText(test).width > titleMaxW && line) { titleLines.push(line); line = word; }
+                    else line = test;
+                }
+                if (line) titleLines.push(line);
             }
-            ctx.fillText(title, W / 2, 2860, W - 220);
+            const titleY = 2670;
+            ctx.font = `900 ${titleFont}px Arial, sans-serif`;
+            titleLines.slice(0, 2).forEach((t, i) => ctx.fillText(t, 130, titleY + i * (titleFont + 12), titleMaxW));
 
-            ctx.fillStyle = '#19bfff';
-            ctx.font = '800 54px Arial, sans-serif';
-            ctx.fillText('DISPONÍVEL PARA PS4 E PS5', W / 2, 2960);
+            const dateLabel = preorder ? 'LANÇAMENTO' : (promotion ? 'ENCERRAMENTO' : '');
+            const countdown = game.targetDate ? getCountdownString(game.targetDate) : null;
+            let infoY = titleY + Math.min(titleLines.length, 2) * (titleFont + 12) + 28;
+            if (dateLabel && countdown) {
+                ctx.font = '800 52px Arial, sans-serif';
+                const timerText = `⏳ ${dateLabel}: ${countdown}`;
+                const timerW = Math.min(W - 260, ctx.measureText(timerText).width + 56);
+                ctx.fillStyle = '#29220b';
+                ctx.strokeStyle = '#a97816';
+                ctx.lineWidth = 4;
+                ctx.beginPath(); ctx.roundRect(130, infoY, timerW, 88, 18); ctx.fill(); ctx.stroke();
+                ctx.fillStyle = '#ffd36a';
+                ctx.fillText(timerText, 156, infoY + 59, W - 310);
+                infoY += 126;
+            }
 
             const moneyText = value => `R$ ${Number(value).toFixed(2).replace('.', ',')}`;
             const options = [];
-            if (game.ps5Primary > 0) options.push(`PS5 PRIMÁRIA  ${moneyText(game.ps5Primary)}`);
-            if (game.ps5Secondary > 0) options.push(`PS5 SECUNDÁRIA  ${moneyText(game.ps5Secondary)}`);
-            if (game.ps4Primary > 0) options.push(`PS4 PRIMÁRIA  ${moneyText(game.ps4Primary)}`);
-            if (game.ps4Secondary > 0) options.push(`PS4 SECUNDÁRIA  ${moneyText(game.ps4Secondary)}`);
+            if (Number(game.ps5Primary) > 0) options.push({ label: 'PS5 PRIMÁRIA', value: Number(game.ps5Primary) });
+            if (Number(game.ps5Secondary) > 0) options.push({ label: 'PS5 SECUNDÁRIA', value: Number(game.ps5Secondary) });
+            if (Number(game.ps4Primary) > 0) options.push({ label: 'PS4 PRIMÁRIA', value: Number(game.ps4Primary) });
+            if (Number(game.ps4Secondary) > 0) options.push({ label: 'PS4 SECUNDÁRIA', value: Number(game.ps4Secondary) });
 
-            ctx.font = '700 48px Arial, sans-serif';
-            const lineHeight = 78;
-            const maxLines = 4;
-            const shownOptions = options.slice(0, maxLines);
-            const boxH = Math.max(140, shownOptions.length * lineHeight + 54);
-            const boxY = 3040;
-            ctx.fillStyle = 'rgba(0, 26, 55, 0.92)';
-            ctx.strokeStyle = '#0b9cff';
-            ctx.lineWidth = 4;
-            ctx.beginPath(); ctx.roundRect(220, boxY, W - 440, boxH, 28); ctx.fill(); ctx.stroke();
-            ctx.fillStyle = '#ffffff';
-            shownOptions.forEach((line, i) => ctx.fillText(line, W / 2, boxY + 64 + i * lineHeight));
+            // Mostra somente as opções com preço positivo na planilha; nunca presume PS4/PS5.
+            const boxY = Math.min(Math.max(infoY + 20, 3150), 3370);
+            const rowH = 92;
+            const boxH = Math.max(150, options.length * rowH + 48);
+            ctx.fillStyle = '#151b23';
+            ctx.strokeStyle = '#344252';
+            ctx.lineWidth = 5;
+            ctx.beginPath(); ctx.roundRect(110, boxY, W - 220, boxH, 28); ctx.fill(); ctx.stroke();
+            ctx.textAlign = 'left';
+            ctx.font = '800 48px Arial, sans-serif';
+            options.slice(0, 4).forEach((opt, i) => {
+                const y = boxY + 76 + i * rowH;
+                ctx.fillStyle = '#aab8c8';
+                ctx.fillText(opt.label, 160, y);
+                ctx.fillStyle = '#19bfff';
+                ctx.textAlign = 'right';
+                ctx.fillText(moneyText(opt.value), W - 160, y);
+                ctx.textAlign = 'left';
+            });
 
+            // Preço PSN e desconto só são mostrados quando existem dados válidos na planilha.
+            const oldPrice = Number(game.oldPrice) || 0;
+            const currentPrice = options.length ? Math.min(...options.map(o => o.value)) : (Number(game.mainPrice) || 0);
+            let footerY = Math.min(H - 300, boxY + boxH + 90);
+            if (oldPrice > currentPrice && currentPrice > 0) {
+                const discount = Math.round((1 - currentPrice / oldPrice) * 100);
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#9aa6b5';
+                ctx.font = '500 46px Arial, sans-serif';
+                ctx.fillText(`De ${moneyText(oldPrice)}`, W / 2, footerY);
+                ctx.fillStyle = '#19bfff';
+                ctx.font = '900 78px Arial, sans-serif';
+                ctx.fillText(`A partir de ${moneyText(currentPrice)}`, W / 2, footerY + 92, W - 200);
+                ctx.fillStyle = '#f01262';
+                ctx.font = '900 46px Arial, sans-serif';
+                ctx.fillText(`-${discount}%`, W / 2, footerY + 162);
+                footerY += 210;
+            }
+            ctx.textAlign = 'center';
             ctx.fillStyle = '#19bfff';
-            ctx.font = '900 76px Arial, sans-serif';
-            ctx.fillText('CONFIRA ESTA OFERTA', W / 2, 3590);
+            ctx.font = '900 56px Arial, sans-serif';
+            ctx.fillText('CONFIRA ESTA OFERTA', W / 2, Math.min(H - 150, footerY + 40));
             ctx.fillStyle = '#c5d4e8';
-            ctx.font = '500 42px Arial, sans-serif';
-            ctx.fillText('mcogames.github.io/store', W / 2, 3680);
+            ctx.font = '500 40px Arial, sans-serif';
+            ctx.fillText('mcogames.github.io/store', W / 2, H - 90);
             ctx.textAlign = 'start';
             return canvas;
         }
