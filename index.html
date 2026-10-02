@@ -4409,6 +4409,31 @@ async function copyShareText(text) {
             renderGames();
         }
 
+        function normalizeCatalogSearch(value) {
+            return String(value || '')
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase()
+                .trim();
+        }
+
+        function gameMatchesGlobalSearch(game, rawTerm) {
+            const term = normalizeCatalogSearch(rawTerm);
+            if (!term) return true;
+
+            // Busca global: procura em TODAS as abas/categorias,
+            // independentemente da categoria selecionada no momento.
+            const searchableText = [
+                game?.name,
+                game?.category,
+                game?.platform,
+                ...(Array.isArray(game?.platforms) ? game.platforms : []),
+                game?.sheetId
+            ].map(normalizeCatalogSearch).join(' ');
+
+            return searchableText.includes(term);
+        }
+
         function handleCatalogFilterInput() {
             updateSearchClearButton();
             renderGames();
@@ -4424,11 +4449,11 @@ async function copyShareText(text) {
 
         function clearCatalogSearch() {
             const input = document.getElementById('searchInput');
-            const select = document.getElementById('categorySelect');
 
             if (input) input.value = '';
-            if (select) select.value = 'ALL';
 
+            // Mantém a categoria/aba selecionada. Ao limpar a busca,
+            // o usuário volta exatamente ao contexto em que estava.
             updateSearchClearButton();
             renderGames();
 
@@ -4569,18 +4594,24 @@ async function copyShareText(text) {
             mobile.value = instagramCategory;
 
             instagramVisibleGames = games.filter(game => {
-                const categoryMatch = instagramCategory === 'ALL' || categoryKey(game.category) === categoryKey(instagramCategory);
-                const searchMatch = !searchVal || game.name.toLowerCase().includes(searchVal);
-                return categoryMatch && searchMatch;
+                const searchMatch = gameMatchesGlobalSearch(game, searchVal);
+
+                // Com busca ativa, ignora a aba selecionada e pesquisa o catálogo inteiro.
+                // Sem busca, respeita normalmente a categoria escolhida.
+                if (searchVal) return searchMatch;
+
+                const categoryMatch = instagramCategory === 'ALL' ||
+                    categoryKey(game.category) === categoryKey(instagramCategory);
+                return categoryMatch;
             });
             if (instagramIndex >= instagramVisibleGames.length) instagramIndex = Math.max(0, instagramVisibleGames.length - 1);
             viewer.innerHTML = '';
             if (!instagramVisibleGames.length) {
-                viewer.innerHTML = '<div class="ig-empty">🔎<br><strong>Nenhum jogo encontrado</strong><br><small>Tente outra busca ou categoria.</small></div>';
+                viewer.innerHTML = '<div class="ig-empty">🔎<br><strong>Nenhum jogo encontrado</strong><br><small>A busca considera todas as categorias. Tente outro nome.</small></div>';
                 return;
             }
             const game = instagramVisibleGames[instagramIndex];
-            const categoryLabel = instagramCategory === 'ALL' ? game.category : instagramCategory;
+            const categoryLabel = searchVal ? game.category : (instagramCategory === 'ALL' ? game.category : instagramCategory);
             const post = document.createElement('div');
             post.className = 'ig-post';
             const top = document.createElement('div');
@@ -4616,9 +4647,12 @@ async function copyShareText(text) {
                 if (mobileCategory) mobileCategory.style.display = 'none';
                 if (catalogContainer) catalogContainer.innerHTML = '';
                 const filtered = games.filter(game => {
-                    const categoryMatch = catVal === 'ALL' || categoryKey(game.category) === categoryKey(catVal);
-                    const searchMatch = !searchVal || game.name.toLowerCase().includes(searchVal);
-                    return categoryMatch && searchMatch;
+                    const searchMatch = gameMatchesGlobalSearch(game, searchVal);
+                    if (searchVal) return searchMatch;
+
+                    const categoryMatch = catVal === 'ALL' ||
+                        categoryKey(game.category) === categoryKey(catVal);
+                    return categoryMatch;
                 });
                 if (searchVal || catVal !== 'ALL') {
                     setFeatureSectionsVisible(false);
