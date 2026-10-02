@@ -5041,5 +5041,48 @@ async function copyShareText(text) {
 })();
 </script>
 
+
+<style id="mco-layout-reference-update">
+/* Cabeçalho mobile inspirado na referência: logo e busca na mesma linha. */
+@media (max-width: 800px) {
+  header.mco-search-in-header {display:flex!important;align-items:center!important;gap:10px!important;justify-content:space-between!important;padding:7px 12px!important;min-height:62px!important;height:auto!important;}
+  header.mco-search-in-header .brand {flex:0 1 52%!important;min-width:0!important;}
+  header.mco-search-in-header .brand-asset-logo {display:block!important;width:100%!important;max-width:100%!important;max-height:48px!important;height:auto!important;}
+  header.mco-search-in-header .header-actions {display:none!important;}
+  header.mco-search-in-header .search-box {display:flex!important;flex:1 1 48%!important;width:auto!important;min-width:0!important;height:44px!important;min-height:44px!important;border:1px solid #25465b!important;border-radius:24px!important;background:#10151c!important;box-shadow:0 0 0 2px rgba(22,191,255,.06), inset 0 0 10px rgba(22,191,255,.04)!important;}
+  header.mco-search-in-header .search-input {font-size:.9rem!important;padding-left:35px!important;padding-right:28px!important;}
+  .controls.mco-search-moved {height:43px!important;min-height:43px!important;flex-basis:43px!important;display:flex!important;justify-content:flex-end!important;padding:0 5px 4px!important;}
+  .controls.mco-search-moved .search-box {display:none!important;}
+  .ig-post .card-img-container {aspect-ratio:1/1!important;height:auto!important;max-height:none!important;min-height:0!important;}
+  .ig-post .card-img {width:100%!important;height:100%!important;object-fit:cover!important;}
+  .ig-post .card-info {padding:9px 11px 12px!important;gap:6px!important;}
+}
+@media (min-width:801px) {
+  header .search-box {display:none!important;}
+}
+</style>
+<script id="mco-mobile-header-search">
+(function(){
+  function placeSearch(){
+    const header=document.querySelector('header');
+    const controls=document.querySelector('.controls');
+    const brand=header&&header.querySelector('.brand');
+    const search=controls&&controls.querySelector('.search-box');
+    if(!header||!controls||!brand||!search)return;
+    if(window.matchMedia('(max-width: 800px)').matches){
+      if(search.parentElement!==header){header.insertBefore(search,header.querySelector('.header-actions'));}
+      header.classList.add('mco-search-in-header');controls.classList.add('mco-search-moved');
+    }else{
+      if(search.parentElement!==controls)controls.insertBefore(search,controls.firstChild);
+      header.classList.remove('mco-search-in-header');controls.classList.remove('mco-search-moved');
+    }
+  }
+  document.addEventListener('DOMContentLoaded',placeSearch);
+  window.addEventListener('resize',placeSearch,{passive:true});
+  window.addEventListener('orientationchange',placeSearch,{passive:true});
+  placeSearch();
+})();
+</script>
+
 </body>
 </html>
