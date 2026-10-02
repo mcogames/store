@@ -1738,137 +1738,7 @@
           .ig-post .btn-buy-direct { min-height:31px!important; }
           .ig-navigation { padding:1px 0!important; }
         }
-
-
-        /* ============================================================
-           MOBILE — layout visual baseado na referência enviada
-           ============================================================ */
-        .mobile-categories-inline{display:none}
-        @media (max-width:800px){
-          html,body{height:auto!important;min-height:100%;overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior-y:auto!important}
-          body{position:static!important}
-          header{min-height:76px!important;padding:8px 14px!important}
-          .brand-asset-logo{max-height:38px!important;max-width:150px!important}
-          .header-actions .community-btn{font-size:.82rem!important;padding:9px 13px!important}
-          .header-tag{display:none!important}
-          body>.container{height:auto!important;max-height:none!important;overflow:visible!important;display:block!important;padding:44px 8px 8px!important}
-          .hero-section{display:none!important}
-
-          .controls{display:grid!important;grid-template-columns:minmax(0,1.18fr) minmax(150px,.92fr)!important;gap:8px!important;padding:0 6px 6px!important;margin:0!important;background:transparent!important;border:0!important;box-shadow:none!important;align-items:stretch!important}
-          .controls .search-box{min-width:0!important;min-height:58px!important;height:58px!important;padding:0!important;border:1px solid #283544!important;border-radius:16px!important;background:#10151c!important}
-          .search-input{height:100%!important;padding:0 12px 0 38px!important;font-size:.92rem!important;border:0!important;border-radius:16px!important;background:transparent!important}
-          .search-icon{left:12px!important}
-          .search-clear-btn{right:7px!important}
-          #categorySelect{display:none!important}
-          .mobile-categories-inline{display:flex!important;align-items:center;justify-content:center;gap:8px;height:58px;border:1px solid #36c5ff;border-radius:999px;background:linear-gradient(135deg,#0799ed,#0869c8);color:#fff;font-size:1.08rem;font-weight:900;box-shadow:0 0 18px rgba(0,145,255,.28);white-space:nowrap}
-
-          #mainContent{height:auto!important;min-height:0!important;overflow:visible!important;display:block!important}
-          #igMobileCategory{display:none!important}
-          #instagramLayout{height:auto!important;min-height:0!important;overflow:visible!important;padding-bottom:0!important;margin-top:0!important}
-          .ig-feed,#igViewer{height:auto!important;min-height:0!important;overflow:visible!important;display:block!important;max-width:none!important}
-          .ig-post{height:auto!important;min-height:0!important;max-height:none!important;overflow:hidden!important;display:block!important;flex:none!important;border-radius:17px!important}
-          .ig-topline{height:38px!important;padding:5px 9px!important;margin:0!important;background:rgba(2,21,34,.92)!important;font-size:.9rem!important}
-          .ig-category-label{font-size:.96rem!important}
-          .ig-count{font-size:.88rem!important}
-          .ig-post .card{display:block!important}
-          .ig-post .card-img-container{height:auto!important;max-height:none!important;min-height:0!important;aspect-ratio:1/1!important;flex:none!important;background:#050a10!important}
-          .ig-post .card-img{width:100%!important;height:100%!important;object-fit:cover!important;object-position:center!important}
-          .ig-post .platform-tag{top:18px!important;left:18px!important;font-size:1rem!important;padding:10px 14px!important;border-radius:7px!important}
-          .ig-post .card-info{display:flex!important;flex-direction:column!important;gap:7px!important;height:auto!important;min-height:0!important;overflow:visible!important;padding:10px 12px 12px!important}
-          .ig-post .card-title{font-size:1rem!important;line-height:1.15!important;margin:0 0 6px!important}
-          .ig-post .price-container{margin:0!important}
-          .ig-post .old-price{font-size:.78rem!important}
-          .ig-post .current-price{font-size:1.08rem!important;line-height:1.1!important}
-          .ig-post .discount-inline{font-size:.76rem!important;padding:4px 7px!important}
-          .ig-post .platform-heading{font-size:.8rem!important;margin:1px 0!important}
-          .ig-post .platform-selector{gap:7px!important;margin:0!important}
-          .ig-post .platform-btn{min-height:46px!important;padding:7px 9px!important;font-size:1rem!important}
-          .ig-post .platform-single{padding:8px!important;margin:0!important;font-size:.9rem!important}
-          .ig-post .type-selector{gap:7px!important;margin:0!important}
-          .ig-post .type-btn{min-height:58px!important;padding:7px!important;font-size:.82rem!important;line-height:1.08!important}
-          .ig-post .media-label{font-size:.8rem!important}
-          .ig-post .media-price{font-size:.92rem!important}
-          .ig-post .card-actions-row{gap:8px!important;margin:0!important}
-          .ig-post .btn-buy-direct{min-height:54px!important;padding:8px!important;font-size:1rem!important}
-          .ig-post .btn-share-circle{width:54px!important;height:54px!important;min-width:54px!important}
-          .ig-navigation{padding:7px 0 2px!important;gap:8px!important}
-          .ig-arrow{padding:9px 13px!important;font-size:.82rem!important;border-radius:999px!important}
-          .ig-dots{gap:5px!important}
-          .ig-dot{width:6px!important;height:6px!important}
-          .ig-mobile-nav-trigger{display:none!important}
-        }
-        @media (max-width:390px){
-          body>.container{padding-top:36px!important}
-          .controls{grid-template-columns:minmax(0,1.1fr) minmax(140px,.9fr)!important}
-          .mobile-categories-inline{font-size:.98rem!important}
-          .ig-post .card-img-container{height:auto!important;max-height:none!important;aspect-ratio:1/1!important}
-        }
-
-    
-
-        /* ============================================================
-           MOBILE FINAL — sempre cabe na tela, sem rolagem vertical
-           ============================================================ */
-        @media (max-width:800px){
-          html,body{width:100%!important;height:100%!important;height:100dvh!important;min-height:0!important;overflow:hidden!important;overscroll-behavior:none!important}
-          body{position:relative!important;display:flex!important;flex-direction:column!important}
-          header{flex:0 0 auto!important;min-height:58px!important;height:58px!important;padding:5px 12px!important}
-          .brand-asset-logo{max-height:34px!important;max-width:135px!important}
-          .header-actions .community-btn{font-size:.76rem!important;padding:7px 10px!important}
-          body>.container{flex:1 1 auto!important;height:auto!important;max-height:none!important;min-height:0!important;overflow:hidden!important;display:flex!important;flex-direction:column!important;padding:6px 8px 4px!important}
-          .controls{flex:0 0 auto!important;display:grid!important;grid-template-columns:minmax(0,1.15fr) minmax(135px,.85fr)!important;gap:7px!important;padding:0 5px 5px!important}
-          .controls .search-box,.mobile-categories-inline{height:46px!important;min-height:46px!important}
-          .search-input{font-size:clamp(.72rem,2.6vw,.9rem)!important;padding-left:34px!important}
-          .mobile-categories-inline{font-size:clamp(.86rem,3.2vw,1.04rem)!important}
-          #mainContent,#instagramLayout,.ig-feed,#igViewer{flex:1 1 auto!important;height:auto!important;min-height:0!important;overflow:hidden!important;display:flex!important;flex-direction:column!important}
-          #instagramLayout{padding:0!important;margin:0!important}
-          .ig-topline{flex:0 0 30px!important;height:30px!important;padding:3px 8px!important;font-size:.78rem!important}
-          .ig-category-label{font-size:.84rem!important}
-          .ig-count{font-size:.78rem!important}
-          .ig-post{flex:1 1 auto!important;height:auto!important;min-height:0!important;max-height:none!important;overflow:hidden!important;display:flex!important;flex-direction:column!important}
-          .ig-post .card{flex:1 1 auto!important;min-height:0!important;height:100%!important;display:flex!important;flex-direction:column!important;overflow:hidden!important}
-          .ig-post .card-img-container{flex:1 1 auto!important;min-height:90px!important;height:auto!important;max-height:none!important;aspect-ratio:auto!important;overflow:hidden!important}
-          .ig-post .card-img{width:100%!important;height:100%!important;object-fit:cover!important;object-position:center!important}
-          .ig-post .platform-tag{top:10px!important;left:12px!important;font-size:clamp(.76rem,2.7vw,.92rem)!important;padding:6px 10px!important}
-          .ig-post .card-info{flex:0 0 auto!important;height:auto!important;min-height:0!important;overflow:hidden!important;padding:5px 9px 6px!important;gap:3px!important}
-          .ig-post .card-title{font-size:clamp(.76rem,2.8vw,.9rem)!important;margin:0 0 2px!important;line-height:1.05!important}
-          .ig-post .price-container{line-height:1!important;margin:0!important}
-          .ig-post .old-price{font-size:clamp(.58rem,2.1vw,.7rem)!important;line-height:1!important}
-          .ig-post .current-price{font-size:clamp(.84rem,3.1vw,1rem)!important;line-height:1!important}
-          .ig-post .discount-inline{font-size:clamp(.58rem,2.1vw,.7rem)!important;padding:3px 6px!important}
-          .ig-post .platform-heading{font-size:clamp(.62rem,2.2vw,.72rem)!important;margin:0!important;line-height:1!important}
-          .ig-post .platform-selector,.ig-post .type-selector{gap:5px!important;margin:0!important}
-          .ig-post .platform-btn{min-height:32px!important;height:32px!important;padding:3px 6px!important;font-size:clamp(.76rem,2.8vw,.9rem)!important}
-          .ig-post .platform-single{padding:4px!important;margin:0!important;font-size:.76rem!important}
-          .ig-post .type-btn{min-height:38px!important;height:38px!important;padding:3px 5px!important;font-size:clamp(.64rem,2.3vw,.76rem)!important;line-height:1!important}
-          .ig-post .media-label{font-size:clamp(.62rem,2.2vw,.72rem)!important;line-height:1!important}
-          .ig-post .media-price{font-size:clamp(.7rem,2.5vw,.82rem)!important;line-height:1!important}
-          .ig-post .card-actions-row{gap:6px!important;margin:0!important}
-          .ig-post .btn-buy-direct{min-height:38px!important;height:38px!important;padding:4px!important;font-size:clamp(.76rem,2.7vw,.9rem)!important}
-          .ig-post .btn-share-circle{width:38px!important;height:38px!important;min-width:38px!important}
-          .ig-navigation{flex:0 0 37px!important;height:37px!important;padding:3px 0 0!important;gap:5px!important;overflow:hidden!important}
-          .ig-arrow{padding:5px 9px!important;font-size:clamp(.65rem,2.3vw,.76rem)!important;line-height:1.1!important}
-          .ig-dots{gap:4px!important}
-          .ig-dot{width:5px!important;height:5px!important}
-          .ig-mobile-nav-trigger{display:none!important}
-        }
-        @media (max-width:800px) and (max-height:700px){
-          header{height:50px!important;min-height:50px!important;padding:3px 10px!important}
-          .brand-asset-logo{max-height:30px!important}
-          .header-actions .community-btn{padding:5px 8px!important;font-size:.68rem!important}
-          body>.container{padding-top:3px!important}
-          .controls .search-box,.mobile-categories-inline{height:39px!important;min-height:39px!important}
-          .ig-topline{height:26px!important;flex-basis:26px!important;padding:2px 7px!important}
-          .ig-post .card-img-container{min-height:60px!important}
-          .ig-post .card-info{padding:3px 7px 4px!important;gap:2px!important}
-          .ig-post .card-title{margin-bottom:1px!important}
-          .ig-post .platform-btn{height:28px!important;min-height:28px!important}
-          .ig-post .type-btn{height:32px!important;min-height:32px!important}
-          .ig-post .btn-buy-direct{height:33px!important;min-height:33px!important}
-          .ig-post .btn-share-circle{width:33px!important;height:33px!important;min-width:33px!important}
-          .ig-navigation{height:32px!important;flex-basis:32px!important;padding-top:1px!important}
-        }
-</style>
+    </style>
 
 <script>
 async function copyShareText(text) {
@@ -1902,329 +1772,473 @@ async function copyShareText(text) {
 </script>
 
 
-<style id="mco-mobile-square-cover-final">
-/* Ajuste solicitado: aproveitar o espaço vertical, manter tudo na tela e capa 1:1 */
-@media (max-width: 768px) {
-  html, body {
-    width: 100% !important;
-    height: 100% !important;
-    height: 100dvh !important;
-    margin: 0 !important;
-    overflow: hidden !important;
-    overscroll-behavior: none !important;
+<style id="mco-mobile-clean-final">
+.mobile-categories-inline{display:none}
+
+@media (max-width:800px){
+  html,body{
+    width:100%!important;
+    height:100%!important;
+    height:100dvh!important;
+    min-height:0!important;
+    margin:0!important;
+    overflow:hidden!important;
+    overscroll-behavior:none!important;
   }
 
-  /* O conteúdo continua preso à viewport, sem criar rolagem. */
-  body > .container {
-    flex: 1 1 auto !important;
-    min-height: 0 !important;
-    overflow: hidden !important;
+  body{
+    position:relative!important;
+    display:flex!important;
+    flex-direction:column!important;
+    background:#070a0f!important;
   }
 
-  #mainContent,
-  #instagramLayout,
-  .ig-feed,
-  #igViewer {
-    min-height: 0 !important;
-    overflow: hidden !important;
+  header{
+    flex:0 0 54px!important;
+    height:54px!important;
+    min-height:54px!important;
+    padding:5px 12px!important;
   }
 
-  /* O post usa todo o espaço que antes sobrava abaixo. */
-  .ig-post {
-    flex: 1 1 auto !important;
-    min-height: 0 !important;
-    max-height: none !important;
-    overflow: hidden !important;
+  .brand-asset-logo{
+    max-height:34px!important;
+    max-width:140px!important;
+    width:auto!important;
+    object-fit:contain!important;
   }
 
-  .ig-post .card {
-    height: 100% !important;
-    min-height: 0 !important;
-    overflow: hidden !important;
+  .brand-fallback{
+    transform:scale(.78)!important;
+    transform-origin:left center!important;
   }
 
-  /* Capa quadrada real.
-     A URL continua vindo da coluna Capa da planilha (game.img). */
-  .ig-post .card-img-container {
-    width: 100% !important;
-    height: auto !important;
-    min-height: 0 !important;
-    max-height: none !important;
-    aspect-ratio: 1 / 1 !important;
-    flex: 0 0 auto !important;
-    overflow: hidden !important;
-    background: #050a10 !important;
+  .header-actions .community-btn{
+    padding:7px 10px!important;
+    font-size:.76rem!important;
   }
 
-  .ig-post .card-img {
-    display: block !important;
-    width: 100% !important;
-    height: 100% !important;
-    aspect-ratio: 1 / 1 !important;
-    object-fit: contain !important;
-    object-position: center center !important;
-    background: #050a10 !important;
+  .header-tag,
+  .hero-section{
+    display:none!important;
   }
 
-  /* Informações ficam imediatamente abaixo da capa; ao aumentar a capa,
-     todo este bloco desce e ocupa o espaço que estava vazio. */
-  .ig-post .card-info {
-    flex: 0 0 auto !important;
-    min-height: 0 !important;
-    overflow: hidden !important;
-    padding: 7px 10px 7px !important;
-    gap: 3px !important;
+  body>.container{
+    flex:1 1 0!important;
+    width:100%!important;
+    max-width:none!important;
+    min-height:0!important;
+    height:auto!important;
+    max-height:none!important;
+    margin:0!important;
+    padding:6px 8px 4px!important;
+    overflow:hidden!important;
+    display:flex!important;
+    flex-direction:column!important;
   }
 
-  .ig-navigation {
-    flex: 0 0 38px !important;
-    height: 38px !important;
-    min-height: 38px !important;
-    margin-top: 2px !important;
-    overflow: hidden !important;
-  }
-}
-
-/* Em telas muito baixas, compacta somente textos/controles.
-   A proporção da capa continua 1:1. */
-@media (max-width: 768px) and (max-height: 720px) {
-  .ig-post .card-info {
-    padding: 4px 8px 4px !important;
-    gap: 1px !important;
-  }
-  .ig-post .card-title { font-size: .78rem !important; }
-  .ig-post .platform-heading { margin: 2px 0 !important; }
-  .ig-post .platform-btn { min-height: 28px !important; padding: 3px 6px !important; }
-  .ig-post .account-option { min-height: 30px !important; padding: 3px 5px !important; }
-  .ig-post .buy-button { min-height: 32px !important; padding: 4px 8px !important; }
-}
-</style>
-
-
-<style id="mco-mobile-layout-v3">
-/* ============================================================
-   MOBILE V3
-   - ocupa toda a altura visível
-   - sem rolagem
-   - capa sempre 1:1
-   - nunca sacrifica os dados do produto para manter a capa grande
-   ============================================================ */
-@media (max-width: 800px) {
-  html, body {
-    width: 100% !important;
-    height: 100% !important;
-    height: 100dvh !important;
-    min-height: 0 !important;
-    overflow: hidden !important;
-    overscroll-behavior: none !important;
+  .controls{
+    flex:0 0 48px!important;
+    height:48px!important;
+    min-height:48px!important;
+    display:grid!important;
+    grid-template-columns:minmax(0,1.15fr) minmax(140px,.85fr)!important;
+    gap:7px!important;
+    padding:0 5px 5px!important;
+    margin:0!important;
+    border:0!important;
+    background:transparent!important;
+    box-shadow:none!important;
+    align-items:stretch!important;
   }
 
-  body {
-    display: flex !important;
-    flex-direction: column !important;
+  .controls .search-box{
+    min-width:0!important;
+    width:auto!important;
+    height:43px!important;
+    min-height:43px!important;
+    padding:0!important;
+    border:1px solid #283544!important;
+    border-radius:16px!important;
+    background:#10151c!important;
   }
 
-  body > .container {
-    flex: 1 1 0 !important;
-    min-height: 0 !important;
-    height: auto !important;
-    max-height: none !important;
-    overflow: hidden !important;
-    display: flex !important;
-    flex-direction: column !important;
+  .search-input{
+    width:100%!important;
+    height:100%!important;
+    min-height:0!important;
+    padding:0 10px 0 34px!important;
+    border:0!important;
+    border-radius:16px!important;
+    background:transparent!important;
+    font-size:clamp(.72rem,2.7vw,.9rem)!important;
   }
 
-  .controls {
-    flex: 0 0 auto !important;
+  .search-icon{left:11px!important}
+  .search-clear-btn{right:6px!important}
+
+  #categorySelect{display:none!important}
+
+  .mobile-categories-inline{
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    height:43px!important;
+    min-height:43px!important;
+    padding:0 12px!important;
+    border:1px solid #36c5ff!important;
+    border-radius:999px!important;
+    background:linear-gradient(135deg,#0799ed,#0869c8)!important;
+    color:#fff!important;
+    font-size:clamp(.84rem,3vw,1rem)!important;
+    font-weight:900!important;
+    white-space:nowrap!important;
+    box-shadow:0 0 14px rgba(0,145,255,.25)!important;
   }
 
-  /* A altura exata de #mainContent é sincronizada via JS com a
-     área realmente visível do navegador móvel. */
-  #mainContent {
-    flex: 0 0 auto !important;
-    min-height: 0 !important;
-    overflow: hidden !important;
-    display: flex !important;
-    flex-direction: column !important;
+  #mainContent{
+    flex:1 1 0!important;
+    min-height:0!important;
+    height:auto!important;
+    max-height:none!important;
+    overflow:hidden!important;
+    display:flex!important;
+    flex-direction:column!important;
   }
 
-  #instagramLayout,
-  .ig-feed,
-  #igViewer {
-    flex: 1 1 0 !important;
-    width: 100% !important;
-    min-height: 0 !important;
-    height: 100% !important;
-    max-height: none !important;
-    overflow: hidden !important;
-    display: flex !important;
-    flex-direction: column !important;
+  #igMobileCategory{display:none!important}
+
+  #instagramLayout{
+    flex:1 1 0!important;
+    min-height:0!important;
+    height:auto!important;
+    max-height:none!important;
+    width:100%!important;
+    padding:0!important;
+    margin:0!important;
+    overflow:hidden!important;
+    display:flex!important;
+    flex-direction:column!important;
   }
 
-  #instagramLayout {
-    padding: 0 !important;
-    margin: 0 !important;
+  .ig-feed{
+    flex:1 1 0!important;
+    min-height:0!important;
+    height:auto!important;
+    max-height:none!important;
+    width:100%!important;
+    max-width:none!important;
+    margin:0!important;
+    overflow:hidden!important;
+    display:flex!important;
+    flex-direction:column!important;
   }
 
-  .ig-post {
-    flex: 1 1 0 !important;
-    min-height: 0 !important;
-    max-height: none !important;
-    overflow: hidden !important;
-    display: flex !important;
-    flex-direction: column !important;
+  #igViewer{
+    flex:1 1 0!important;
+    min-height:0!important;
+    height:auto!important;
+    width:100%!important;
+    overflow:hidden!important;
+    display:flex!important;
+    flex-direction:column!important;
   }
 
-  .ig-topline {
-    flex: 0 0 30px !important;
-    height: 30px !important;
-    min-height: 30px !important;
+  .ig-side{display:none!important}
+
+  .ig-post{
+    flex:1 1 0!important;
+    min-height:0!important;
+    height:auto!important;
+    max-height:none!important;
+    margin:0!important;
+    overflow:hidden!important;
+    display:flex!important;
+    flex-direction:column!important;
+    border-radius:16px!important;
   }
 
-  .ig-post .card {
-    flex: 1 1 0 !important;
-    min-height: 0 !important;
-    max-height: none !important;
-    overflow: hidden !important;
-    display: flex !important;
-    flex-direction: column !important;
+  .ig-topline{
+    flex:0 0 29px!important;
+    height:29px!important;
+    min-height:29px!important;
+    margin:0!important;
+    padding:3px 8px!important;
+    display:flex!important;
+    align-items:center!important;
+    background:rgba(2,21,34,.94)!important;
   }
 
-  /* O JS define width/height em pixels para encaixar tudo.
-     aspect-ratio e object-fit garantem que a capa nunca distorça. */
-  .ig-post .card-img-container {
-    flex: 0 0 auto !important;
-    aspect-ratio: 1 / 1 !important;
-    max-width: 100% !important;
-    max-height: none !important;
-    margin: 0 auto !important;
-    overflow: hidden !important;
-    background: #050a10 !important;
+  .ig-category-label{
+    font-size:clamp(.78rem,2.8vw,.9rem)!important;
   }
 
-  .ig-post .card-img {
-    display: block !important;
-    width: 100% !important;
-    height: 100% !important;
-    aspect-ratio: 1 / 1 !important;
-    object-fit: contain !important;
-    object-position: center center !important;
-    background: #050a10 !important;
+  .ig-count{
+    font-size:clamp(.72rem,2.5vw,.82rem)!important;
   }
 
-  /* O bloco de dados recebe todo o espaço restante do card. */
-  .ig-post .card-info {
-    flex: 1 1 0 !important;
-    min-height: 0 !important;
-    height: auto !important;
-    overflow: hidden !important;
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: space-between !important;
-    gap: 2px !important;
-    padding: 5px 9px 6px !important;
+  .ig-post .card{
+    flex:1 1 0!important;
+    min-height:0!important;
+    height:auto!important;
+    max-height:none!important;
+    width:100%!important;
+    margin:0!important;
+    overflow:hidden!important;
+    display:flex!important;
+    flex-direction:column!important;
+    border:0!important;
+    border-radius:0!important;
   }
 
-  .ig-post .card-title {
-    min-height: 0 !important;
-    margin: 0 !important;
-    line-height: 1.08 !important;
+  /* Capa: sempre quadrada, sem deformar.
+     O arquivo continua vindo da coluna Capa da planilha. */
+  .ig-post .card-img-container{
+    flex:0 0 auto!important;
+    width:100%!important;
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+    aspect-ratio:1/1!important;
+    margin:0!important;
+    overflow:hidden!important;
+    border-radius:0!important;
+    background:#050a10!important;
   }
 
-  .ig-post .timer-badge {
-    margin: 0 !important;
-    padding: 3px 6px !important;
-    line-height: 1.05 !important;
-    font-size: clamp(.60rem, 2.25vw, .70rem) !important;
+  .ig-post .card-img{
+    display:block!important;
+    width:100%!important;
+    height:100%!important;
+    aspect-ratio:1/1!important;
+    object-fit:contain!important;
+    object-position:center!important;
+    background:#050a10!important;
   }
 
-  .ig-post .price-container,
+  .ig-post .platform-tag{
+    top:9px!important;
+    left:11px!important;
+    padding:6px 10px!important;
+    font-size:clamp(.76rem,2.7vw,.9rem)!important;
+  }
+
+  .ig-post .preorder-label{
+    top:9px!important;
+    left:11px!important;
+    padding:5px 8px!important;
+    font-size:.68rem!important;
+  }
+
+  /* Todo o espaço abaixo da capa é reservado aos dados.
+     Nada é cortado antes de Primária/Secundária/Comprar. */
+  .ig-post .card-info{
+    flex:1 1 0!important;
+    min-height:0!important;
+    height:auto!important;
+    overflow:hidden!important;
+    padding:5px 9px 5px!important;
+    display:flex!important;
+    flex-direction:column!important;
+    justify-content:space-between!important;
+    gap:1px!important;
+  }
+
+  .ig-post .card-title{
+    min-height:0!important;
+    margin:0!important;
+    font-size:clamp(.76rem,2.8vw,.9rem)!important;
+    line-height:1.05!important;
+    -webkit-line-clamp:1!important;
+  }
+
+  .ig-post .timer-badge{
+    margin:0!important;
+    padding:2px 5px!important;
+    font-size:clamp(.58rem,2.1vw,.68rem)!important;
+    line-height:1!important;
+  }
+
+  .ig-post .price-container{
+    margin:0!important;
+    line-height:1!important;
+  }
+
+  .ig-post .old-price{
+    font-size:clamp(.58rem,2.1vw,.68rem)!important;
+    line-height:1!important;
+  }
+
+  .ig-post .current-price-row{
+    gap:6px!important;
+    flex-wrap:nowrap!important;
+  }
+
+  .ig-post .current-price{
+    font-size:clamp(.84rem,3.05vw,.98rem)!important;
+    line-height:1!important;
+    white-space:nowrap!important;
+  }
+
+  .ig-post .discount-inline{
+    padding:3px 6px!important;
+    font-size:clamp(.58rem,2.1vw,.68rem)!important;
+  }
+
+  .ig-post .platform-heading{
+    margin:0!important;
+    font-size:clamp(.62rem,2.2vw,.72rem)!important;
+    line-height:1!important;
+  }
+
   .ig-post .platform-selector,
-  .ig-post .type-selector,
-  .ig-post .card-actions-row {
-    margin: 0 !important;
+  .ig-post .type-selector{
+    margin:0!important;
+    gap:5px!important;
   }
 
-  .ig-post .platform-heading {
-    margin: 0 !important;
+  .ig-post .platform-btn{
+    height:29px!important;
+    min-height:29px!important;
+    padding:3px 5px!important;
+    font-size:clamp(.76rem,2.8vw,.88rem)!important;
   }
 
-  .ig-post .platform-single {
-    margin: 0 !important;
-    padding: 3px 0 !important;
+  .ig-post .platform-single{
+    margin:0!important;
+    padding:4px!important;
+    font-size:.72rem!important;
   }
 
-  .ig-post .platform-btn {
-    height: 30px !important;
-    min-height: 30px !important;
-    padding: 3px 6px !important;
+  .ig-post .type-btn{
+    height:34px!important;
+    min-height:34px!important;
+    padding:3px 4px!important;
+    font-size:clamp(.62rem,2.25vw,.73rem)!important;
+    line-height:1!important;
   }
 
-  .ig-post .type-btn {
-    height: 35px !important;
-    min-height: 35px !important;
-    padding: 3px 5px !important;
+  .ig-post .media-label{
+    font-size:clamp(.60rem,2.2vw,.70rem)!important;
+    line-height:1!important;
   }
 
-  .ig-post .btn-buy-direct {
-    height: 35px !important;
-    min-height: 35px !important;
-    padding: 4px 7px !important;
+  .ig-post .media-price{
+    font-size:clamp(.69rem,2.5vw,.81rem)!important;
+    line-height:1!important;
   }
 
-  .ig-post .btn-share-circle {
-    width: 35px !important;
-    height: 35px !important;
-    min-width: 35px !important;
+  .ig-post .card-actions-row{
+    margin:0!important;
+    gap:6px!important;
   }
 
-  .ig-navigation {
-    flex: 0 0 38px !important;
-    height: 38px !important;
-    min-height: 38px !important;
-    margin: 0 !important;
-    padding: 3px 0 0 !important;
-    overflow: hidden !important;
+  .ig-post .btn-buy-direct{
+    height:35px!important;
+    min-height:35px!important;
+    padding:4px 6px!important;
+    font-size:clamp(.75rem,2.7vw,.88rem)!important;
+  }
+
+  .ig-post .btn-share-circle{
+    width:35px!important;
+    height:35px!important;
+    min-width:35px!important;
+  }
+
+  .ig-navigation{
+    flex:0 0 36px!important;
+    height:36px!important;
+    min-height:36px!important;
+    margin:0!important;
+    padding:3px 0 0!important;
+    gap:5px!important;
+    overflow:hidden!important;
+  }
+
+  .ig-arrow{
+    padding:5px 9px!important;
+    font-size:clamp(.65rem,2.3vw,.76rem)!important;
+    line-height:1!important;
+  }
+
+  .ig-dots{gap:4px!important}
+  .ig-dot{width:5px!important;height:5px!important}
+
+  .ig-mobile-nav-trigger{
+    display:none!important;
+  }
+
+  .ig-mobile-popup-backdrop.open{
+    display:flex!important;
+  }
+
+  .ig-mobile-popup .ig-category-menu{
+    display:grid!important;
+    grid-template-columns:1fr 1fr!important;
+    gap:8px!important;
   }
 }
 
-@media (max-width: 800px) and (max-height: 700px) {
-  .ig-topline {
-    flex-basis: 27px !important;
-    height: 27px !important;
-    min-height: 27px !important;
+/* Aparelhos bem baixos: só compacta os controles; a capa permanece 1:1. */
+@media (max-width:800px) and (max-height:650px){
+  header{
+    flex-basis:48px!important;
+    height:48px!important;
+    min-height:48px!important;
   }
 
-  .ig-post .card-info {
-    padding: 3px 7px 4px !important;
-    gap: 1px !important;
+  body>.container{
+    padding-top:3px!important;
   }
 
-  .ig-post .platform-btn {
-    height: 27px !important;
-    min-height: 27px !important;
+  .controls{
+    flex-basis:42px!important;
+    height:42px!important;
+    min-height:42px!important;
+    padding-bottom:3px!important;
   }
 
-  .ig-post .type-btn {
-    height: 31px !important;
-    min-height: 31px !important;
+  .controls .search-box,
+  .mobile-categories-inline{
+    height:38px!important;
+    min-height:38px!important;
   }
 
-  .ig-post .btn-buy-direct {
-    height: 32px !important;
-    min-height: 32px !important;
+  .ig-topline{
+    flex-basis:26px!important;
+    height:26px!important;
+    min-height:26px!important;
   }
 
-  .ig-post .btn-share-circle {
-    width: 32px !important;
-    height: 32px !important;
-    min-width: 32px !important;
+  .ig-post .card-info{
+    padding:3px 7px!important;
   }
 
-  .ig-navigation {
-    flex-basis: 34px !important;
-    height: 34px !important;
-    min-height: 34px !important;
+  .ig-post .platform-btn{
+    height:26px!important;
+    min-height:26px!important;
+  }
+
+  .ig-post .type-btn{
+    height:30px!important;
+    min-height:30px!important;
+  }
+
+  .ig-post .btn-buy-direct{
+    height:31px!important;
+    min-height:31px!important;
+  }
+
+  .ig-post .btn-share-circle{
+    width:31px!important;
+    height:31px!important;
+    min-width:31px!important;
+  }
+
+  .ig-navigation{
+    flex-basis:32px!important;
+    height:32px!important;
+    min-height:32px!important;
   }
 }
 </style>
@@ -2269,7 +2283,9 @@ async function copyShareText(text) {
             <select id="categorySelect" class="category-select" onchange="handleCatalogFilterInput()" aria-label="Filtrar por categoria">
                 <option value="ALL">Todas as Categorias</option>
             </select>
-            <button type="button" class="mobile-categories-inline" onclick="toggleInstagramPopup(true)" aria-label="Abrir categorias">☰ Categorias</button>
+            <button type="button" class="mobile-categories-inline"
+                    onclick="toggleInstagramPopup(true)"
+                    aria-label="Abrir categorias">☰ Categorias</button>
         </div>
 
         <div id="loadingContainer" class="status-box">
@@ -4421,14 +4437,11 @@ async function copyShareText(text) {
             const term = normalizeCatalogSearch(rawTerm);
             if (!term) return true;
 
-            // Busca global: procura em TODAS as abas/categorias,
-            // independentemente da categoria selecionada no momento.
             const searchableText = [
                 game?.name,
                 game?.category,
                 game?.platform,
-                ...(Array.isArray(game?.platforms) ? game.platforms : []),
-                game?.sheetId
+                ...(Array.isArray(game?.platforms) ? game.platforms : [])
             ].map(normalizeCatalogSearch).join(' ');
 
             return searchableText.includes(term);
@@ -4436,6 +4449,7 @@ async function copyShareText(text) {
 
         function handleCatalogFilterInput() {
             updateSearchClearButton();
+            instagramIndex = 0;
             renderGames();
         }
 
@@ -4452,8 +4466,7 @@ async function copyShareText(text) {
 
             if (input) input.value = '';
 
-            // Mantém a categoria/aba selecionada. Ao limpar a busca,
-            // o usuário volta exatamente ao contexto em que estava.
+            instagramIndex = 0;
             updateSearchClearButton();
             renderGames();
 
@@ -4596,18 +4609,16 @@ async function copyShareText(text) {
             instagramVisibleGames = games.filter(game => {
                 const searchMatch = gameMatchesGlobalSearch(game, searchVal);
 
-                // Com busca ativa, ignora a aba selecionada e pesquisa o catálogo inteiro.
-                // Sem busca, respeita normalmente a categoria escolhida.
+                // Busca ativa = catálogo inteiro, independente da aba selecionada.
                 if (searchVal) return searchMatch;
 
-                const categoryMatch = instagramCategory === 'ALL' ||
+                return instagramCategory === 'ALL' ||
                     categoryKey(game.category) === categoryKey(instagramCategory);
-                return categoryMatch;
             });
             if (instagramIndex >= instagramVisibleGames.length) instagramIndex = Math.max(0, instagramVisibleGames.length - 1);
             viewer.innerHTML = '';
             if (!instagramVisibleGames.length) {
-                viewer.innerHTML = '<div class="ig-empty">🔎<br><strong>Nenhum jogo encontrado</strong><br><small>A busca considera todas as categorias. Tente outro nome.</small></div>';
+                viewer.innerHTML = '<div class="ig-empty">🔎<br><strong>Nenhum jogo encontrado</strong><br><small>Tente outra busca ou categoria.</small></div>';
                 return;
             }
             const game = instagramVisibleGames[instagramIndex];
@@ -4648,11 +4659,12 @@ async function copyShareText(text) {
                 if (catalogContainer) catalogContainer.innerHTML = '';
                 const filtered = games.filter(game => {
                     const searchMatch = gameMatchesGlobalSearch(game, searchVal);
+
+                    // Busca ativa = catálogo inteiro, independente da categoria do select.
                     if (searchVal) return searchMatch;
 
-                    const categoryMatch = catVal === 'ALL' ||
+                    return catVal === 'ALL' ||
                         categoryKey(game.category) === categoryKey(catVal);
-                    return categoryMatch;
                 });
                 if (searchVal || catVal !== 'ALL') {
                     setFeatureSectionsVisible(false);
@@ -4841,140 +4853,41 @@ async function copyShareText(text) {
         fetchCatalogFromSheets();
     </script>
 
-<script id="mco-mobile-fit-v3">
+<script id="mco-final-mobile-layout-hook">
 (() => {
-  let fitRaf = 0;
-
-  function scheduleMcoMobileFit() {
-    cancelAnimationFrame(fitRaf);
-    fitRaf = requestAnimationFrame(() => {
-      requestAnimationFrame(fitMcoMobileViewport);
-    });
-  }
-
-  function setImportant(el, prop, value) {
-    if (el) el.style.setProperty(prop, value, 'important');
-  }
-
-  function fitMcoMobileViewport() {
-    if (!window.matchMedia('(max-width: 800px)').matches) return;
-
-    const main = document.getElementById('mainContent');
-    const layout = document.getElementById('instagramLayout');
-    const feed = document.querySelector('#instagramLayout .ig-feed');
+  function settleMobileLayout() {
+    if (!window.matchMedia('(max-width:800px)').matches) return;
     const viewer = document.getElementById('igViewer');
+    if (!viewer) return;
 
-    if (!main || !layout || !feed || !viewer) return;
-    if (getComputedStyle(main).display === 'none') return;
+    // Força um novo cálculo de flex/layout depois que imagem e dados entram no DOM.
+    viewer.style.display = 'none';
+    void viewer.offsetHeight;
+    viewer.style.display = '';
 
-    /* Usa a área VISÍVEL do Chrome, não apenas 100vh/100dvh.
-       Isso evita a faixa vazia que aparecia abaixo da navegação. */
-    const vv = window.visualViewport;
-    const visibleBottom = vv
-      ? (vv.offsetTop + vv.height)
-      : window.innerHeight;
-
-    const mainTop = main.getBoundingClientRect().top;
-    const mainHeight = Math.max(180, Math.floor(visibleBottom - mainTop - 3));
-
-    setImportant(main, 'height', `${mainHeight}px`);
-    setImportant(main, 'max-height', `${mainHeight}px`);
-    setImportant(main, 'flex', `0 0 ${mainHeight}px`);
-
-    [layout, feed, viewer].forEach(el => {
-      setImportant(el, 'height', '100%');
-      setImportant(el, 'max-height', '100%');
-      setImportant(el, 'min-height', '0');
-      setImportant(el, 'flex', '1 1 0');
-    });
-
-    const post = viewer.querySelector('.ig-post');
-    const nav = viewer.querySelector('.ig-navigation');
-    if (!post) return;
-
-    const navHeight = nav ? Math.ceil(nav.getBoundingClientRect().height) : 38;
-    const postHeight = Math.max(140, Math.floor(viewer.clientHeight - navHeight));
-
-    setImportant(post, 'height', `${postHeight}px`);
-    setImportant(post, 'max-height', `${postHeight}px`);
-    setImportant(post, 'flex', `0 0 ${postHeight}px`);
-
-    const topLine = post.querySelector('.ig-topline');
-    const card = post.querySelector('.card');
-    const cover = post.querySelector('.card-img-container');
-    const info = post.querySelector('.card-info');
-
-    if (!card || !cover || !info) return;
-
-    const topHeight = topLine ? Math.ceil(topLine.getBoundingClientRect().height) : 0;
-    const cardHeight = Math.max(100, postHeight - topHeight);
-
-    setImportant(card, 'height', `${cardHeight}px`);
-    setImportant(card, 'max-height', `${cardHeight}px`);
-    setImportant(card, 'flex', `0 0 ${cardHeight}px`);
-
-    /* Mede a altura REAL necessária para nome, contador, preço,
-       plataforma, Primária/Secundária e Comprar. */
-    setImportant(info, 'flex', '0 0 auto');
-    setImportant(info, 'height', 'auto');
-    setImportant(info, 'max-height', 'none');
-    setImportant(info, 'overflow', 'visible');
-    setImportant(info, 'justify-content', 'flex-start');
-
-    const naturalInfoHeight = Math.ceil(info.scrollHeight);
-    const cardWidth = Math.floor(card.clientWidth);
-
-    /* Tenta primeiro a capa em largura total. Se os dados não couberem,
-       reduz somente a capa, mantendo 1:1 e sem distorção. */
-    let coverSize = Math.min(cardWidth, Math.floor(cardHeight - naturalInfoHeight));
-    coverSize = Math.max(112, coverSize);
-
-    setImportant(cover, 'width', `${coverSize}px`);
-    setImportant(cover, 'height', `${coverSize}px`);
-    setImportant(cover, 'aspect-ratio', '1 / 1');
-    setImportant(cover, 'margin-left', 'auto');
-    setImportant(cover, 'margin-right', 'auto');
-
-    /* Agora o bloco de dados ocupa exatamente o restante e distribui
-       os elementos verticalmente, aproveitando o espaço disponível. */
-    setImportant(info, 'flex', '1 1 0');
-    setImportant(info, 'height', 'auto');
-    setImportant(info, 'max-height', 'none');
-    setImportant(info, 'overflow', 'hidden');
-    setImportant(info, 'justify-content', 'space-between');
-
-    /* Ajuste fino para arredondamentos/subpixels: se ainda faltar 1–2 linhas
-       de altura, encolhe a capa apenas pelo déficit medido. */
-    const deficit = Math.ceil(info.scrollHeight - info.clientHeight);
-    if (deficit > 1 && coverSize > 112) {
-      coverSize = Math.max(112, coverSize - deficit - 2);
-      setImportant(cover, 'width', `${coverSize}px`);
-      setImportant(cover, 'height', `${coverSize}px`);
-    }
-  }
-
-  const viewer = document.getElementById('igViewer');
-  if (viewer) {
-    new MutationObserver(scheduleMcoMobileFit).observe(viewer, {
-      childList: true,
-      subtree: false
+    requestAnimationFrame(() => {
+      const img = viewer.querySelector('.card-img');
+      if (img && !img.complete) {
+        img.addEventListener('load', () => {
+          requestAnimationFrame(() => {
+            viewer.style.display = 'none';
+            void viewer.offsetHeight;
+            viewer.style.display = '';
+          });
+        }, { once:true });
+      }
     });
   }
 
-  window.addEventListener('resize', scheduleMcoMobileFit, { passive: true });
-  window.addEventListener('orientationchange', scheduleMcoMobileFit, { passive: true });
+  const observer = new MutationObserver(settleMobileLayout);
+  document.addEventListener('DOMContentLoaded', () => {
+    const viewer = document.getElementById('igViewer');
+    if (viewer) observer.observe(viewer, { childList:true });
+    settleMobileLayout();
+  });
 
-  if (window.visualViewport) {
-    window.visualViewport.addEventListener('resize', scheduleMcoMobileFit, { passive: true });
-    window.visualViewport.addEventListener('scroll', scheduleMcoMobileFit, { passive: true });
-  }
-
-  document.addEventListener('DOMContentLoaded', scheduleMcoMobileFit);
-  window.addEventListener('load', scheduleMcoMobileFit);
-
-  /* Também recalcula depois que fontes/imagens e dados da planilha assentarem. */
-  setTimeout(scheduleMcoMobileFit, 250);
-  setTimeout(scheduleMcoMobileFit, 900);
+  window.addEventListener('resize', settleMobileLayout, { passive:true });
+  window.addEventListener('orientationchange', settleMobileLayout, { passive:true });
 })();
 </script>
 
