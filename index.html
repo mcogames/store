@@ -2243,6 +2243,140 @@ async function copyShareText(text) {
 }
 </style>
 
+<style id="mco-mobile-scroll-fix">
+/* Correção experimental: no celular, deixar a página crescer e rolar naturalmente.
+   Evita que alturas fixas e overflow:hidden escondam preço, opções e compra. */
+@media (max-width: 800px) {
+  html, body {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 100% !important;
+    max-height: none !important;
+    margin: 0 !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior-y: auto !important;
+  }
+
+  body {
+    position: static !important;
+    display: block !important;
+  }
+
+  header {
+    flex: none !important;
+    position: relative !important;
+  }
+
+  body > .container,
+  .container {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    display: block !important;
+  }
+
+  #mainContent {
+    display: block !important;
+    flex: none !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  #instagramLayout,
+  .ig-layout,
+  .ig-feed,
+  #igViewer {
+    display: block !important;
+    flex: none !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    padding-bottom: 0 !important;
+  }
+
+  .ig-post {
+    display: block !important;
+    flex: none !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    margin: 0 !important;
+  }
+
+  .ig-post .card {
+    display: flex !important;
+    flex: none !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .ig-post .card-img-container {
+    flex: none !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    aspect-ratio: 1 / 1 !important;
+    overflow: hidden !important;
+  }
+
+  .ig-post .card-img {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    aspect-ratio: 1 / 1 !important;
+    object-fit: contain !important;
+  }
+
+  .ig-post .card-info {
+    display: flex !important;
+    flex: none !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    gap: 6px !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    padding: 8px 9px 12px !important;
+  }
+
+  .ig-post .card-title,
+  .ig-post .price-container,
+  .ig-post .platform-selector,
+  .ig-post .type-selector,
+  .ig-post .card-actions-row {
+    flex-shrink: 0 !important;
+  }
+
+  .ig-navigation {
+    flex: none !important;
+    height: auto !important;
+    min-height: 42px !important;
+    overflow: visible !important;
+    margin-bottom: 18px !important;
+  }
+
+  #loadingContainer,
+  #errorContainer {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+}
+</style>
+
 </head>
 <body>
 
