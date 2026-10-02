@@ -2872,19 +2872,28 @@ async function copyShareText(text) {
 </style>
 
 
-<style id="mco-mobile-overlay-arrows">
-/* Mobile: navegação flutuante sobre a capa do jogo */
+
+<style id="mco-mobile-detail-fixes-v2">
+/* ============================================================
+   Ajustes pontuais mobile:
+   - setas da capa funcionais
+   - azul neon semitransparente
+   - busca clicável/focável
+   - relógio sobre a capa no canto superior direito
+   Não altera tamanhos/estrutura dos demais botões.
+   ============================================================ */
 @media (max-width: 800px) {
-    /* Remove os botões de navegação inferiores apenas no celular */
+
+    /* Navegação inferior deixa de aparecer no celular. */
     .ig-navigation {
         display: none !important;
     }
 
-    /* Garante referência para posicionamento absoluto */
     .ig-post .card-img-container {
         position: relative !important;
     }
 
+    /* -------- SETAS FLUTUANTES -------- */
     .mobile-cover-nav {
         position: absolute !important;
         left: 0 !important;
@@ -2895,7 +2904,7 @@ async function copyShareText(text) {
         align-items: center !important;
         padding: 0 12px !important;
         pointer-events: none !important;
-        z-index: 8 !important;
+        z-index: 12 !important;
     }
 
     .mobile-cover-arrow {
@@ -2903,33 +2912,109 @@ async function copyShareText(text) {
         width: 42px !important;
         height: 42px !important;
         min-width: 42px !important;
-        border: 1px solid rgba(255,255,255,.18) !important;
+        border: 1px solid rgba(45, 199, 255, .82) !important;
         border-radius: 999px !important;
-        background: rgba(6, 15, 24, .42) !important;
-        backdrop-filter: blur(3px) !important;
-        -webkit-backdrop-filter: blur(3px) !important;
+        background:
+            linear-gradient(135deg,
+                rgba(0, 164, 255, .56),
+                rgba(0, 86, 210, .42)) !important;
+        backdrop-filter: blur(4px) !important;
+        -webkit-backdrop-filter: blur(4px) !important;
         color: #ffffff !important;
         display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
         font-size: 1.35rem !important;
         line-height: 1 !important;
-        box-shadow: 0 4px 14px rgba(0,0,0,.18) !important;
+        text-shadow: 0 0 8px rgba(255,255,255,.55) !important;
+        box-shadow:
+            0 0 8px rgba(0, 190, 255, .48),
+            0 0 18px rgba(0, 130, 255, .30),
+            inset 0 0 9px rgba(85, 211, 255, .18) !important;
         cursor: pointer !important;
-        transition: transform .15s ease, opacity .15s ease, background .15s ease !important;
+        transition:
+            transform .15s ease,
+            opacity .15s ease,
+            background .15s ease !important;
+        -webkit-tap-highlight-color: transparent !important;
+        touch-action: manipulation !important;
     }
 
     .mobile-cover-arrow:active {
-        transform: scale(.96) !important;
-    }
-
-    .mobile-cover-arrow:hover {
-        background: rgba(6, 15, 24, .55) !important;
+        transform: scale(.94) !important;
+        background:
+            linear-gradient(135deg,
+                rgba(0, 190, 255, .72),
+                rgba(0, 93, 230, .58)) !important;
     }
 
     .mobile-cover-arrow[disabled] {
-        opacity: .32 !important;
+        opacity: .24 !important;
         cursor: default !important;
+        box-shadow:
+            0 0 5px rgba(0, 150, 255, .18),
+            inset 0 0 7px rgba(60, 190, 255, .08) !important;
+    }
+
+    /* -------- BUSCA: prioridade de toque e foco -------- */
+    .controls {
+        z-index: 999 !important;
+        pointer-events: auto !important;
+        isolation: isolate !important;
+    }
+
+    .controls .search-box {
+        position: relative !important;
+        z-index: 1000 !important;
+        pointer-events: auto !important;
+    }
+
+    .controls .search-input {
+        position: relative !important;
+        z-index: 1001 !important;
+        pointer-events: auto !important;
+        touch-action: manipulation !important;
+        -webkit-user-select: text !important;
+        user-select: text !important;
+        cursor: text !important;
+    }
+
+    .controls .search-icon {
+        z-index: 1002 !important;
+        pointer-events: none !important;
+    }
+
+    .controls .search-clear-btn {
+        z-index: 1003 !important;
+        pointer-events: auto !important;
+    }
+
+    /* -------- RELÓGIO SOBRE A CAPA -------- */
+    .ig-post .card-img-container > .timer-badge {
+        position: absolute !important;
+        top: 12px !important;
+        right: 12px !important;
+        left: auto !important;
+        bottom: auto !important;
+        z-index: 10 !important;
+        margin: 0 !important;
+        max-width: calc(100% - 135px) !important;
+        padding: 6px 9px !important;
+        border: 1px solid rgba(255, 190, 32, .55) !important;
+        border-radius: 8px !important;
+        background: rgba(15, 14, 6, .68) !important;
+        backdrop-filter: blur(4px) !important;
+        -webkit-backdrop-filter: blur(4px) !important;
+        color: #ffd04c !important;
+        font-size: clamp(.62rem, 2.5vw, .74rem) !important;
+        font-weight: 900 !important;
+        line-height: 1.15 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        box-shadow:
+            0 0 9px rgba(255, 170, 0, .20),
+            inset 0 0 8px rgba(255, 190, 40, .06) !important;
     }
 }
 
@@ -2944,6 +3029,13 @@ async function copyShareText(text) {
         height: 38px !important;
         min-width: 38px !important;
         font-size: 1.2rem !important;
+    }
+
+    .ig-post .card-img-container > .timer-badge {
+        top: 9px !important;
+        right: 9px !important;
+        padding: 5px 7px !important;
+        font-size: .62rem !important;
     }
 }
 </style>
@@ -5667,8 +5759,34 @@ async function copyShareText(text) {
 </script>
 
 
-<script id="mco-mobile-overlay-arrows-script">
+
+<script id="mco-mobile-detail-fixes-script-v2">
 (() => {
+    function getCurrentPositionFromUI() {
+        const count = document.querySelector('#igViewer .ig-count');
+        if (!count) return { index: 0, total: 0 };
+
+        const match = String(count.textContent || '').match(/(\d+)\s*\/\s*(\d+)/);
+        if (!match) return { index: 0, total: 0 };
+
+        return {
+            index: Math.max(0, Number(match[1]) - 1),
+            total: Math.max(0, Number(match[2]))
+        };
+    }
+
+    function moveTimerToCover(cover) {
+        if (!cover) return;
+
+        const card = cover.closest('.card');
+        if (!card) return;
+
+        const timer = card.querySelector('.card-info .timer-badge');
+        if (timer) {
+            cover.appendChild(timer);
+        }
+    }
+
     function buildMobileCoverArrows() {
         if (!window.matchMedia('(max-width: 800px)').matches) return;
 
@@ -5678,11 +5796,12 @@ async function copyShareText(text) {
         const cover = viewer.querySelector('.ig-post .card-img-container');
         if (!cover) return;
 
-        const existing = cover.querySelector('.mobile-cover-nav');
-        if (existing) existing.remove();
+        moveTimerToCover(cover);
 
-        const total = Array.isArray(window.instagramVisibleGames) ? window.instagramVisibleGames.length : 0;
-        const index = typeof window.instagramIndex === 'number' ? window.instagramIndex : 0;
+        const oldNav = cover.querySelector('.mobile-cover-nav');
+        if (oldNav) oldNav.remove();
+
+        const position = getCurrentPositionFromUI();
 
         const nav = document.createElement('div');
         nav.className = 'mobile-cover-nav';
@@ -5692,11 +5811,17 @@ async function copyShareText(text) {
         prev.className = 'mobile-cover-arrow mobile-cover-arrow-prev';
         prev.setAttribute('aria-label', 'Jogo anterior');
         prev.innerHTML = '&#8249;';
-        if (index <= 0) prev.disabled = true;
-        prev.addEventListener('click', function (event) {
+        prev.disabled = position.index <= 0;
+
+        prev.addEventListener('click', (event) => {
+            event.preventDefault();
             event.stopPropagation();
-            if (typeof window.moveInstagramGame === 'function' && index > 0) {
-                window.moveInstagramGame(-1);
+
+            /* Usa diretamente a função existente do catálogo.
+               Ela trabalha com a variável interna instagramIndex,
+               por isso não dependemos mais de window.instagramIndex. */
+            if (typeof moveInstagramGame === 'function') {
+                moveInstagramGame(-1);
             }
         });
 
@@ -5705,11 +5830,14 @@ async function copyShareText(text) {
         next.className = 'mobile-cover-arrow mobile-cover-arrow-next';
         next.setAttribute('aria-label', 'Próximo jogo');
         next.innerHTML = '&#8250;';
-        if (total && index >= total - 1) next.disabled = true;
-        next.addEventListener('click', function (event) {
+        next.disabled = position.total > 0 && position.index >= position.total - 1;
+
+        next.addEventListener('click', (event) => {
+            event.preventDefault();
             event.stopPropagation();
-            if (typeof window.moveInstagramGame === 'function' && (!total || index < total - 1)) {
-                window.moveInstagramGame(1);
+
+            if (typeof moveInstagramGame === 'function') {
+                moveInstagramGame(1);
             }
         });
 
@@ -5718,24 +5846,63 @@ async function copyShareText(text) {
         cover.appendChild(nav);
     }
 
-    function setupOverlayObserver() {
-        const viewer = document.getElementById('igViewer');
-        if (!viewer) return;
+    function ensureSearchIsFocusable() {
+        if (!window.matchMedia('(max-width: 800px)').matches) return;
 
-        const observer = new MutationObserver(() => {
-            requestAnimationFrame(buildMobileCoverArrows);
+        const input = document.getElementById('searchInput');
+        if (!input) return;
+
+        /* Tocar em qualquer parte vazia da caixa de busca leva o foco ao input. */
+        const box = input.closest('.search-box');
+        if (box && !box.dataset.mcoSearchFocusBound) {
+            box.dataset.mcoSearchFocusBound = '1';
+            box.addEventListener('click', (event) => {
+                if (event.target.closest('.search-clear-btn')) return;
+                input.focus({ preventScroll: true });
+            });
+            box.addEventListener('touchend', (event) => {
+                if (event.target.closest('.search-clear-btn')) return;
+                input.focus({ preventScroll: true });
+            }, { passive: true });
+        }
+    }
+
+    function refreshMobileDetails() {
+        requestAnimationFrame(() => {
+            buildMobileCoverArrows();
+            ensureSearchIsFocusable();
+        });
+    }
+
+    function setupObserver() {
+        const viewer = document.getElementById('igViewer');
+        if (!viewer) return false;
+
+        const observer = new MutationObserver(refreshMobileDetails);
+        observer.observe(viewer, {
+            childList: true,
+            subtree: true
         });
 
-        observer.observe(viewer, { childList: true, subtree: true });
-        requestAnimationFrame(buildMobileCoverArrows);
+        refreshMobileDetails();
+        return true;
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-        setupOverlayObserver();
-        window.addEventListener('resize', () => requestAnimationFrame(buildMobileCoverArrows), { passive: true });
-        window.addEventListener('orientationchange', () => requestAnimationFrame(buildMobileCoverArrows), { passive: true });
-        setTimeout(buildMobileCoverArrows, 350);
-        setTimeout(buildMobileCoverArrows, 1200);
+        ensureSearchIsFocusable();
+
+        if (!setupObserver()) {
+            const wait = setInterval(() => {
+                if (setupObserver()) clearInterval(wait);
+            }, 250);
+            setTimeout(() => clearInterval(wait), 8000);
+        }
+
+        window.addEventListener('resize', refreshMobileDetails, { passive: true });
+        window.addEventListener('orientationchange', refreshMobileDetails, { passive: true });
+
+        setTimeout(refreshMobileDetails, 400);
+        setTimeout(refreshMobileDetails, 1200);
     });
 })();
 </script>
