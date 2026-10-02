@@ -1644,6 +1644,51 @@
         }
         @media(max-width:390px){.ig-post .card-img-container{max-height:31dvh}.hero-subtitle{display:none}.header-actions .community-btn{font-size:.66rem;padding:6px}.ig-mobile-nav-trigger{right:8px;bottom:10px;padding:10px 12px}}
 
+
+        /* Ajuste compacto para celular: reduzir a altura total do cartão e evitar rolagem longa */
+        @media(max-width:800px){
+          .hero-section{padding:2px 8px 1px!important}
+          .hero-title{font-size:.88rem!important;line-height:1.05!important}
+          .hero-subtitle{display:none!important}
+          .controls{padding:3px 6px!important;margin:0 0 2px!important}
+          .controls .search-box{min-height:32px!important;border-radius:12px!important}
+          .search-input{padding:5px 4px!important;font-size:.78rem!important}
+          .ig-layout{margin-top:0!important;gap:0!important}
+          .ig-topline{padding:3px 8px!important;margin:0!important;font-size:.75rem!important}
+          .ig-category-label{font-size:.76rem!important}
+          .ig-post .card-img-container{aspect-ratio:16/7!important;height:clamp(105px,20dvh,170px)!important;max-height:20dvh!important;min-height:0!important}
+          .ig-post .card-img{height:100%!important;width:100%!important;object-fit:contain!important}
+          .ig-post .card-info{padding:6px 9px!important;display:flex!important;flex-direction:column!important;gap:4px!important}
+          .ig-post .card-title{font-size:.82rem!important;line-height:1.12!important;margin:0!important}
+          .ig-post .price-container{margin:0!important;line-height:1.05!important}
+          .ig-post .old-price{font-size:.68rem!important;line-height:1!important}
+          .ig-post .current-price{font-size:1rem!important;line-height:1.05!important}
+          .ig-post .discount-inline{font-size:.68rem!important;padding:3px 6px!important}
+          .ig-post .platform-heading{font-size:.68rem!important;margin:2px 0!important}
+          .ig-post .platform-selector{gap:6px!important;margin:0!important}
+          .ig-post .platform-btn{min-height:36px!important;padding:5px 8px!important;font-size:.85rem!important}
+          .ig-post .platform-single{padding:5px!important;margin:0!important;font-size:.8rem!important}
+          .ig-post .type-selector{gap:6px!important;margin:0!important}
+          .ig-post .type-btn{min-height:42px!important;padding:5px 6px!important;font-size:.72rem!important;line-height:1.05!important}
+          .ig-post .media-label{font-size:.68rem!important}
+          .ig-post .media-price{font-size:.78rem!important}
+          .ig-post .card-actions-row{gap:7px!important;margin:0!important}
+          .ig-post .btn-buy-direct{min-height:40px!important;padding:7px!important;font-size:.85rem!important}
+          .ig-post .btn-share-circle{width:42px!important;height:42px!important;min-width:42px!important}
+          .ig-navigation{padding:3px 0!important;gap:5px!important}
+          .ig-arrow{padding:6px 9px!important;font-size:.7rem!important}
+          .ig-dots{gap:4px!important}
+          .ig-dot{width:5px!important;height:5px!important}
+          #instagramLayout{padding-bottom:58px!important}
+          .ig-mobile-nav-trigger{padding:9px 12px!important;font-size:.82rem!important;right:9px!important;bottom:8px!important}
+        }
+        @media(max-width:390px){
+          .ig-post .card-img-container{height:clamp(95px,18dvh,140px)!important;max-height:18dvh!important}
+          .ig-post .card-title{font-size:.78rem!important}
+          .ig-post .current-price{font-size:.92rem!important}
+          .ig-post .platform-btn{min-height:32px!important}
+          .ig-post .type-btn{min-height:38px!important}
+        }
     </style>
 
 <script>
