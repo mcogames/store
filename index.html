@@ -3389,7 +3389,7 @@ async function copyShareText(text) {
         // URLs diretas confirmadas pelo usuário. Usadas como fonte principal para evitar
         // depender da publicação/consulta CSV da aba IMAGENS.
         const BRAND_ASSET_URLS = {
-            logo: "https://i.ibb.co/N61qb6J4/Logo-MCO-Games-em-Azul-Vibranted.png",
+            logo: "https://i.ibb.co/Fkd0MQKs/LOGO-MCO-GAMES-2025-fundo-branco.png",
             ps4: "https://i.ibb.co/9ks87KbN/ps4.png",
             ps5: "https://i.ibb.co/qFXVh154/ps5-ok.png"
         };
@@ -4575,22 +4575,24 @@ async function copyShareText(text) {
                 || (navigator.platform === 'MacIntel' && touchPoints > 1);
         }
 
+        
         async function shareGameOffer(event, gameId) {
             event.stopPropagation();
 
             const game = games.find(g => g.id === gameId);
+            if (!game) return;
+
             const cardEl = event.currentTarget.closest('.card');
-            if (!game || !cardEl) return;
+            if (!cardEl) return;
 
             const moneyText = value => `R$ ${Number(value).toFixed(2).replace('.', ',')}`;
             const optionLines = [];
 
             if (game.ps5Primary > 0 || game.ps5Secondary > 0) {
-                optionLines.push(`🟦 *PS5*`);
+                optionLines.push(`🟪 *PS5*`);
                 if (game.ps5Primary > 0) optionLines.push(`• Primária: ${moneyText(game.ps5Primary)}`);
                 if (game.ps5Secondary > 0) optionLines.push(`• Secundária: ${moneyText(game.ps5Secondary)}`);
             }
-
             if (game.ps4Primary > 0 || game.ps4Secondary > 0) {
                 optionLines.push(`🟦 *PS4*`);
                 if (game.ps4Primary > 0) optionLines.push(`• Primária: ${moneyText(game.ps4Primary)}`);
@@ -4608,18 +4610,22 @@ async function copyShareText(text) {
             const previousDisplay = actionsRow ? actionsRow.style.display : '';
             const desktop = !isMobileDevice();
 
-            // Inicia a cópia enquanto ainda estamos dentro do clique do usuário.
-            // O resultado será confirmado somente depois de terminar a geração da imagem.
             const desktopCopyPromise = desktop ? copyShareText(message) : null;
 
             try {
-                if (actionsRow) actionsRow.style.display = 'none';
-
                 showShareStatus('Gerando a imagem da oferta…');
 
-                const canvas = await buildGameSharePoster(game, cardEl);
-                const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+                let canvas;
+                if (!desktop) {
+                    // CELULAR: compartilha a tela atual com o visual aprovado.
+                    canvas = await buildCurrentMobileScreenShare(cardEl);
+                } else {
+                    // DESKTOP: mantém a arte dedicada já existente.
+                    if (actionsRow) actionsRow.style.display = 'none';
+                    canvas = await buildGameSharePoster(game, cardEl);
+                }
 
+                const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
                 if (!blob) throw new Error('Não foi possível gerar o PNG.');
 
                 const safeName = game.name
@@ -4632,8 +4638,6 @@ async function copyShareText(text) {
                 const file = new File([blob], fileName, { type: 'image/png' });
 
                 if (!desktop) {
-                    // CELULAR: usa o compartilhamento nativo, que permite enviar
-                    // imagem + texto diretamente para o WhatsApp.
                     const canShareFile = !!(
                         navigator.share &&
                         navigator.canShare &&
@@ -4650,13 +4654,11 @@ async function copyShareText(text) {
                             showShareStatus('Compartilhado com sucesso.');
                             return;
                         } catch (err) {
-                            // Cancelar o menu nativo não é um erro para o usuário.
                             if (err && err.name === 'AbortError') return;
                             console.warn('Compartilhamento nativo não disponível:', err);
                         }
                     }
 
-                    // Fallback móvel: salva a imagem e abre o WhatsApp com o texto.
                     const mobileUrl = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = mobileUrl;
@@ -4676,7 +4678,6 @@ async function copyShareText(text) {
                     return;
                 }
 
-                // PC: baixa a imagem e copia o texto, sem abrir o WhatsApp.
                 const desktopUrl = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = desktopUrl;
@@ -4709,7 +4710,7 @@ async function copyShareText(text) {
                         : 'Não foi possível gerar a imagem. Tente novamente.'
                 );
             } finally {
-                if (actionsRow) actionsRow.style.display = previousDisplay || 'flex';
+                if (desktop && actionsRow) actionsRow.style.display = previousDisplay || 'flex';
             }
         }
 
@@ -6071,6 +6072,84 @@ async function copyShareText(text) {
         window.addEventListener('orientationchange', moveSearchIntoHeader, { passive: true });
     });
 })();
+</script>
+
+
+<script id="mco-mobile-share-current-screen">
+async function buildCurrentMobileScreenShare(cardEl) {
+    if (typeof html2canvas === 'undefined') {
+        throw new Error('html2canvas não foi carregado.');
+    }
+
+    const header = document.querySelector('header');
+    const post = cardEl ? cardEl.closest('.ig-post') : null;
+
+    if (!header || !post) {
+        throw new Error('Não encontrei a tela atual para compartilhar.');
+    }
+
+    const stage = document.createElement('div');
+    stage.className = 'mobile-share-stage';
+    stage.style.position = 'fixed';
+    stage.style.left = '-100000px';
+    stage.style.top = '0';
+    stage.style.zIndex = '-1';
+    stage.style.width = `${Math.max(document.documentElement.clientWidth || 390, 320)}px`;
+    stage.style.background = '#070a0f';
+    stage.style.padding = '0';
+    stage.style.margin = '0';
+    stage.style.display = 'block';
+    stage.style.overflow = 'hidden';
+
+    const headerClone = header.cloneNode(true);
+    const postClone = post.cloneNode(true);
+
+    headerClone.style.margin = '0';
+    headerClone.style.width = '100%';
+
+    postClone.style.margin = '0 8px 0';
+    postClone.style.width = 'calc(100% - 16px)';
+
+    headerClone.querySelectorAll('#shareStatusToast').forEach(el => el.remove());
+
+    const originalImg = cardEl.querySelector('.card-img');
+    const cloneImg = postClone.querySelector('.card-img');
+
+    if (originalImg && cloneImg) {
+        const safeImage = await loadImageForCanvas(originalImg);
+
+        cloneImg.src = safeImage.src || originalImg.src;
+        cloneImg.crossOrigin = 'anonymous';
+
+        await new Promise((resolve, reject) => {
+            if (cloneImg.complete && cloneImg.naturalWidth > 0) {
+                resolve();
+                return;
+            }
+            cloneImg.onload = resolve;
+            cloneImg.onerror = () => reject(new Error('A capa não pôde ser inserida na imagem de compartilhamento.'));
+        });
+    }
+
+    stage.appendChild(headerClone);
+    stage.appendChild(postClone);
+    document.body.appendChild(stage);
+
+    try {
+        const canvas = await html2canvas(stage, {
+            backgroundColor: '#070a0f',
+            useCORS: true,
+            allowTaint: false,
+            imageTimeout: 12000,
+            scale: Math.min((window.devicePixelRatio || 1) * 1.6, 3),
+            logging: false
+        });
+
+        return canvas;
+    } finally {
+        stage.remove();
+    }
+}
 </script>
 
 </body>
