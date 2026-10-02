@@ -2859,6 +2859,95 @@ async function copyShareText(text) {
 }
 </style>
 
+
+<style id="mco-mobile-hide-checkout-bar">
+/* No celular, a compra é feita diretamente pelo botão Comprar do card.
+   A barra de carrinho/finalização continua disponível normalmente no desktop. */
+@media (max-width: 800px) {
+    .bottom-bar,
+    #bottomBar {
+        display: none !important;
+    }
+}
+</style>
+
+
+<style id="mco-mobile-overlay-arrows">
+/* Mobile: navegação flutuante sobre a capa do jogo */
+@media (max-width: 800px) {
+    /* Remove os botões de navegação inferiores apenas no celular */
+    .ig-navigation {
+        display: none !important;
+    }
+
+    /* Garante referência para posicionamento absoluto */
+    .ig-post .card-img-container {
+        position: relative !important;
+    }
+
+    .mobile-cover-nav {
+        position: absolute !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 14px !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding: 0 12px !important;
+        pointer-events: none !important;
+        z-index: 8 !important;
+    }
+
+    .mobile-cover-arrow {
+        pointer-events: auto !important;
+        width: 42px !important;
+        height: 42px !important;
+        min-width: 42px !important;
+        border: 1px solid rgba(255,255,255,.18) !important;
+        border-radius: 999px !important;
+        background: rgba(6, 15, 24, .42) !important;
+        backdrop-filter: blur(3px) !important;
+        -webkit-backdrop-filter: blur(3px) !important;
+        color: #ffffff !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-size: 1.35rem !important;
+        line-height: 1 !important;
+        box-shadow: 0 4px 14px rgba(0,0,0,.18) !important;
+        cursor: pointer !important;
+        transition: transform .15s ease, opacity .15s ease, background .15s ease !important;
+    }
+
+    .mobile-cover-arrow:active {
+        transform: scale(.96) !important;
+    }
+
+    .mobile-cover-arrow:hover {
+        background: rgba(6, 15, 24, .55) !important;
+    }
+
+    .mobile-cover-arrow[disabled] {
+        opacity: .32 !important;
+        cursor: default !important;
+    }
+}
+
+@media (max-width: 390px) {
+    .mobile-cover-nav {
+        bottom: 10px !important;
+        padding: 0 10px !important;
+    }
+
+    .mobile-cover-arrow {
+        width: 38px !important;
+        height: 38px !important;
+        min-width: 38px !important;
+        font-size: 1.2rem !important;
+    }
+}
+</style>
+
 </head>
 <body>
 
@@ -5574,6 +5663,80 @@ async function copyShareText(text) {
   window.addEventListener('resize',placeSearch,{passive:true});
   window.addEventListener('orientationchange',placeSearch,{passive:true});
   placeSearch();
+})();
+</script>
+
+
+<script id="mco-mobile-overlay-arrows-script">
+(() => {
+    function buildMobileCoverArrows() {
+        if (!window.matchMedia('(max-width: 800px)').matches) return;
+
+        const viewer = document.getElementById('igViewer');
+        if (!viewer) return;
+
+        const cover = viewer.querySelector('.ig-post .card-img-container');
+        if (!cover) return;
+
+        const existing = cover.querySelector('.mobile-cover-nav');
+        if (existing) existing.remove();
+
+        const total = Array.isArray(window.instagramVisibleGames) ? window.instagramVisibleGames.length : 0;
+        const index = typeof window.instagramIndex === 'number' ? window.instagramIndex : 0;
+
+        const nav = document.createElement('div');
+        nav.className = 'mobile-cover-nav';
+
+        const prev = document.createElement('button');
+        prev.type = 'button';
+        prev.className = 'mobile-cover-arrow mobile-cover-arrow-prev';
+        prev.setAttribute('aria-label', 'Jogo anterior');
+        prev.innerHTML = '&#8249;';
+        if (index <= 0) prev.disabled = true;
+        prev.addEventListener('click', function (event) {
+            event.stopPropagation();
+            if (typeof window.moveInstagramGame === 'function' && index > 0) {
+                window.moveInstagramGame(-1);
+            }
+        });
+
+        const next = document.createElement('button');
+        next.type = 'button';
+        next.className = 'mobile-cover-arrow mobile-cover-arrow-next';
+        next.setAttribute('aria-label', 'Próximo jogo');
+        next.innerHTML = '&#8250;';
+        if (total && index >= total - 1) next.disabled = true;
+        next.addEventListener('click', function (event) {
+            event.stopPropagation();
+            if (typeof window.moveInstagramGame === 'function' && (!total || index < total - 1)) {
+                window.moveInstagramGame(1);
+            }
+        });
+
+        nav.appendChild(prev);
+        nav.appendChild(next);
+        cover.appendChild(nav);
+    }
+
+    function setupOverlayObserver() {
+        const viewer = document.getElementById('igViewer');
+        if (!viewer) return;
+
+        const observer = new MutationObserver(() => {
+            requestAnimationFrame(buildMobileCoverArrows);
+        });
+
+        observer.observe(viewer, { childList: true, subtree: true });
+        requestAnimationFrame(buildMobileCoverArrows);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        setupOverlayObserver();
+        window.addEventListener('resize', () => requestAnimationFrame(buildMobileCoverArrows), { passive: true });
+        window.addEventListener('orientationchange', () => requestAnimationFrame(buildMobileCoverArrows), { passive: true });
+        setTimeout(buildMobileCoverArrows, 350);
+        setTimeout(buildMobileCoverArrows, 1200);
+    });
 })();
 </script>
 
