@@ -1575,6 +1575,37 @@
             .category-select { flex: 1 1 100%; }
             .search-results-title { align-items: flex-start; flex-direction: column; }
         }
+
+        /* Modo teste: visualização de um jogo por vez, inspirada em feed social */
+        #categorySelect{display:none!important}
+        .controls .search-box{flex:1 1 100%;width:100%}
+        .ig-layout{display:grid;grid-template-columns:minmax(0,1fr) 230px;gap:22px;align-items:start;margin-top:24px}
+        .ig-feed{min-width:0;max-width:780px;margin:0 auto;width:100%}
+        .ig-topline{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+        .ig-category-label{font-weight:900;color:#19c5ff;letter-spacing:.04em;text-transform:uppercase}
+        .ig-count{color:#8da4b8;font-size:.88rem}
+        .ig-post{border:1px solid #17466b;background:linear-gradient(160deg,#071725,#080d14);border-radius:18px;overflow:hidden;box-shadow:0 0 18px rgba(0,145,255,.16)}
+        .ig-post .card{width:100%;max-width:none;margin:0;border:0;border-radius:0;background:transparent;box-shadow:none}
+        .ig-post .card-img-container{aspect-ratio:1/1;max-height:none;border-radius:0}
+        .ig-post .card-img{object-fit:contain;background:#050a10}
+        .ig-post .card-info{padding:18px}
+        .ig-navigation{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 4px}
+        .ig-arrow{border:1px solid #087de9;background:#0b1c2c;color:#20c6ff;border-radius:12px;padding:10px 16px;font-weight:800;cursor:pointer}
+        .ig-arrow:disabled{opacity:.35;cursor:not-allowed}
+        .ig-dots{display:flex;gap:5px;align-items:center;justify-content:center;flex:1;overflow:hidden}
+        .ig-dot{width:6px;height:6px;border-radius:50%;background:#385066;border:0;padding:0;cursor:pointer;flex:0 0 auto}
+        .ig-dot.active{background:#16bfff;box-shadow:0 0 8px #16bfff;transform:scale(1.35)}
+        .ig-side{position:sticky;top:18px;border:1px solid #243849;border-radius:16px;padding:14px;background:#10151c}
+        .ig-side h3{margin:0 0 12px;color:#eaf5ff;font-size:1rem}
+        .ig-category-menu{display:flex;flex-direction:column;gap:7px}
+        .ig-cat-btn{display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:left;width:100%;border:1px solid transparent;background:#151f2b;color:#c4d5e5;border-radius:10px;padding:11px 12px;cursor:pointer;font-weight:700}
+        .ig-cat-btn:hover,.ig-cat-btn.active{border-color:#078dff;background:#07305a;color:#fff;box-shadow:0 0 10px rgba(0,145,255,.18)}
+        .ig-cat-count{font-size:.78rem;color:#7f9bb5}
+        .ig-mobile-category{display:none;width:100%;border:1px solid #1c83d5;background:#101a26;color:#e8f5ff;padding:12px;border-radius:12px;font-weight:800}
+        .ig-empty{padding:35px 18px;text-align:center;border:1px dashed #2b526e;border-radius:16px;color:#a9bfd2}
+        #launchSection,#preorderSection,#promotionSection{display:none!important}
+        @media(max-width:800px){.ig-layout{grid-template-columns:1fr;gap:12px}.ig-side{display:none}.ig-mobile-category{display:block;margin-bottom:12px}.ig-feed{max-width:620px}.ig-post .card-img-container{aspect-ratio:1/1}.ig-navigation{padding:12px 0}.ig-arrow{padding:10px 13px}}
+
     </style>
 
 <script>
@@ -1668,6 +1699,18 @@ async function copyShareText(text) {
         </div>
 
         <div id="mainContent" style="display: none;">
+            <select id="igMobileCategory" class="ig-mobile-category" aria-label="Navegar por categoria" onchange="selectInstagramCategory(this.value)">
+                <option value="ALL">🎮 Ver todos os jogos</option>
+            </select>
+            <div class="ig-layout" id="instagramLayout">
+                <section class="ig-feed" aria-label="Visualização de jogos">
+                    <div id="igViewer"></div>
+                </section>
+                <aside class="ig-side" aria-label="Navegação rápida por categoria">
+                    <h3>🎮 Navegação rápida</h3>
+                    <div id="igCategoryMenu" class="ig-category-menu"></div>
+                </aside>
+            </div>
             
             <div class="carousel-section category-feature-section launch-section" id="launchSection" style="display: none;">
                 <div class="carousel-title">
@@ -3840,104 +3883,118 @@ async function copyShareText(text) {
             updateTimers();
         }
 
-        function renderGames() {
-            const catalogContainer = document.getElementById('catalogContainer');
-            const searchInput = document.getElementById('searchInput');
-            const categorySelect = document.getElementById('categorySelect');
+        let instagramCategory = 'ALL';
+        let instagramIndex = 0;
+        let instagramVisibleGames = [];
 
-            if (!catalogContainer || !searchInput || !categorySelect) return;
+        function getInstagramCategories() {
+            const cats = getOrderedCategories(games.map(g => g.category));
+            return ['ALL', ...cats];
+        }
+
+        function selectInstagramCategory(category) {
+            instagramCategory = category || 'ALL';
+            instagramIndex = 0;
+            const mobile = document.getElementById('igMobileCategory');
+            if (mobile) mobile.value = instagramCategory;
+            renderInstagramView();
+        }
+
+        function moveInstagramGame(delta) {
+            instagramIndex = Math.max(0, Math.min(instagramVisibleGames.length - 1, instagramIndex + delta));
+            renderInstagramView();
+        }
+
+        function jumpInstagramGame(index) {
+            instagramIndex = Math.max(0, Math.min(instagramVisibleGames.length - 1, index));
+            renderInstagramView();
+        }
+
+        (function setupInstagramGestures() {
+            let startX = 0;
+            document.addEventListener('touchstart', e => { if (e.target.closest('#igViewer')) startX = e.changedTouches[0].clientX; }, {passive:true});
+            document.addEventListener('touchend', e => {
+                if (!e.target.closest('#igViewer') || !startX) return;
+                const dx = e.changedTouches[0].clientX - startX;
+                if (Math.abs(dx) > 55) moveInstagramGame(dx < 0 ? 1 : -1);
+                startX = 0;
+            }, {passive:true});
+            document.addEventListener('keydown', e => {
+                if (e.target.matches('input,textarea,select')) return;
+                if (e.key === 'ArrowRight') moveInstagramGame(1);
+                if (e.key === 'ArrowLeft') moveInstagramGame(-1);
+            });
+        })();
+
+        function renderInstagramView() {
+            const viewer = document.getElementById('igViewer');
+            const menu = document.getElementById('igCategoryMenu');
+            const mobile = document.getElementById('igMobileCategory');
+            const searchInput = document.getElementById('searchInput');
+            if (!viewer || !menu || !mobile || !searchInput) return;
 
             const searchVal = searchInput.value.toLowerCase().trim();
-            const catVal = categorySelect.value;
+            const allCategories = getInstagramCategories();
+            const catsOnly = allCategories.filter(c => c !== 'ALL');
+            menu.innerHTML = '';
+            mobile.innerHTML = '<option value="ALL">🎮 Ver todos os jogos</option>';
+            const counts = {};
+            catsOnly.forEach(c => counts[c] = games.filter(g => categoryKey(g.category) === categoryKey(c)).length);
+            allCategories.forEach(category => {
+                const label = category === 'ALL' ? 'Ver todos' : category;
+                const count = category === 'ALL' ? games.length : counts[category] || 0;
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'ig-cat-btn' + (instagramCategory === category ? ' active' : '');
+                btn.innerHTML = `<span>${category === 'ALL' ? '🎮' : categoryKey(category) === categoryKey('Pré Venda') ? '🚀' : categoryKey(category) === categoryKey('Lançamento em Oferta') ? '✨' : categoryKey(category) === categoryKey('Promoção') ? '🔥' : '🕹️'} ${escapeHtml(label)}</span><span class="ig-cat-count">${count}</span>`;
+                btn.addEventListener('click', () => selectInstagramCategory(category));
+                menu.appendChild(btn);
+                if (category !== 'ALL') {
+                    const opt = document.createElement('option'); opt.value = category; opt.textContent = `${label} (${count})`; mobile.appendChild(opt);
+                }
+            });
+            mobile.value = instagramCategory;
 
-            const filtering = searchVal.length > 0 || catVal !== 'ALL';
-
-            if (filtering) {
-                const filteredGames = games.filter(game => {
-                    const matchesCategory =
-                        catVal === 'ALL' ||
-                        categoryKey(game.category) === categoryKey(catVal);
-
-                    const matchesSearch =
-                        !searchVal ||
-                        game.name.toLowerCase().includes(searchVal);
-
-                    return matchesCategory && matchesSearch;
-                });
-
-                renderFilteredResults(filteredGames, searchVal, catVal);
+            instagramVisibleGames = games.filter(game => {
+                const categoryMatch = instagramCategory === 'ALL' || categoryKey(game.category) === categoryKey(instagramCategory);
+                const searchMatch = !searchVal || game.name.toLowerCase().includes(searchVal);
+                return categoryMatch && searchMatch;
+            });
+            if (instagramIndex >= instagramVisibleGames.length) instagramIndex = Math.max(0, instagramVisibleGames.length - 1);
+            viewer.innerHTML = '';
+            if (!instagramVisibleGames.length) {
+                viewer.innerHTML = '<div class="ig-empty">🔎<br><strong>Nenhum jogo encontrado</strong><br><small>Tente outra busca ou categoria.</small></div>';
                 return;
             }
-
-            setFeatureSectionsVisible(true);
-            catalogContainer.innerHTML = '';
-
-            const categories = getOrderedCategories(games.map(g => g.category))
-                .filter(category =>
-                    !['Lançamento em Oferta', 'Pré Venda', 'Promoção']
-                        .some(priority => categoryKey(priority) === categoryKey(category))
-                );
-
-            categories.forEach(category => {
-                const filteredGames = games.filter(g =>
-                    categoryKey(g.category) === categoryKey(category)
-                );
-
-                if (filteredGames.length === 0) return;
-
-                const categoryBlock = document.createElement('section');
-                categoryBlock.className = 'category-block';
-
-                const catTitleRow = document.createElement('div');
-                catTitleRow.className = 'category-title-row';
-
-                const catTitle = document.createElement('h3');
-                catTitle.className = 'category-title-section';
-                catTitle.innerText = category;
-
-                const catShareBtn = document.createElement('button');
-                catShareBtn.type = 'button';
-                catShareBtn.className = 'category-share-btn';
-                catShareBtn.title = `Compartilhar ${category}`;
-                catShareBtn.innerHTML = `<span class="share-mini-icon">↗</span><span class="share-mini-label">Compartilhar</span>`;
-                catShareBtn.addEventListener('click', () => shareCategoryOffer(category));
-
-                catTitleRow.appendChild(catTitle);
-                catTitleRow.appendChild(catShareBtn);
-                categoryBlock.appendChild(catTitleRow);
-
-                const grid = document.createElement('div');
-                grid.className = 'category-grid';
-
-                const showAll = expandedCategories.has(category);
-                const visibleGames = showAll
-                    ? filteredGames
-                    : filteredGames.slice(0, CATEGORY_VISIBLE_LIMIT);
-
-                visibleGames.forEach(game => {
-                    grid.appendChild(createCardElement(game));
-                });
-
-                categoryBlock.appendChild(grid);
-
-                if (filteredGames.length > CATEGORY_VISIBLE_LIMIT) {
-                    const expandRow = document.createElement('div');
-                    expandRow.className = 'category-expand-row';
-
-                    const expandBtn = document.createElement('button');
-                    const isExpanded = expandedCategories.has(category);
-                    expandBtn.className = `category-expand-btn${isExpanded ? ' expanded' : ''}`;
-                    expandBtn.innerHTML = getExpandButtonHtml(category, isExpanded);
-                    expandBtn.addEventListener('click', () => toggleCategoryExpansion(category));
-
-                    expandRow.appendChild(expandBtn);
-                    categoryBlock.appendChild(expandRow);
-                }
-
-                catalogContainer.appendChild(categoryBlock);
-            });
-
+            const game = instagramVisibleGames[instagramIndex];
+            const categoryLabel = instagramCategory === 'ALL' ? game.category : instagramCategory;
+            const post = document.createElement('div');
+            post.className = 'ig-post';
+            const top = document.createElement('div');
+            top.className = 'ig-topline';
+            top.innerHTML = `<span class="ig-category-label">${escapeHtml(categoryLabel || 'MCO Games')}</span><span class="ig-count">${instagramIndex + 1} / ${instagramVisibleGames.length}</span>`;
+            post.appendChild(top);
+            post.appendChild(createCardElement(game));
+            viewer.appendChild(post);
+            const nav = document.createElement('div');
+            nav.className = 'ig-navigation';
+            nav.innerHTML = `<button class="ig-arrow" type="button" ${instagramIndex === 0 ? 'disabled' : ''} aria-label="Jogo anterior" onclick="moveInstagramGame(-1)">‹ Anterior</button><div class="ig-dots" aria-label="Posição no catálogo"><button class="ig-dot active" type="button" aria-label="Jogo atual"></button></div><button class="ig-arrow" type="button" ${instagramIndex >= instagramVisibleGames.length - 1 ? 'disabled' : ''} aria-label="Próximo jogo" onclick="moveInstagramGame(1)">Próximo ›</button>`;
+            viewer.appendChild(nav);
+            const dots = nav.querySelector('.ig-dots');
+            const maxDots = Math.min(instagramVisibleGames.length, 9);
+            const first = Math.max(0, Math.min(instagramIndex - Math.floor(maxDots / 2), instagramVisibleGames.length - maxDots));
+            dots.innerHTML = '';
+            for (let i = first; i < first + maxDots; i++) {
+                const dot = document.createElement('button'); dot.type = 'button'; dot.className = 'ig-dot' + (i === instagramIndex ? ' active' : ''); dot.setAttribute('aria-label', `Ir para jogo ${i + 1}`); dot.title = instagramVisibleGames[i].name; dot.addEventListener('click', () => jumpInstagramGame(i)); dots.appendChild(dot);
+            }
             updateTimers();
+        }
+
+        function renderGames() {
+            const catalogContainer = document.getElementById('catalogContainer');
+            if (catalogContainer) catalogContainer.innerHTML = '';
+            setFeatureSectionsVisible(false);
+            renderInstagramView();
         }
 
         function calculateTotal() {
