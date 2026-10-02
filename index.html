@@ -2000,6 +2000,235 @@ async function copyShareText(text) {
 }
 </style>
 
+
+<style id="mco-mobile-layout-v3">
+/* ============================================================
+   MOBILE V3
+   - ocupa toda a altura visível
+   - sem rolagem
+   - capa sempre 1:1
+   - nunca sacrifica os dados do produto para manter a capa grande
+   ============================================================ */
+@media (max-width: 800px) {
+  html, body {
+    width: 100% !important;
+    height: 100% !important;
+    height: 100dvh !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+    overscroll-behavior: none !important;
+  }
+
+  body {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  body > .container {
+    flex: 1 1 0 !important;
+    min-height: 0 !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .controls {
+    flex: 0 0 auto !important;
+  }
+
+  /* A altura exata de #mainContent é sincronizada via JS com a
+     área realmente visível do navegador móvel. */
+  #mainContent {
+    flex: 0 0 auto !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  #instagramLayout,
+  .ig-feed,
+  #igViewer {
+    flex: 1 1 0 !important;
+    width: 100% !important;
+    min-height: 0 !important;
+    height: 100% !important;
+    max-height: none !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  #instagramLayout {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .ig-post {
+    flex: 1 1 0 !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .ig-topline {
+    flex: 0 0 30px !important;
+    height: 30px !important;
+    min-height: 30px !important;
+  }
+
+  .ig-post .card {
+    flex: 1 1 0 !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  /* O JS define width/height em pixels para encaixar tudo.
+     aspect-ratio e object-fit garantem que a capa nunca distorça. */
+  .ig-post .card-img-container {
+    flex: 0 0 auto !important;
+    aspect-ratio: 1 / 1 !important;
+    max-width: 100% !important;
+    max-height: none !important;
+    margin: 0 auto !important;
+    overflow: hidden !important;
+    background: #050a10 !important;
+  }
+
+  .ig-post .card-img {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    aspect-ratio: 1 / 1 !important;
+    object-fit: contain !important;
+    object-position: center center !important;
+    background: #050a10 !important;
+  }
+
+  /* O bloco de dados recebe todo o espaço restante do card. */
+  .ig-post .card-info {
+    flex: 1 1 0 !important;
+    min-height: 0 !important;
+    height: auto !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    gap: 2px !important;
+    padding: 5px 9px 6px !important;
+  }
+
+  .ig-post .card-title {
+    min-height: 0 !important;
+    margin: 0 !important;
+    line-height: 1.08 !important;
+  }
+
+  .ig-post .timer-badge {
+    margin: 0 !important;
+    padding: 3px 6px !important;
+    line-height: 1.05 !important;
+    font-size: clamp(.60rem, 2.25vw, .70rem) !important;
+  }
+
+  .ig-post .price-container,
+  .ig-post .platform-selector,
+  .ig-post .type-selector,
+  .ig-post .card-actions-row {
+    margin: 0 !important;
+  }
+
+  .ig-post .platform-heading {
+    margin: 0 !important;
+  }
+
+  .ig-post .platform-single {
+    margin: 0 !important;
+    padding: 3px 0 !important;
+  }
+
+  .ig-post .platform-btn {
+    height: 30px !important;
+    min-height: 30px !important;
+    padding: 3px 6px !important;
+  }
+
+  .ig-post .type-btn {
+    height: 35px !important;
+    min-height: 35px !important;
+    padding: 3px 5px !important;
+  }
+
+  .ig-post .btn-buy-direct {
+    height: 35px !important;
+    min-height: 35px !important;
+    padding: 4px 7px !important;
+  }
+
+  .ig-post .btn-share-circle {
+    width: 35px !important;
+    height: 35px !important;
+    min-width: 35px !important;
+  }
+
+  .ig-navigation {
+    flex: 0 0 38px !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    margin: 0 !important;
+    padding: 3px 0 0 !important;
+    overflow: hidden !important;
+  }
+}
+
+@media (max-width: 800px) and (max-height: 700px) {
+  .ig-topline {
+    flex-basis: 27px !important;
+    height: 27px !important;
+    min-height: 27px !important;
+  }
+
+  .ig-post .card-info {
+    padding: 3px 7px 4px !important;
+    gap: 1px !important;
+  }
+
+  .ig-post .platform-btn {
+    height: 27px !important;
+    min-height: 27px !important;
+  }
+
+  .ig-post .type-btn {
+    height: 31px !important;
+    min-height: 31px !important;
+  }
+
+  .ig-post .btn-buy-direct {
+    height: 32px !important;
+    min-height: 32px !important;
+  }
+
+  .ig-post .btn-share-circle {
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+  }
+
+  .ig-navigation {
+    flex-basis: 34px !important;
+    height: 34px !important;
+    min-height: 34px !important;
+  }
+}
+</style>
+
 </head>
 <body>
 
@@ -4577,5 +4806,143 @@ async function copyShareText(text) {
         brandAssetsReady = loadBrandAssetsFromSheet();
         fetchCatalogFromSheets();
     </script>
+
+<script id="mco-mobile-fit-v3">
+(() => {
+  let fitRaf = 0;
+
+  function scheduleMcoMobileFit() {
+    cancelAnimationFrame(fitRaf);
+    fitRaf = requestAnimationFrame(() => {
+      requestAnimationFrame(fitMcoMobileViewport);
+    });
+  }
+
+  function setImportant(el, prop, value) {
+    if (el) el.style.setProperty(prop, value, 'important');
+  }
+
+  function fitMcoMobileViewport() {
+    if (!window.matchMedia('(max-width: 800px)').matches) return;
+
+    const main = document.getElementById('mainContent');
+    const layout = document.getElementById('instagramLayout');
+    const feed = document.querySelector('#instagramLayout .ig-feed');
+    const viewer = document.getElementById('igViewer');
+
+    if (!main || !layout || !feed || !viewer) return;
+    if (getComputedStyle(main).display === 'none') return;
+
+    /* Usa a área VISÍVEL do Chrome, não apenas 100vh/100dvh.
+       Isso evita a faixa vazia que aparecia abaixo da navegação. */
+    const vv = window.visualViewport;
+    const visibleBottom = vv
+      ? (vv.offsetTop + vv.height)
+      : window.innerHeight;
+
+    const mainTop = main.getBoundingClientRect().top;
+    const mainHeight = Math.max(180, Math.floor(visibleBottom - mainTop - 3));
+
+    setImportant(main, 'height', `${mainHeight}px`);
+    setImportant(main, 'max-height', `${mainHeight}px`);
+    setImportant(main, 'flex', `0 0 ${mainHeight}px`);
+
+    [layout, feed, viewer].forEach(el => {
+      setImportant(el, 'height', '100%');
+      setImportant(el, 'max-height', '100%');
+      setImportant(el, 'min-height', '0');
+      setImportant(el, 'flex', '1 1 0');
+    });
+
+    const post = viewer.querySelector('.ig-post');
+    const nav = viewer.querySelector('.ig-navigation');
+    if (!post) return;
+
+    const navHeight = nav ? Math.ceil(nav.getBoundingClientRect().height) : 38;
+    const postHeight = Math.max(140, Math.floor(viewer.clientHeight - navHeight));
+
+    setImportant(post, 'height', `${postHeight}px`);
+    setImportant(post, 'max-height', `${postHeight}px`);
+    setImportant(post, 'flex', `0 0 ${postHeight}px`);
+
+    const topLine = post.querySelector('.ig-topline');
+    const card = post.querySelector('.card');
+    const cover = post.querySelector('.card-img-container');
+    const info = post.querySelector('.card-info');
+
+    if (!card || !cover || !info) return;
+
+    const topHeight = topLine ? Math.ceil(topLine.getBoundingClientRect().height) : 0;
+    const cardHeight = Math.max(100, postHeight - topHeight);
+
+    setImportant(card, 'height', `${cardHeight}px`);
+    setImportant(card, 'max-height', `${cardHeight}px`);
+    setImportant(card, 'flex', `0 0 ${cardHeight}px`);
+
+    /* Mede a altura REAL necessária para nome, contador, preço,
+       plataforma, Primária/Secundária e Comprar. */
+    setImportant(info, 'flex', '0 0 auto');
+    setImportant(info, 'height', 'auto');
+    setImportant(info, 'max-height', 'none');
+    setImportant(info, 'overflow', 'visible');
+    setImportant(info, 'justify-content', 'flex-start');
+
+    const naturalInfoHeight = Math.ceil(info.scrollHeight);
+    const cardWidth = Math.floor(card.clientWidth);
+
+    /* Tenta primeiro a capa em largura total. Se os dados não couberem,
+       reduz somente a capa, mantendo 1:1 e sem distorção. */
+    let coverSize = Math.min(cardWidth, Math.floor(cardHeight - naturalInfoHeight));
+    coverSize = Math.max(112, coverSize);
+
+    setImportant(cover, 'width', `${coverSize}px`);
+    setImportant(cover, 'height', `${coverSize}px`);
+    setImportant(cover, 'aspect-ratio', '1 / 1');
+    setImportant(cover, 'margin-left', 'auto');
+    setImportant(cover, 'margin-right', 'auto');
+
+    /* Agora o bloco de dados ocupa exatamente o restante e distribui
+       os elementos verticalmente, aproveitando o espaço disponível. */
+    setImportant(info, 'flex', '1 1 0');
+    setImportant(info, 'height', 'auto');
+    setImportant(info, 'max-height', 'none');
+    setImportant(info, 'overflow', 'hidden');
+    setImportant(info, 'justify-content', 'space-between');
+
+    /* Ajuste fino para arredondamentos/subpixels: se ainda faltar 1–2 linhas
+       de altura, encolhe a capa apenas pelo déficit medido. */
+    const deficit = Math.ceil(info.scrollHeight - info.clientHeight);
+    if (deficit > 1 && coverSize > 112) {
+      coverSize = Math.max(112, coverSize - deficit - 2);
+      setImportant(cover, 'width', `${coverSize}px`);
+      setImportant(cover, 'height', `${coverSize}px`);
+    }
+  }
+
+  const viewer = document.getElementById('igViewer');
+  if (viewer) {
+    new MutationObserver(scheduleMcoMobileFit).observe(viewer, {
+      childList: true,
+      subtree: false
+    });
+  }
+
+  window.addEventListener('resize', scheduleMcoMobileFit, { passive: true });
+  window.addEventListener('orientationchange', scheduleMcoMobileFit, { passive: true });
+
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', scheduleMcoMobileFit, { passive: true });
+    window.visualViewport.addEventListener('scroll', scheduleMcoMobileFit, { passive: true });
+  }
+
+  document.addEventListener('DOMContentLoaded', scheduleMcoMobileFit);
+  window.addEventListener('load', scheduleMcoMobileFit);
+
+  /* Também recalcula depois que fontes/imagens e dados da planilha assentarem. */
+  setTimeout(scheduleMcoMobileFit, 250);
+  setTimeout(scheduleMcoMobileFit, 900);
+})();
+</script>
+
 </body>
 </html>
