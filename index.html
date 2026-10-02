@@ -1576,9 +1576,10 @@
             .search-results-title { align-items: flex-start; flex-direction: column; }
         }
 
-        /* Modo teste: visualização de um jogo por vez, inspirada em feed social */
-        #categorySelect{display:none!important}
+        /* Desktop mantém a loja em carrosséis; celular usa visualização de um jogo por vez */
         .controls .search-box{flex:1 1 100%;width:100%}
+        @media(min-width:801px){#instagramLayout,#igMobileCategory{display:none!important} #categorySelect{display:block!important}}
+        @media(max-width:800px){#categorySelect{display:none!important}}
         .ig-layout{display:grid;grid-template-columns:minmax(0,1fr) 230px;gap:22px;align-items:start;margin-top:24px}
         .ig-feed{min-width:0;max-width:780px;margin:0 auto;width:100%}
         .ig-topline{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
@@ -1602,9 +1603,46 @@
         .ig-cat-btn:hover,.ig-cat-btn.active{border-color:#078dff;background:#07305a;color:#fff;box-shadow:0 0 10px rgba(0,145,255,.18)}
         .ig-cat-count{font-size:.78rem;color:#7f9bb5}
         .ig-mobile-category{display:none;width:100%;border:1px solid #1c83d5;background:#101a26;color:#e8f5ff;padding:12px;border-radius:12px;font-weight:800}
+        .ig-mobile-nav-trigger,.ig-mobile-popup-backdrop{display:none}
+        .ig-mobile-popup-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.68);z-index:9998;align-items:flex-end;justify-content:center;padding:16px}
+        .ig-mobile-popup{width:min(100%,440px);background:#0c1622;border:1px solid #168dff;border-radius:20px;padding:16px;box-shadow:0 0 28px rgba(0,145,255,.3);max-height:70dvh;overflow:auto}
+        .ig-mobile-popup-head{display:flex;align-items:center;justify-content:space-between;color:#eaf5ff;font-weight:900;margin-bottom:12px}
+        .ig-mobile-popup-close{border:0;border-radius:10px;background:#1b2a3a;color:#fff;padding:8px 12px;font-weight:900}
         .ig-empty{padding:35px 18px;text-align:center;border:1px dashed #2b526e;border-radius:16px;color:#a9bfd2}
-        #launchSection,#preorderSection,#promotionSection{display:none!important}
-        @media(max-width:800px){.ig-layout{grid-template-columns:1fr;gap:12px}.ig-side{display:none}.ig-mobile-category{display:block;margin-bottom:12px}.ig-feed{max-width:620px}.ig-post .card-img-container{aspect-ratio:1/1}.ig-navigation{padding:12px 0}.ig-arrow{padding:10px 13px}}
+        @media(max-width:800px){
+            #launchSection,#preorderSection,#promotionSection{display:none!important}
+            body{overflow-x:hidden}
+            header{padding:6px 12px;min-height:48px}
+            .brand-asset-logo{max-height:38px!important;width:auto!important;max-width:145px;object-fit:contain}
+            .brand-fallback{transform:scale(.78);transform-origin:left center}
+            .header-actions .community-btn{padding:7px 9px;font-size:.72rem}
+            .hero-section{padding:5px 10px 3px;margin:0;text-align:center}
+            .hero-title{font-size:1.02rem!important;line-height:1.15;margin:0 0 2px}
+            .hero-subtitle{font-size:.68rem;line-height:1.2;margin:0}
+            .controls{padding:5px 8px;margin:0 0 4px}
+            .controls .search-box{min-height:36px;padding:0 9px}
+            .search-input{font-size:.82rem;padding:8px 4px}
+            #categorySelect{display:none!important}
+            #igMobileCategory{display:none!important}
+            .container{padding-left:8px;padding-right:8px}
+            .ig-layout{grid-template-columns:1fr;gap:4px;margin-top:2px}
+            .ig-side{display:none}
+            .ig-feed{max-width:560px}
+            .ig-topline{margin:0;padding:5px 8px}
+            .ig-post{border-radius:13px}
+            .ig-post .card-img-container{aspect-ratio:1/1;max-height:min(35dvh,300px);height:auto}
+            .ig-post .card-img{width:100%;height:100%;object-fit:contain}
+            .ig-post .card-info{padding:8px 11px!important}
+            .ig-post .card-info h3,.ig-post .card-title{font-size:.94rem!important;margin:0 0 4px}
+            .ig-navigation{padding:4px 0;gap:7px}
+            .ig-arrow{padding:7px 10px;font-size:.75rem}
+            .ig-mobile-nav-trigger{display:flex;position:fixed;right:12px;bottom:16px;z-index:9997;align-items:center;gap:7px;border:1px solid #36c5ff;border-radius:999px;padding:12px 15px;background:linear-gradient(135deg,#087de9,#064c9b);color:#fff;font-weight:900;box-shadow:0 0 18px rgba(0,145,255,.42)}
+            .ig-mobile-popup-backdrop.open{display:flex}
+            .ig-mobile-popup .ig-category-menu{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+            .ig-mobile-popup .ig-cat-btn{min-height:46px;padding:10px;font-size:.82rem}
+            #instagramLayout{padding-bottom:55px}
+        }
+        @media(max-width:390px){.ig-post .card-img-container{max-height:31dvh}.hero-subtitle{display:none}.header-actions .community-btn{font-size:.66rem;padding:6px}.ig-mobile-nav-trigger{right:8px;bottom:10px;padding:10px 12px}}
 
     </style>
 
@@ -1710,6 +1748,13 @@ async function copyShareText(text) {
                     <h3>🎮 Navegação rápida</h3>
                     <div id="igCategoryMenu" class="ig-category-menu"></div>
                 </aside>
+            </div>
+            <button type="button" class="ig-mobile-nav-trigger" onclick="toggleInstagramPopup(true)" aria-label="Abrir navegação por categoria">☰ Categorias</button>
+            <div id="igMobilePopupBackdrop" class="ig-mobile-popup-backdrop" onclick="if(event.target===this)toggleInstagramPopup(false)">
+                <div class="ig-mobile-popup" role="dialog" aria-modal="true" aria-label="Navegação rápida por categoria">
+                    <div class="ig-mobile-popup-head"><span>🎮 Navegação rápida</span><button type="button" class="ig-mobile-popup-close" onclick="toggleInstagramPopup(false)">Fechar ✕</button></div>
+                    <div id="igMobileCategoryMenu" class="ig-category-menu"></div>
+                </div>
             </div>
             
             <div class="carousel-section category-feature-section launch-section" id="launchSection" style="display: none;">
@@ -3892,8 +3937,16 @@ async function copyShareText(text) {
             return ['ALL', ...cats];
         }
 
+        function toggleInstagramPopup(open) {
+            const popup = document.getElementById('igMobilePopupBackdrop');
+            if (!popup) return;
+            popup.classList.toggle('open', !!open);
+            document.body.style.overflow = open ? 'hidden' : '';
+        }
+
         function selectInstagramCategory(category) {
             instagramCategory = category || 'ALL';
+            toggleInstagramPopup(false);
             instagramIndex = 0;
             const mobile = document.getElementById('igMobileCategory');
             if (mobile) mobile.value = instagramCategory;
@@ -3930,6 +3983,7 @@ async function copyShareText(text) {
             const viewer = document.getElementById('igViewer');
             const menu = document.getElementById('igCategoryMenu');
             const mobile = document.getElementById('igMobileCategory');
+            const popupMenu = document.getElementById('igMobileCategoryMenu');
             const searchInput = document.getElementById('searchInput');
             if (!viewer || !menu || !mobile || !searchInput) return;
 
@@ -3937,6 +3991,7 @@ async function copyShareText(text) {
             const allCategories = getInstagramCategories();
             const catsOnly = allCategories.filter(c => c !== 'ALL');
             menu.innerHTML = '';
+            if (popupMenu) popupMenu.innerHTML = '';
             mobile.innerHTML = '<option value="ALL">🎮 Ver todos os jogos</option>';
             const counts = {};
             catsOnly.forEach(c => counts[c] = games.filter(g => categoryKey(g.category) === categoryKey(c)).length);
@@ -3949,6 +4004,11 @@ async function copyShareText(text) {
                 btn.innerHTML = `<span>${category === 'ALL' ? '🎮' : categoryKey(category) === categoryKey('Pré Venda') ? '🚀' : categoryKey(category) === categoryKey('Lançamento em Oferta') ? '✨' : categoryKey(category) === categoryKey('Promoção') ? '🔥' : '🕹️'} ${escapeHtml(label)}</span><span class="ig-cat-count">${count}</span>`;
                 btn.addEventListener('click', () => selectInstagramCategory(category));
                 menu.appendChild(btn);
+                if (popupMenu) {
+                    const popupBtn = btn.cloneNode(true);
+                    popupBtn.addEventListener('click', () => selectInstagramCategory(category));
+                    popupMenu.appendChild(popupBtn);
+                }
                 if (category !== 'ALL') {
                     const opt = document.createElement('option'); opt.value = category; opt.textContent = `${label} (${count})`; mobile.appendChild(opt);
                 }
@@ -3992,10 +4052,43 @@ async function copyShareText(text) {
 
         function renderGames() {
             const catalogContainer = document.getElementById('catalogContainer');
-            if (catalogContainer) catalogContainer.innerHTML = '';
-            setFeatureSectionsVisible(false);
-            renderInstagramView();
+            const layout = document.getElementById('instagramLayout');
+            const mobileCategory = document.getElementById('igMobileCategory');
+            const searchVal = (document.getElementById('searchInput')?.value || '').trim().toLowerCase();
+            const catVal = document.getElementById('categorySelect')?.value || 'ALL';
+            const desktopMode = window.matchMedia('(min-width: 801px)').matches;
+
+            if (desktopMode) {
+                if (layout) layout.style.display = 'none';
+                if (mobileCategory) mobileCategory.style.display = 'none';
+                if (catalogContainer) catalogContainer.innerHTML = '';
+                const filtered = games.filter(game => {
+                    const categoryMatch = catVal === 'ALL' || categoryKey(game.category) === categoryKey(catVal);
+                    const searchMatch = !searchVal || game.name.toLowerCase().includes(searchVal);
+                    return categoryMatch && searchMatch;
+                });
+                if (searchVal || catVal !== 'ALL') {
+                    setFeatureSectionsVisible(false);
+                    renderFilteredResults(filtered, searchVal, catVal);
+                } else {
+                    setFeatureSectionsVisible(true);
+                    renderLaunchCarousel();
+                    renderPreorderCarousel();
+                    renderPromotionCarousel();
+                }
+            } else {
+                if (layout) layout.style.display = '';
+                if (mobileCategory) mobileCategory.style.display = '';
+                if (catalogContainer) catalogContainer.innerHTML = '';
+                setFeatureSectionsVisible(false);
+                renderInstagramView();
+            }
         }
+
+        window.addEventListener('resize', () => {
+            clearTimeout(window.__mcoResponsiveRender);
+            window.__mcoResponsiveRender = setTimeout(renderGames, 120);
+        });
 
         function calculateTotal() {
             return selectedCart.reduce((acc, item) => acc + item.price, 0);
