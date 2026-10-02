@@ -3101,6 +3101,42 @@ async function copyShareText(text) {
 }
 </style>
 
+
+<style id="mco-mobile-single-platform-button">
+/* Quando existir apenas uma plataforma, mantém o mesmo visual de botão
+   usado quando há PS4/PS5, mas sem necessidade de seleção. */
+@media (max-width: 800px) {
+    .ig-post .platform-single {
+        width: 100% !important;
+        height: 40px !important;
+        min-height: 40px !important;
+        margin: 0 !important;
+        padding: 5px 8px !important;
+
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+
+        border: 1px solid rgba(0, 230, 118, .70) !important;
+        border-radius: 13px !important;
+        background: rgba(0, 230, 118, .10) !important;
+
+        color: var(--accent-green) !important;
+        font-size: clamp(.78rem, 3vw, .90rem) !important;
+        font-weight: 900 !important;
+        text-transform: none !important;
+        letter-spacing: 0 !important;
+
+        box-shadow:
+            0 0 0 1px rgba(24,184,255,.10),
+            0 0 14px rgba(24,184,255,.10) !important;
+
+        cursor: default !important;
+        user-select: none !important;
+    }
+}
+</style>
+
 </head>
 <body>
 
