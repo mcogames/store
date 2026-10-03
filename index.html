@@ -3041,67 +3041,6 @@ async function copyShareText(text) {
 </style>
 
 
-<style id="mco-mobile-search-structural-fix">
-@media (max-width: 800px) {
-    /* A busca agora fica realmente dentro do header, não apenas desenhada sobre ele. */
-    header {
-        position: relative !important;
-        overflow: visible !important;
-    }
-
-    header > .controls {
-        position: absolute !important;
-        top: 10px !important;
-        right: 14px !important;
-        left: auto !important;
-        width: 44% !important;
-        height: 72px !important;
-        min-height: 72px !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        z-index: 10000 !important;
-        pointer-events: auto !important;
-    }
-
-    header > .controls .search-box {
-        position: relative !important;
-        width: 100% !important;
-        height: 72px !important;
-        min-height: 72px !important;
-        z-index: 10001 !important;
-        pointer-events: auto !important;
-    }
-
-    header > .controls #searchInput {
-        position: relative !important;
-        display: block !important;
-        width: 100% !important;
-        height: 100% !important;
-        z-index: 10002 !important;
-        pointer-events: auto !important;
-        touch-action: manipulation !important;
-        cursor: text !important;
-    }
-
-    header > .controls .search-icon {
-        pointer-events: none !important;
-    }
-
-    header > .controls .search-clear-btn {
-        pointer-events: auto !important;
-        z-index: 10003 !important;
-    }
-}
-
-@media (max-width: 390px) {
-    header > .controls {
-        right: 9px !important;
-        width: 43% !important;
-    }
-}
-</style>
-
-
 <style id="mco-mobile-single-platform-button">
 /* Quando existir apenas uma plataforma, mantém o mesmo visual de botão
    usado quando há PS4/PS5, mas sem necessidade de seleção. */
@@ -3133,6 +3072,88 @@ async function copyShareText(text) {
 
         cursor: default !important;
         user-select: none !important;
+    }
+}
+</style>
+
+
+<style id="mco-search-arrow-final-fix">
+@media (max-width: 800px) {
+
+    /* A search-box é movida diretamente para o header pela rotina já existente.
+       O bloco .controls que sobra não pode ocupar espaço nem interceptar toque. */
+    .controls.mco-search-moved {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+        min-height: 0 !important;
+        flex-basis: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: 0 !important;
+        pointer-events: none !important;
+    }
+
+    header.mco-search-in-header {
+        position: relative !important;
+        overflow: visible !important;
+    }
+
+    header.mco-search-in-header > .search-box {
+        position: relative !important;
+        z-index: 500 !important;
+        pointer-events: auto !important;
+        touch-action: manipulation !important;
+    }
+
+    header.mco-search-in-header > .search-box #searchInput {
+        position: relative !important;
+        z-index: 502 !important;
+        display: block !important;
+        pointer-events: auto !important;
+        touch-action: manipulation !important;
+        cursor: text !important;
+        -webkit-user-select: text !important;
+        user-select: text !important;
+    }
+
+    header.mco-search-in-header > .search-box .search-icon {
+        z-index: 503 !important;
+        pointer-events: none !important;
+    }
+
+    header.mco-search-in-header > .search-box .search-clear-btn {
+        z-index: 504 !important;
+        pointer-events: auto !important;
+    }
+
+    /* Movimento inicial bem sutil.
+       A seta esquerda vai levemente para a esquerda e a direita para a direita. */
+    .mobile-cover-arrow.mco-arrow-hint-left {
+        animation: mcoArrowHintLeft 1.35s ease-in-out .65s 2;
+    }
+
+    .mobile-cover-arrow.mco-arrow-hint-right {
+        animation: mcoArrowHintRight 1.35s ease-in-out .65s 2;
+    }
+
+    @keyframes mcoArrowHintLeft {
+        0%, 100% { transform: translateX(0); }
+        38%      { transform: translateX(-4px); }
+        62%      { transform: translateX(-1px); }
+    }
+
+    @keyframes mcoArrowHintRight {
+        0%, 100% { transform: translateX(0); }
+        38%      { transform: translateX(4px); }
+        62%      { transform: translateX(1px); }
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .mobile-cover-arrow.mco-arrow-hint-left,
+    .mobile-cover-arrow.mco-arrow-hint-right {
+        animation: none !important;
     }
 }
 </style>
@@ -3389,7 +3410,7 @@ async function copyShareText(text) {
         // URLs diretas confirmadas pelo usuário. Usadas como fonte principal para evitar
         // depender da publicação/consulta CSV da aba IMAGENS.
         const BRAND_ASSET_URLS = {
-            logo: "https://ethical-black-gros4ohh.edgeone.dev/file.png",
+            logo: "https://deliberate-amethyst-q5zu9wp3.edgeone.dev/file.png",
             ps4: "https://i.ibb.co/9ks87KbN/ps4.png",
             ps5: "https://i.ibb.co/qFXVh154/ps5-ok.png"
         };
@@ -4576,7 +4597,7 @@ async function copyShareText(text) {
         }
 
         
-        async function shareGameOffer(event, gameId) {
+                async function shareGameOffer(event, gameId) {
             event.stopPropagation();
 
             const game = games.find(g => g.id === gameId);
@@ -4600,37 +4621,36 @@ async function copyShareText(text) {
             }
 
             const message =
-                `🎮 *MCO GAMES*\n\n` +
-                `Confira esta oferta:\n` +
-                `🕹️ *${game.name}*\n\n` +
-                `${optionLines.join('\n')}\n\n` +
+                `🎮 *MCO GAMES*
+
+` +
+                `Confira esta oferta:
+` +
+                `🕹️ *${game.name}*
+
+` +
+                `${optionLines.join('
+')}
+
+` +
                 `Esse e mais jogos, acesse: ${SHARE_URL}`;
 
-            const actionsRow = cardEl.querySelector('.card-actions-row');
-            const previousDisplay = actionsRow ? actionsRow.style.display : '';
             const desktop = !isMobileDevice();
-
             const desktopCopyPromise = desktop ? copyShareText(message) : null;
 
             try {
                 showShareStatus('Gerando a imagem da oferta…');
 
-                let canvas;
-                if (!desktop) {
-                    // CELULAR: compartilha a tela atual com o visual aprovado.
-                    canvas = await buildCurrentMobileScreenShare(cardEl);
-                } else {
-                    // DESKTOP: mantém a arte dedicada já existente.
-                    if (actionsRow) actionsRow.style.display = 'none';
-                    canvas = await buildGameSharePoster(game, cardEl);
-                }
+                // Tanto no celular quanto no PC, usa o mesmo tipo de captura
+                // do visual atual da tela.
+                const canvas = await buildCurrentMobileScreenShare(cardEl);
 
                 const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
                 if (!blob) throw new Error('Não foi possível gerar o PNG.');
 
                 const safeName = game.name
                     .normalize('NFD')
-                    .replace(/[\u0300-\u036f]/g, '')
+                    .replace(/[̀-ͯ]/g, '')
                     .replace(/[^a-zA-Z0-9]+/g, '_')
                     .replace(/^_+|_+$/g, '');
 
@@ -4678,6 +4698,7 @@ async function copyShareText(text) {
                     return;
                 }
 
+                // No PC: baixa a mesma imagem capturada e mantém a cópia do texto.
                 const desktopUrl = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = desktopUrl;
@@ -4709,8 +4730,6 @@ async function copyShareText(text) {
                         ? `Não foi possível gerar a imagem: ${err.message}`
                         : 'Não foi possível gerar a imagem. Tente novamente.'
                 );
-            } finally {
-                if (desktop && actionsRow) actionsRow.style.display = previousDisplay || 'flex';
             }
         }
 
@@ -5858,223 +5877,6 @@ async function copyShareText(text) {
 
 
 
-<script id="mco-mobile-detail-fixes-script-v2">
-(() => {
-    function getCurrentPositionFromUI() {
-        const count = document.querySelector('#igViewer .ig-count');
-        if (!count) return { index: 0, total: 0 };
-
-        const match = String(count.textContent || '').match(/(\d+)\s*\/\s*(\d+)/);
-        if (!match) return { index: 0, total: 0 };
-
-        return {
-            index: Math.max(0, Number(match[1]) - 1),
-            total: Math.max(0, Number(match[2]))
-        };
-    }
-
-    function moveTimerToCover(cover) {
-        if (!cover) return;
-
-        const card = cover.closest('.card');
-        if (!card) return;
-
-        const timer = card.querySelector('.card-info .timer-badge');
-        if (timer) {
-            cover.appendChild(timer);
-        }
-    }
-
-    function buildMobileCoverArrows() {
-        if (!window.matchMedia('(max-width: 800px)').matches) return;
-
-        const viewer = document.getElementById('igViewer');
-        if (!viewer) return;
-
-        const cover = viewer.querySelector('.ig-post .card-img-container');
-        if (!cover) return;
-
-        moveTimerToCover(cover);
-
-        const oldNav = cover.querySelector('.mobile-cover-nav');
-        if (oldNav) oldNav.remove();
-
-        const position = getCurrentPositionFromUI();
-
-        const nav = document.createElement('div');
-        nav.className = 'mobile-cover-nav';
-
-        const prev = document.createElement('button');
-        prev.type = 'button';
-        prev.className = 'mobile-cover-arrow mobile-cover-arrow-prev';
-        prev.setAttribute('aria-label', 'Jogo anterior');
-        prev.innerHTML = '&#8249;';
-        prev.disabled = position.index <= 0;
-
-        prev.addEventListener('click', (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-
-            /* Usa diretamente a função existente do catálogo.
-               Ela trabalha com a variável interna instagramIndex,
-               por isso não dependemos mais de window.instagramIndex. */
-            if (typeof moveInstagramGame === 'function') {
-                moveInstagramGame(-1);
-            }
-        });
-
-        const next = document.createElement('button');
-        next.type = 'button';
-        next.className = 'mobile-cover-arrow mobile-cover-arrow-next';
-        next.setAttribute('aria-label', 'Próximo jogo');
-        next.innerHTML = '&#8250;';
-        next.disabled = position.total > 0 && position.index >= position.total - 1;
-
-        next.addEventListener('click', (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-
-            if (typeof moveInstagramGame === 'function') {
-                moveInstagramGame(1);
-            }
-        });
-
-        nav.appendChild(prev);
-        nav.appendChild(next);
-        cover.appendChild(nav);
-    }
-
-    function ensureSearchIsFocusable() {
-        if (!window.matchMedia('(max-width: 800px)').matches) return;
-
-        const input = document.getElementById('searchInput');
-        if (!input) return;
-
-        /* Tocar em qualquer parte vazia da caixa de busca leva o foco ao input. */
-        const box = input.closest('.search-box');
-        if (box && !box.dataset.mcoSearchFocusBound) {
-            box.dataset.mcoSearchFocusBound = '1';
-            box.addEventListener('click', (event) => {
-                if (event.target.closest('.search-clear-btn')) return;
-                input.focus({ preventScroll: true });
-            });
-            box.addEventListener('touchend', (event) => {
-                if (event.target.closest('.search-clear-btn')) return;
-                input.focus({ preventScroll: true });
-            }, { passive: true });
-        }
-    }
-
-    function refreshMobileDetails() {
-        requestAnimationFrame(() => {
-            buildMobileCoverArrows();
-            ensureSearchIsFocusable();
-        });
-    }
-
-    function setupObserver() {
-        const viewer = document.getElementById('igViewer');
-        if (!viewer) return false;
-
-        const observer = new MutationObserver(refreshMobileDetails);
-        observer.observe(viewer, {
-            childList: true,
-            subtree: true
-        });
-
-        refreshMobileDetails();
-        return true;
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-        ensureSearchIsFocusable();
-
-        if (!setupObserver()) {
-            const wait = setInterval(() => {
-                if (setupObserver()) clearInterval(wait);
-            }, 250);
-            setTimeout(() => clearInterval(wait), 8000);
-        }
-
-        window.addEventListener('resize', refreshMobileDetails, { passive: true });
-        window.addEventListener('orientationchange', refreshMobileDetails, { passive: true });
-
-        setTimeout(refreshMobileDetails, 400);
-        setTimeout(refreshMobileDetails, 1200);
-    });
-})();
-</script>
-
-
-<script id="mco-mobile-search-structural-fix-script">
-(() => {
-    let controlsPlaceholder = null;
-    let controlsOriginalParent = null;
-    let controlsOriginalNextSibling = null;
-
-    function moveSearchIntoHeader() {
-        const controls = document.querySelector('.controls');
-        const header = document.querySelector('header');
-        if (!controls || !header) return;
-
-        const mobile = window.matchMedia('(max-width: 800px)').matches;
-
-        if (!controlsPlaceholder) {
-            controlsOriginalParent = controls.parentNode;
-            controlsOriginalNextSibling = controls.nextSibling;
-
-            controlsPlaceholder = document.createComment('mco-controls-original-position');
-            controlsOriginalParent.insertBefore(controlsPlaceholder, controls);
-        }
-
-        if (mobile) {
-            if (controls.parentNode !== header) {
-                header.appendChild(controls);
-            }
-
-            /* Garante foco nativo direto no input. */
-            const input = document.getElementById('searchInput');
-            if (input) {
-                input.removeAttribute('readonly');
-                input.removeAttribute('disabled');
-                input.tabIndex = 0;
-            }
-        } else if (controlsOriginalParent && controls.parentNode !== controlsOriginalParent) {
-            if (controlsPlaceholder && controlsPlaceholder.parentNode === controlsOriginalParent) {
-                controlsOriginalParent.insertBefore(controls, controlsPlaceholder.nextSibling);
-            } else if (controlsOriginalNextSibling && controlsOriginalNextSibling.parentNode === controlsOriginalParent) {
-                controlsOriginalParent.insertBefore(controls, controlsOriginalNextSibling);
-            } else {
-                controlsOriginalParent.appendChild(controls);
-            }
-        }
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-        moveSearchIntoHeader();
-
-        const input = document.getElementById('searchInput');
-        if (input && !input.dataset.mcoNativeFocusBound) {
-            input.dataset.mcoNativeFocusBound = '1';
-
-            /* Não intercepta o toque: deixa o navegador abrir o teclado normalmente. */
-            input.addEventListener('pointerdown', (event) => {
-                event.stopPropagation();
-            });
-
-            input.addEventListener('click', (event) => {
-                event.stopPropagation();
-                input.focus();
-            });
-        }
-
-        window.addEventListener('resize', moveSearchIntoHeader, { passive: true });
-        window.addEventListener('orientationchange', moveSearchIntoHeader, { passive: true });
-    });
-})();
-</script>
-
-
 <script id="mco-mobile-share-current-screen">
 async function buildCurrentMobileScreenShare(cardEl) {
     if (typeof html2canvas === 'undefined') {
@@ -6150,6 +5952,161 @@ async function buildCurrentMobileScreenShare(cardEl) {
         stage.remove();
     }
 }
+</script>
+
+
+<script id="mco-search-arrow-final-fix-script">
+(() => {
+    let initialArrowHintUsed = false;
+
+    function getCurrentPositionFromUI() {
+        const count = document.querySelector('#igViewer .ig-count');
+        if (!count) return { index: 0, total: 0 };
+
+        const match = String(count.textContent || '').match(/(\d+)\s*\/\s*(\d+)/);
+        if (!match) return { index: 0, total: 0 };
+
+        return {
+            index: Math.max(0, Number(match[1]) - 1),
+            total: Math.max(0, Number(match[2]))
+        };
+    }
+
+    function moveTimerToCover(cover) {
+        if (!cover) return;
+
+        const card = cover.closest('.card');
+        if (!card) return;
+
+        const timer = card.querySelector('.card-info .timer-badge');
+        if (timer) cover.appendChild(timer);
+    }
+
+    function buildMobileCoverArrows() {
+        if (!window.matchMedia('(max-width: 800px)').matches) return;
+
+        const viewer = document.getElementById('igViewer');
+        if (!viewer) return;
+
+        const cover = viewer.querySelector('.ig-post .card-img-container');
+        if (!cover) return;
+
+        moveTimerToCover(cover);
+
+        const oldNav = cover.querySelector('.mobile-cover-nav');
+        if (oldNav) oldNav.remove();
+
+        const position = getCurrentPositionFromUI();
+
+        const nav = document.createElement('div');
+        nav.className = 'mobile-cover-nav';
+
+        const prev = document.createElement('button');
+        prev.type = 'button';
+        prev.className = 'mobile-cover-arrow mobile-cover-arrow-prev';
+        prev.setAttribute('aria-label', 'Jogo anterior');
+        prev.innerHTML = '&#8249;';
+        prev.disabled = position.index <= 0;
+
+        prev.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+
+            if (!prev.disabled && typeof moveInstagramGame === 'function') {
+                moveInstagramGame(-1);
+            }
+        });
+
+        const next = document.createElement('button');
+        next.type = 'button';
+        next.className = 'mobile-cover-arrow mobile-cover-arrow-next';
+        next.setAttribute('aria-label', 'Próximo jogo');
+        next.innerHTML = '&#8250;';
+        next.disabled = position.total > 0 && position.index >= position.total - 1;
+
+        next.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+
+            if (!next.disabled && typeof moveInstagramGame === 'function') {
+                moveInstagramGame(1);
+            }
+        });
+
+        /* Só na primeira montagem da página.
+           Não repete a cada troca de jogo para não ficar chamativo. */
+        if (!initialArrowHintUsed) {
+            if (!prev.disabled) prev.classList.add('mco-arrow-hint-left');
+            if (!next.disabled) next.classList.add('mco-arrow-hint-right');
+            initialArrowHintUsed = true;
+        }
+
+        nav.appendChild(prev);
+        nav.appendChild(next);
+        cover.appendChild(nav);
+    }
+
+    function refreshMobileCardDecorations() {
+        requestAnimationFrame(buildMobileCoverArrows);
+    }
+
+    function setupViewerObserver() {
+        const viewer = document.getElementById('igViewer');
+        if (!viewer) return false;
+
+        const observer = new MutationObserver(refreshMobileCardDecorations);
+        observer.observe(viewer, {
+            childList: true,
+            subtree: true
+        });
+
+        refreshMobileCardDecorations();
+        return true;
+    }
+
+    function guaranteeNativeSearch() {
+        const input = document.getElementById('searchInput');
+        const box = input && input.closest('.search-box');
+
+        if (!input || !box) return;
+
+        input.disabled = false;
+        input.readOnly = false;
+        input.tabIndex = 0;
+
+        /* Nenhum listener de touch/click artificial:
+           o navegador recebe o toque diretamente no input e abre o teclado nativo. */
+        input.style.pointerEvents = 'auto';
+        box.style.pointerEvents = 'auto';
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        guaranteeNativeSearch();
+
+        if (!setupViewerObserver()) {
+            const wait = setInterval(() => {
+                if (setupViewerObserver()) clearInterval(wait);
+            }, 250);
+            setTimeout(() => clearInterval(wait), 8000);
+        }
+
+        /* A rotina que move a busca para o header também roda no DOMContentLoaded.
+           Executar novamente no próximo frame garante as propriedades no elemento final. */
+        requestAnimationFrame(guaranteeNativeSearch);
+        setTimeout(guaranteeNativeSearch, 150);
+        setTimeout(guaranteeNativeSearch, 600);
+
+        window.addEventListener('resize', () => {
+            guaranteeNativeSearch();
+            refreshMobileCardDecorations();
+        }, { passive: true });
+
+        window.addEventListener('orientationchange', () => {
+            guaranteeNativeSearch();
+            refreshMobileCardDecorations();
+        }, { passive: true });
+    });
+})();
 </script>
 
 </body>
