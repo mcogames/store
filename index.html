@@ -3165,8 +3165,8 @@ async function copyShareText(text) {
 
     <header>
         <div class="brand">
-            <img id="siteLogoImage" class="brand-asset-logo" alt="MCO Games — Sua Loja Digital" style="display:none">
-            <div id="siteLogoFallback" class="brand-fallback">
+            <img id="siteLogoImage" class="brand-asset-logo" src="https://deliberate-amethyst-q5zu9wp3.edgeone.dev/file.png" alt="MCO Games — Sua Loja Digital" style="display:block" onerror="this.style.display='none';var f=document.getElementById('siteLogoFallback');if(f)f.style.display='flex';">
+            <div id="siteLogoFallback" class="brand-fallback" style="display:none">
                 <div class="brand-logo-mark" aria-label="MCO">MCO</div>
                 <div class="brand-wordmark">
                     <div class="brand-title">GAMES</div>
@@ -4614,6 +4614,7 @@ async function copyShareText(text) {
                 if (game.ps5Primary > 0) optionLines.push(`• Primária: ${moneyText(game.ps5Primary)}`);
                 if (game.ps5Secondary > 0) optionLines.push(`• Secundária: ${moneyText(game.ps5Secondary)}`);
             }
+
             if (game.ps4Primary > 0 || game.ps4Secondary > 0) {
                 optionLines.push(`🟦 *PS4*`);
                 if (game.ps4Primary > 0) optionLines.push(`• Primária: ${moneyText(game.ps4Primary)}`);
@@ -4621,18 +4622,10 @@ async function copyShareText(text) {
             }
 
             const message =
-                `🎮 *MCO GAMES*
-
-` +
-                `Confira esta oferta:
-` +
-                `🕹️ *${game.name}*
-
-` +
-                `${optionLines.join('
-')}
-
-` +
+                `🎮 *MCO GAMES*\n\n` +
+                `Confira esta oferta:\n` +
+                `🕹️ *${game.name}*\n\n` +
+                `${optionLines.join('\n')}\n\n` +
                 `Esse e mais jogos, acesse: ${SHARE_URL}`;
 
             const desktop = !isMobileDevice();
@@ -4641,8 +4634,7 @@ async function copyShareText(text) {
             try {
                 showShareStatus('Gerando a imagem da oferta…');
 
-                // Tanto no celular quanto no PC, usa o mesmo tipo de captura
-                // do visual atual da tela.
+                // Celular e PC usam a captura visual atual da loja.
                 const canvas = await buildCurrentMobileScreenShare(cardEl);
 
                 const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
@@ -4650,7 +4642,7 @@ async function copyShareText(text) {
 
                 const safeName = game.name
                     .normalize('NFD')
-                    .replace(/[̀-ͯ]/g, '')
+                    .replace(/[\u0300-\u036f]/g, '')
                     .replace(/[^a-zA-Z0-9]+/g, '_')
                     .replace(/^_+|_+$/g, '');
 
@@ -4698,7 +4690,6 @@ async function copyShareText(text) {
                     return;
                 }
 
-                // No PC: baixa a mesma imagem capturada e mantém a cópia do texto.
                 const desktopUrl = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = desktopUrl;
@@ -4732,7 +4723,6 @@ async function copyShareText(text) {
                 );
             }
         }
-
 
         function createCardElement(game) {
             const card = document.createElement('div');
