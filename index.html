@@ -4859,11 +4859,8 @@ async function copyShareText(text) {
         }
 
         function getGameDirectUrl(game) {
-            const url = new URL(getStoreBaseUrl(), window.location.href);
-            url.search = '';
-            url.hash = '';
-            url.searchParams.set('jogo', game.id);
-            return url.toString();
+            // Mantém sempre o endereço normal da loja.
+            return SHARE_URL;
         }
 
         function setMetaTag(selector, attrName, attrValue, content) {
@@ -4879,7 +4876,7 @@ async function copyShareText(text) {
         function updateSeoForGame(game) {
             if (!game) return;
 
-            const directUrl = getGameDirectUrl(game);
+            const directUrl = SHARE_URL;
             const price = Number(game.mainPrice || 0);
             const description = `${game.name} para ${game.platform || 'PlayStation'} na MCO GAMES${price > 0 ? ` — a partir de R$ ${price.toFixed(2).replace('.', ',')}` : ''}.`;
 
@@ -4960,9 +4957,7 @@ async function copyShareText(text) {
 
             updateSeoForGame(game);
 
-            if (updateUrl && window.history?.replaceState) {
-                window.history.replaceState({ jogo: game.id }, '', getGameDirectUrl(game));
-            }
+            // A navegação entre jogos não altera mais o endereço da loja.
             return true;
         }
 
@@ -4997,13 +4992,12 @@ async function copyShareText(text) {
                 if (game.ps4Secondary > 0) optionLines.push(`• Secundária: ${moneyText(game.ps4Secondary)}`);
             }
 
-            const directGameUrl = getGameDirectUrl(game);
             const message =
                 `🎮 *MCO GAMES*\n\n` +
                 `Confira esta oferta:\n` +
                 `🕹️ *${game.name}*\n\n` +
                 `${optionLines.join('\n')}\n\n` +
-                `🔗 Ver este jogo: ${directGameUrl}`;
+                `🎮 Esse e outros jogos você encontra em:\n${SHARE_URL}`;
 
             const desktop = !isMobileDevice();
             const desktopCopyPromise = desktop ? copyShareText(message) : null;
