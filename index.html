@@ -9,6 +9,32 @@
     <meta property="og:title" content="MCO GAMES | Sua Loja Digital">
     <meta property="og:description" content="Jogos digitais de PS4 e PS5 com os melhores preços. Ativação Instantânea!">
     <meta property="og:image" content="https://mco-games.netlify.app/PS-Store.jpg">
+    <meta name="description" content="MCO GAMES — jogos digitais de PS4 e PS5, ofertas, pré-vendas e catálogo com compra rápida.">
+    <meta name="theme-color" content="#07121d">
+    <meta name="robots" content="index,follow,max-image-preview:large">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="MCO GAMES">
+    <meta property="og:url" content="https://mcogames.github.io/store/">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="MCO GAMES | Sua Loja Digital">
+    <meta name="twitter:description" content="Jogos digitais de PS4 e PS5 com ofertas, pré-vendas e catálogo atualizado.">
+    <meta name="twitter:image" content="https://mco-games.netlify.app/PS-Store.jpg">
+    <link id="canonicalUrl" rel="canonical" href="https://mcogames.github.io/store/">
+    <link rel="manifest" href="./manifest.webmanifest">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="MCO GAMES">
+    <script id="storeStructuredData" type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Store",
+      "name": "MCO GAMES",
+      "url": "https://mcogames.github.io/store/",
+      "logo": "https://super-jade-qqe5zlpy.edgeone.dev/file.png",
+      "description": "Loja digital de jogos para PS4 e PS5."
+    }
+    </script>
+    <script id="productStructuredData" type="application/ld+json">{}</script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -3158,6 +3184,219 @@ async function copyShareText(text) {
 }
 </style>
 
+
+<style id="mco-enhancements-2026">
+/* ============================================================
+   MELHORIAS — base 06/10/2026
+   ============================================================ */
+
+/* Sugestões da busca */
+.search-box { position: relative; }
+.mco-search-suggestions{
+    position:absolute;
+    top:calc(100% + 7px);
+    left:0;
+    right:0;
+    z-index:5000;
+    display:none;
+    max-height:min(360px,55vh);
+    overflow:auto;
+    padding:6px;
+    border:1px solid #28475f;
+    border-radius:14px;
+    background:rgba(8,15,23,.985);
+    box-shadow:0 16px 42px rgba(0,0,0,.48),0 0 22px rgba(24,184,255,.10);
+    backdrop-filter:blur(12px);
+}
+.mco-search-suggestions.open{display:block}
+.mco-search-suggestion{
+    width:100%;
+    border:0;
+    background:transparent;
+    color:#fff;
+    display:grid;
+    grid-template-columns:minmax(0,1fr) auto;
+    gap:6px 12px;
+    text-align:left;
+    padding:10px 11px;
+    border-radius:10px;
+    cursor:pointer;
+}
+.mco-search-suggestion:hover,
+.mco-search-suggestion:focus-visible{
+    outline:none;
+    background:rgba(24,184,255,.11);
+}
+.mco-search-suggestion-name{
+    font-weight:850;
+    font-size:.84rem;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+.mco-search-suggestion-meta{
+    color:#8fa5b7;
+    font-size:.68rem;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+.mco-search-suggestion-price{
+    grid-row:1 / span 2;
+    grid-column:2;
+    align-self:center;
+    color:#20c8ff;
+    font-size:.76rem;
+    font-weight:900;
+    white-space:nowrap;
+}
+
+/* Status de estoque */
+.stock-badge{
+    position:absolute;
+    right:10px;
+    bottom:10px;
+    z-index:8;
+    border-radius:999px;
+    padding:6px 9px;
+    font-size:.66rem;
+    font-weight:950;
+    letter-spacing:.01em;
+    backdrop-filter:blur(5px);
+    -webkit-backdrop-filter:blur(5px);
+    box-shadow:0 3px 14px rgba(0,0,0,.28);
+}
+.stock-badge.low{
+    color:#ffda62;
+    background:rgba(52,37,0,.74);
+    border:1px solid rgba(255,198,40,.55);
+}
+.stock-badge.soldout{
+    color:#fff;
+    background:rgba(105,12,25,.78);
+    border:1px solid rgba(255,74,95,.62);
+}
+.type-btn.sold-out{
+    opacity:.52;
+    filter:saturate(.55);
+    cursor:not-allowed!important;
+}
+.type-btn.sold-out::before,
+.type-btn.sold-out::after{display:none!important}
+
+/* Transição leve entre jogos no mobile */
+.ig-post.mco-enter-next{animation:mcoGameEnterNext .24s ease-out both}
+.ig-post.mco-enter-prev{animation:mcoGameEnterPrev .24s ease-out both}
+.ig-post.mco-enter-fade{animation:mcoGameEnterFade .20s ease-out both}
+@keyframes mcoGameEnterNext{
+    from{opacity:.35;transform:translateX(14px) scale(.995)}
+    to{opacity:1;transform:translateX(0) scale(1)}
+}
+@keyframes mcoGameEnterPrev{
+    from{opacity:.35;transform:translateX(-14px) scale(.995)}
+    to{opacity:1;transform:translateX(0) scale(1)}
+}
+@keyframes mcoGameEnterFade{
+    from{opacity:.55;transform:scale(.997)}
+    to{opacity:1;transform:scale(1)}
+}
+
+/* A capa recebe swipe sem interferir nos botões do card */
+#igViewer .card-img-container{
+    touch-action:pan-y;
+    user-select:none;
+    -webkit-user-select:none;
+}
+#igViewer .ig-post{
+    will-change:transform,opacity;
+}
+
+/* Destaque breve para link direto aberto no desktop */
+.card.mco-direct-focus{
+    animation:mcoDirectFocus 1.5s ease-out 1;
+}
+@keyframes mcoDirectFocus{
+    0%{box-shadow:0 0 0 0 rgba(24,184,255,.0)}
+    28%{box-shadow:0 0 0 3px rgba(24,184,255,.32),0 0 28px rgba(24,184,255,.28)}
+    100%{box-shadow:0 0 0 0 rgba(24,184,255,.0)}
+}
+
+/* Instalar app: fica dentro do popup de categorias no mobile */
+.mco-install-btn{
+    width:100%;
+    min-height:44px;
+    margin-top:12px;
+    border:1px solid rgba(24,184,255,.62);
+    border-radius:12px;
+    background:linear-gradient(135deg,rgba(7,153,237,.18),rgba(8,105,200,.20));
+    color:#eaf7ff;
+    font-weight:900;
+    cursor:pointer;
+}
+.mco-install-btn:hover{background:rgba(24,184,255,.14)}
+.mco-install-btn[hidden]{display:none!important}
+
+/* Toast genérico */
+.mco-mini-toast{
+    position:fixed;
+    left:50%;
+    bottom:24px;
+    z-index:100000;
+    transform:translate(-50%,14px);
+    opacity:0;
+    pointer-events:none;
+    background:rgba(13,20,29,.97);
+    color:#fff;
+    border:1px solid #2c455b;
+    border-radius:999px;
+    padding:10px 14px;
+    font-size:.78rem;
+    font-weight:800;
+    box-shadow:0 12px 32px rgba(0,0,0,.4);
+    transition:.2s ease;
+}
+.mco-mini-toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* Regra obrigatória: setas nunca aparecem em print/captura */
+.mobile-share-stage .mobile-cover-nav,
+.mco-share-mobile-stage .mobile-cover-nav{
+    display:none!important;
+}
+@media print{
+    .mobile-cover-nav,
+    .ig-navigation{
+        display:none!important;
+    }
+}
+
+@media(max-width:800px){
+    /* dropdown precisa sair da caixa de busca movida ao header */
+    header.mco-search-in-header > .search-box{
+        overflow:visible!important;
+    }
+    .mco-search-suggestions{
+        left:-5px;
+        right:-5px;
+        max-height:46vh;
+    }
+    .stock-badge{
+        right:10px;
+        bottom:10px;
+        padding:5px 8px;
+        font-size:.62rem;
+    }
+}
+
+@media(prefers-reduced-motion:reduce){
+    .ig-post.mco-enter-next,
+    .ig-post.mco-enter-prev,
+    .ig-post.mco-enter-fade,
+    .card.mco-direct-focus{
+        animation:none!important;
+    }
+}
+</style>
+
 </head>
 <body>
 
@@ -3782,6 +4021,15 @@ async function copyShareText(text) {
                 const stockPs5Primary = stock(row[C.stockPs5Primary]);
                 const stockPs5Secondary = stock(row[C.stockPs5Secondary]);
 
+                // Só usa status de estoque quando a planilha realmente possui
+                // algum valor preenchido nas colunas de estoque deste jogo.
+                const hasStockInfo = [
+                    row[C.stockPs4Primary],
+                    row[C.stockPs4Secondary],
+                    row[C.stockPs5Primary],
+                    row[C.stockPs5Secondary]
+                ].some(value => String(value ?? '').trim() !== '');
+
                 const platformPrices = [
                     ps4Primary, ps4Secondary, ps5Primary, ps5Secondary
                 ].filter(v => v > 0);
@@ -3818,6 +4066,7 @@ async function copyShareText(text) {
                     stockPs4Secondary,
                     stockPs5Primary,
                     stockPs5Secondary,
+                    hasStockInfo,
 
                     pricePrimary: mainPrice,
                     priceSecondary: 0,
@@ -4001,7 +4250,8 @@ async function copyShareText(text) {
                 renderPreorderCarousel();
                 renderPromotionCarousel();
                 renderGames();
-                applySharedCategoryFromUrl();
+                const directGameApplied = applySharedGameFromUrl();
+                if (!directGameApplied) applySharedCategoryFromUrl();
 
                 startAutoScroll('launchGrid');
                 startAutoScroll('preorderGrid');
@@ -4124,6 +4374,7 @@ async function copyShareText(text) {
             const stock = isPrimary ? data.stockPrimary : data.stockSecondary;
 
             if (!(price > 0)) return;
+            if (game.hasStockInfo && stock <= 0) return;
 
             const idx = selectedCart.findIndex(
                 i => i.gameId === gameId && i.platform === platform
@@ -4597,7 +4848,132 @@ async function copyShareText(text) {
         }
 
         
-                async function shareGameOffer(event, gameId) {
+        
+        function getStoreBaseUrl() {
+            try {
+                if (/^https?:$/i.test(window.location.protocol)) {
+                    return `${window.location.origin}${window.location.pathname}`;
+                }
+            } catch (_) {}
+            return SHARE_URL;
+        }
+
+        function getGameDirectUrl(game) {
+            const url = new URL(getStoreBaseUrl(), window.location.href);
+            url.search = '';
+            url.hash = '';
+            url.searchParams.set('jogo', game.id);
+            return url.toString();
+        }
+
+        function setMetaTag(selector, attrName, attrValue, content) {
+            let el = document.head.querySelector(selector);
+            if (!el) {
+                el = document.createElement('meta');
+                el.setAttribute(attrName, attrValue);
+                document.head.appendChild(el);
+            }
+            el.setAttribute('content', content);
+        }
+
+        function updateSeoForGame(game) {
+            if (!game) return;
+
+            const directUrl = getGameDirectUrl(game);
+            const price = Number(game.mainPrice || 0);
+            const description = `${game.name} para ${game.platform || 'PlayStation'} na MCO GAMES${price > 0 ? ` — a partir de R$ ${price.toFixed(2).replace('.', ',')}` : ''}.`;
+
+            document.title = `${game.name} | MCO GAMES`;
+            setMetaTag('meta[name="description"]', 'name', 'description', description);
+            setMetaTag('meta[property="og:title"]', 'property', 'og:title', `${game.name} | MCO GAMES`);
+            setMetaTag('meta[property="og:description"]', 'property', 'og:description', description);
+            setMetaTag('meta[property="og:image"]', 'property', 'og:image', game.img);
+            setMetaTag('meta[property="og:url"]', 'property', 'og:url', directUrl);
+            setMetaTag('meta[name="twitter:title"]', 'name', 'twitter:title', `${game.name} | MCO GAMES`);
+            setMetaTag('meta[name="twitter:description"]', 'name', 'twitter:description', description);
+            setMetaTag('meta[name="twitter:image"]', 'name', 'twitter:image', game.img);
+
+            const canonical = document.getElementById('canonicalUrl');
+            if (canonical) canonical.href = directUrl;
+
+            const stockValues = [
+                game.ps4Primary > 0 ? game.stockPs4Primary : null,
+                game.ps4Secondary > 0 ? game.stockPs4Secondary : null,
+                game.ps5Primary > 0 ? game.stockPs5Primary : null,
+                game.ps5Secondary > 0 ? game.stockPs5Secondary : null
+            ].filter(v => v !== null);
+            const totalStock = stockValues.reduce((sum, v) => sum + Number(v || 0), 0);
+            const available = !game.hasStockInfo || totalStock > 0;
+
+            const productSchema = {
+                "@context": "https://schema.org",
+                "@type": "Product",
+                "name": game.name,
+                "image": [game.img],
+                "category": game.category,
+                "url": directUrl,
+                "brand": {"@type": "Brand", "name": "MCO GAMES"},
+                "offers": {
+                    "@type": "AggregateOffer",
+                    "priceCurrency": "BRL",
+                    "lowPrice": price > 0 ? price.toFixed(2) : undefined,
+                    "offerCount": [game.ps4Primary, game.ps4Secondary, game.ps5Primary, game.ps5Secondary].filter(v => v > 0).length,
+                    "availability": available ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+                    "url": directUrl
+                }
+            };
+            const schemaEl = document.getElementById('productStructuredData');
+            if (schemaEl) schemaEl.textContent = JSON.stringify(productSchema);
+        }
+
+        function openGameById(gameId, updateUrl = true) {
+            const game = games.find(g => g.id === gameId);
+            if (!game) return false;
+
+            const search = document.getElementById('searchInput');
+            const categorySelect = document.getElementById('categorySelect');
+
+            if (search) search.value = '';
+            updateSearchClearButton();
+            hideSearchSuggestions();
+
+            if (window.matchMedia('(max-width: 800px)').matches) {
+                instagramCategory = game.category;
+                instagramVisibleGames = games.filter(g => categoryKey(g.category) === categoryKey(game.category));
+                const foundIndex = instagramVisibleGames.findIndex(g => g.id === game.id);
+                instagramIndex = Math.max(0, foundIndex);
+                instagramTransitionDirection = 0;
+                renderInstagramView();
+            } else {
+                if (categorySelect) categorySelect.value = game.category;
+                renderGames();
+                setTimeout(() => {
+                    const card = [...document.querySelectorAll('.card[data-game-id]')]
+                        .find(el => el.dataset.gameId === game.id);
+                    if (card) {
+                        card.classList.add('mco-direct-focus');
+                        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        setTimeout(() => card.classList.remove('mco-direct-focus'), 1700);
+                    }
+                }, 80);
+            }
+
+            updateSeoForGame(game);
+
+            if (updateUrl && window.history?.replaceState) {
+                window.history.replaceState({ jogo: game.id }, '', getGameDirectUrl(game));
+            }
+            return true;
+        }
+
+        function applySharedGameFromUrl() {
+            const params = new URLSearchParams(window.location.search);
+            const gameId = params.get('jogo');
+            if (!gameId) return false;
+            return openGameById(gameId, false);
+        }
+
+        async function shareGameOffer(event, gameId) {
             event.stopPropagation();
 
             const game = games.find(g => g.id === gameId);
@@ -4621,12 +4997,13 @@ async function copyShareText(text) {
                 if (game.ps4Secondary > 0) optionLines.push(`• Secundária: ${moneyText(game.ps4Secondary)}`);
             }
 
+            const directGameUrl = getGameDirectUrl(game);
             const message =
                 `🎮 *MCO GAMES*\n\n` +
                 `Confira esta oferta:\n` +
                 `🕹️ *${game.name}*\n\n` +
                 `${optionLines.join('\n')}\n\n` +
-                `Esse e mais jogos, acesse: ${SHARE_URL}`;
+                `🔗 Ver este jogo: ${directGameUrl}`;
 
             const desktop = !isMobileDevice();
             const desktopCopyPromise = desktop ? copyShareText(message) : null;
@@ -4727,6 +5104,7 @@ async function copyShareText(text) {
         function createCardElement(game) {
             const card = document.createElement('div');
             card.className = 'card';
+            card.dataset.gameId = game.id;
 
             const selectedItem = getSelectedItem(game.id);
             const selectedPlatform = selectedItem ? selectedItem.platform : getDefaultPlatform(game);
@@ -4756,22 +5134,24 @@ async function copyShareText(text) {
                     <div class="platform-single">${escapeHtml(platformList[0])}</div>`;
             }
 
-            const primaryAvailable = data.primary > 0;
-            const secondaryAvailable = data.secondary > 0;
+            const primaryPriced = data.primary > 0;
+            const secondaryPriced = data.secondary > 0;
+            const primaryInStock = !game.hasStockInfo || data.stockPrimary > 0;
+            const secondaryInStock = !game.hasStockInfo || data.stockSecondary > 0;
             let buttonsHtml = '';
 
-            if (primaryAvailable || secondaryAvailable) {
-                const primaryTxt = primaryAvailable
-                    ? `<span class="media-label">Primária${data.stockPrimary > 0 ? ` (${data.stockPrimary} Un)` : ''}</span><br><span class="media-price">R$ ${data.primary.toFixed(2).replace('.', ',')}</span>`
+            if (primaryPriced || secondaryPriced) {
+                const primaryTxt = primaryPriced
+                    ? `<span class="media-label">Primária${game.hasStockInfo ? (data.stockPrimary > 0 ? ` (${data.stockPrimary} Un)` : ' • Esgotado') : ''}</span><br><span class="media-price">R$ ${data.primary.toFixed(2).replace('.', ',')}</span>`
                     : '';
-                const secondaryTxt = secondaryAvailable
-                    ? `<span class="media-label">Secundária${data.stockSecondary > 0 ? ` (${data.stockSecondary} Un)` : ''}</span><br><span class="media-price">R$ ${data.secondary.toFixed(2).replace('.', ',')}</span>`
+                const secondaryTxt = secondaryPriced
+                    ? `<span class="media-label">Secundária${game.hasStockInfo ? (data.stockSecondary > 0 ? ` (${data.stockSecondary} Un)` : ' • Esgotado') : ''}</span><br><span class="media-price">R$ ${data.secondary.toFixed(2).replace('.', ',')}</span>`
                     : '';
 
                 buttonsHtml = `
                     <div class="type-selector">
-                        ${primaryAvailable ? `<button type="button" class="type-btn ${selectedType === 'Primária' ? 'active' : ''}" onclick="event.stopPropagation(); toggleSelectType('${game.id}', 'Primária')">${primaryTxt}</button>` : ''}
-                        ${secondaryAvailable ? `<button type="button" class="type-btn ${selectedType === 'Secundária' ? 'active' : ''}" onclick="event.stopPropagation(); toggleSelectType('${game.id}', 'Secundária')">${secondaryTxt}</button>` : ''}
+                        ${primaryPriced ? `<button type="button" ${primaryInStock ? '' : 'disabled aria-disabled="true"'} class="type-btn ${primaryInStock ? '' : 'sold-out'} ${selectedType === 'Primária' ? 'active' : ''}" onclick="event.stopPropagation(); toggleSelectType('${game.id}', 'Primária')">${primaryTxt}</button>` : ''}
+                        ${secondaryPriced ? `<button type="button" ${secondaryInStock ? '' : 'disabled aria-disabled="true"'} class="type-btn ${secondaryInStock ? '' : 'sold-out'} ${selectedType === 'Secundária' ? 'active' : ''}" onclick="event.stopPropagation(); toggleSelectType('${game.id}', 'Secundária')">${secondaryTxt}</button>` : ''}
                     </div>`;
             }
 
@@ -4780,10 +5160,27 @@ async function copyShareText(text) {
             const preorderHtml = isPreorderGame(game) ? `<span class="preorder-label">🚀 PRÉ-VENDA</span>` : '';
             const platformTag = platformList.length ? platformList.join(' / ') : 'Plataforma não informada';
 
+            const pricedStockValues = [
+                game.ps4Primary > 0 ? game.stockPs4Primary : null,
+                game.ps4Secondary > 0 ? game.stockPs4Secondary : null,
+                game.ps5Primary > 0 ? game.stockPs5Primary : null,
+                game.ps5Secondary > 0 ? game.stockPs5Secondary : null
+            ].filter(value => value !== null);
+            const totalStock = pricedStockValues.reduce((sum, value) => sum + Number(value || 0), 0);
+            let stockBadgeHtml = '';
+            if (game.hasStockInfo && pricedStockValues.length) {
+                if (totalStock <= 0) {
+                    stockBadgeHtml = `<span class="stock-badge soldout">Esgotado</span>`;
+                } else if (totalStock <= 3) {
+                    stockBadgeHtml = `<span class="stock-badge low">Últimas ${totalStock} un.</span>`;
+                }
+            }
+
             card.innerHTML = `
                 <div class="card-img-container">
                     ${preorderHtml}
                     <span class="platform-tag">${escapeHtml(platformTag)}</span>
+                    ${stockBadgeHtml}
                     <img src="${escapeHtml(game.img)}" alt="${escapeHtml(game.name)}" class="card-img" loading="lazy"
                          onerror="this.onerror=null;this.src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTnOXAQFE6SWdIZy6b4OpXDWYJUjkIbnYx7gQLCRunJ3w&s=10';">
                 </div>
@@ -5383,10 +5780,85 @@ async function copyShareText(text) {
             return games.filter(game => gameMatchesGlobalSearch(game, term));
         }
 
+
+        function ensureSearchSuggestions() {
+            const box = document.querySelector('.search-box');
+            if (!box) return null;
+
+            let panel = box.querySelector('.mco-search-suggestions');
+            if (!panel) {
+                panel = document.createElement('div');
+                panel.className = 'mco-search-suggestions';
+                panel.id = 'mcoSearchSuggestions';
+                panel.setAttribute('role', 'listbox');
+                box.appendChild(panel);
+            }
+            return panel;
+        }
+
+        function hideSearchSuggestions() {
+            const panel = document.getElementById('mcoSearchSuggestions');
+            if (panel) panel.classList.remove('open');
+        }
+
+        function getSearchSuggestions(rawTerm, limit = 6) {
+            const term = normalizeCatalogSearch(rawTerm);
+            if (!term) return [];
+
+            return games
+                .filter(game => gameMatchesGlobalSearch(game, term))
+                .sort((a, b) => {
+                    const aName = normalizeCatalogSearch(a.name);
+                    const bName = normalizeCatalogSearch(b.name);
+                    const aStarts = aName.startsWith(term) ? 0 : 1;
+                    const bStarts = bName.startsWith(term) ? 0 : 1;
+                    if (aStarts !== bStarts) return aStarts - bStarts;
+                    return aName.localeCompare(bName, 'pt-BR');
+                })
+                .slice(0, limit);
+        }
+
+        function updateSearchSuggestions() {
+            const input = document.getElementById('searchInput');
+            const panel = ensureSearchSuggestions();
+            if (!input || !panel) return;
+
+            const raw = input.value.trim();
+            if (!raw) {
+                panel.innerHTML = '';
+                panel.classList.remove('open');
+                return;
+            }
+
+            const suggestions = getSearchSuggestions(raw);
+            if (!suggestions.length) {
+                panel.innerHTML = '';
+                panel.classList.remove('open');
+                return;
+            }
+
+            panel.innerHTML = suggestions.map(game => `
+                <button type="button" class="mco-search-suggestion"
+                        role="option" data-game-id="${escapeHtml(game.id)}">
+                    <span class="mco-search-suggestion-name">${escapeHtml(game.name)}</span>
+                    <span class="mco-search-suggestion-meta">${escapeHtml(game.category)} • ${escapeHtml(game.platform)}</span>
+                    <span class="mco-search-suggestion-price">R$ ${Number(game.mainPrice || 0).toFixed(2).replace('.', ',')}</span>
+                </button>
+            `).join('');
+
+            panel.querySelectorAll('.mco-search-suggestion').forEach(button => {
+                button.addEventListener('pointerdown', event => event.preventDefault());
+                button.addEventListener('click', () => openGameById(button.dataset.gameId, true));
+            });
+
+            panel.classList.add('open');
+        }
+
         function handleCatalogFilterInput() {
             updateSearchClearButton();
             instagramIndex = 0;
             renderGames();
+            updateSearchSuggestions();
         }
 
         function updateSearchClearButton() {
@@ -5405,6 +5877,7 @@ async function copyShareText(text) {
             instagramIndex = 0;
             updateSearchClearButton();
             renderGames();
+            hideSearchSuggestions();
 
             if (input) input.focus();
         }
@@ -5458,6 +5931,8 @@ async function copyShareText(text) {
         let instagramCategory = 'ALL';
         let instagramIndex = 0;
         let instagramVisibleGames = [];
+        let instagramTransitionDirection = 0;
+        const preloadedGameImages = new Set();
 
         function getInstagramCategories() {
             const cats = getOrderedCategories(games.map(g => g.category));
@@ -5481,24 +5956,92 @@ async function copyShareText(text) {
         }
 
         function moveInstagramGame(delta) {
-            instagramIndex = Math.max(0, Math.min(instagramVisibleGames.length - 1, instagramIndex + delta));
+            const nextIndex = Math.max(0, Math.min(instagramVisibleGames.length - 1, instagramIndex + delta));
+            if (nextIndex === instagramIndex) return;
+            instagramTransitionDirection = delta > 0 ? 1 : -1;
+            instagramIndex = nextIndex;
             renderInstagramView();
         }
 
         function jumpInstagramGame(index) {
-            instagramIndex = Math.max(0, Math.min(instagramVisibleGames.length - 1, index));
+            const nextIndex = Math.max(0, Math.min(instagramVisibleGames.length - 1, index));
+            instagramTransitionDirection = nextIndex > instagramIndex ? 1 : (nextIndex < instagramIndex ? -1 : 0);
+            instagramIndex = nextIndex;
             renderInstagramView();
         }
 
+        function preloadGameCover(game) {
+            if (!game?.img || preloadedGameImages.has(game.img)) return;
+            preloadedGameImages.add(game.img);
+            const img = new Image();
+            img.decoding = 'async';
+            img.src = game.img;
+        }
+
+        function preloadNearbyGameCovers() {
+            if (!instagramVisibleGames.length) return;
+            [-1, 1, 2].forEach(offset => {
+                const target = instagramVisibleGames[instagramIndex + offset];
+                if (target) preloadGameCover(target);
+            });
+        }
+
         (function setupInstagramGestures() {
+            let activePointer = null;
             let startX = 0;
-            document.addEventListener('touchstart', e => { if (e.target.closest('#igViewer')) startX = e.changedTouches[0].clientX; }, {passive:true});
-            document.addEventListener('touchend', e => {
-                if (!e.target.closest('#igViewer') || !startX) return;
-                const dx = e.changedTouches[0].clientX - startX;
-                if (Math.abs(dx) > 55) moveInstagramGame(dx < 0 ? 1 : -1);
-                startX = 0;
+            let startY = 0;
+            let draggingPost = null;
+
+            document.addEventListener('pointerdown', e => {
+                const cover = e.target.closest('#igViewer .card-img-container');
+                if (!cover) return;
+                activePointer = e.pointerId;
+                startX = e.clientX;
+                startY = e.clientY;
+                draggingPost = cover.closest('.ig-post');
             }, {passive:true});
+
+            document.addEventListener('pointermove', e => {
+                if (activePointer !== e.pointerId || !draggingPost) return;
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                if (Math.abs(dx) < Math.abs(dy) || Math.abs(dx) < 5) return;
+                const limited = Math.max(-55, Math.min(55, dx * .28));
+                draggingPost.style.transition = 'none';
+                draggingPost.style.transform = `translateX(${limited}px)`;
+                draggingPost.style.opacity = String(Math.max(.78, 1 - Math.abs(limited) / 230));
+            }, {passive:true});
+
+            function finishSwipe(e) {
+                if (activePointer !== e.pointerId) return;
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+
+                if (draggingPost) {
+                    draggingPost.style.transition = 'transform .16s ease, opacity .16s ease';
+                    draggingPost.style.transform = '';
+                    draggingPost.style.opacity = '';
+                }
+
+                activePointer = null;
+                draggingPost = null;
+
+                if (Math.abs(dx) > 52 && Math.abs(dx) > Math.abs(dy) * 1.15) {
+                    moveInstagramGame(dx < 0 ? 1 : -1);
+                }
+            }
+
+            document.addEventListener('pointerup', finishSwipe, {passive:true});
+            document.addEventListener('pointercancel', e => {
+                if (activePointer !== e.pointerId) return;
+                if (draggingPost) {
+                    draggingPost.style.transform = '';
+                    draggingPost.style.opacity = '';
+                }
+                activePointer = null;
+                draggingPost = null;
+            }, {passive:true});
+
             document.addEventListener('keydown', e => {
                 if (e.target.matches('input,textarea,select')) return;
                 if (e.key === 'ArrowRight') moveInstagramGame(1);
@@ -5558,7 +6101,14 @@ async function copyShareText(text) {
             const game = instagramVisibleGames[instagramIndex];
             const categoryLabel = searchVal ? game.category : (instagramCategory === 'ALL' ? game.category : instagramCategory);
             const post = document.createElement('div');
-            post.className = 'ig-post';
+            post.className = 'ig-post ' + (
+                instagramTransitionDirection > 0
+                    ? 'mco-enter-next'
+                    : instagramTransitionDirection < 0
+                        ? 'mco-enter-prev'
+                        : 'mco-enter-fade'
+            );
+            instagramTransitionDirection = 0;
             const top = document.createElement('div');
             top.className = 'ig-topline';
             top.innerHTML = `<span class="ig-category-label">${escapeHtml(categoryLabel || 'MCO Games')}</span><span class="ig-count">${instagramIndex + 1} / ${instagramVisibleGames.length}</span>`;
@@ -5577,6 +6127,7 @@ async function copyShareText(text) {
                 const dot = document.createElement('button'); dot.type = 'button'; dot.className = 'ig-dot' + (i === instagramIndex ? ' active' : ''); dot.setAttribute('aria-label', `Ir para jogo ${i + 1}`); dot.title = instagramVisibleGames[i].name; dot.addEventListener('click', () => jumpInstagramGame(i)); dots.appendChild(dot);
             }
             updateTimers();
+            preloadNearbyGameCovers();
         }
 
         function renderGames() {
@@ -5901,6 +6452,9 @@ async function buildCurrentMobileScreenShare(cardEl, game = null) {
         const headerClone = header.cloneNode(true);
         const postClone = currentMobilePost.cloneNode(true);
 
+        // A imagem compartilhada nunca leva as setas de navegação.
+        postClone.querySelectorAll('.mobile-cover-nav, .ig-navigation').forEach(el => el.remove());
+
         headerClone.style.margin = '0';
         headerClone.style.width = '100%';
 
@@ -6175,22 +6729,13 @@ async function buildCurrentMobileScreenShare(cardEl, game = null) {
     `;
 
     const cardClone = cardEl.cloneNode(true);
+    cardClone.querySelectorAll('.mobile-cover-nav, .ig-navigation').forEach(el => el.remove());
 
     // Coloca relógio sobre a capa como no celular.
     const clonedCover = cardClone.querySelector('.card-img-container');
     const clonedTimer = cardClone.querySelector('.card-info .timer-badge');
     if (clonedCover && clonedTimer) clonedCover.appendChild(clonedTimer);
-
-    // Adiciona as setas apenas como elemento visual do print.
-    if (clonedCover) {
-        const nav = document.createElement('div');
-        nav.className = 'mobile-cover-nav';
-        nav.innerHTML = `
-            <span class="mobile-cover-arrow">‹</span>
-            <span class="mobile-cover-arrow">›</span>
-        `;
-        clonedCover.appendChild(nav);
-    }
+    // Setas omitidas de propósito na imagem compartilhada.
 
     // Prepara a capa para canvas.
     const originalImg = cardEl.querySelector('.card-img');
@@ -6386,6 +6931,137 @@ async function buildCurrentMobileScreenShare(cardEl, game = null) {
             guaranteeNativeSearch();
             refreshMobileCardDecorations();
         }, { passive: true });
+    });
+})();
+</script>
+
+
+<script id="mco-enhancements-runtime">
+(() => {
+    let deferredInstallPrompt = null;
+
+    function getToast() {
+        let toast = document.getElementById('mcoMiniToast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'mcoMiniToast';
+            toast.className = 'mco-mini-toast';
+            toast.setAttribute('role', 'status');
+            toast.setAttribute('aria-live', 'polite');
+            document.body.appendChild(toast);
+        }
+        return toast;
+    }
+
+    function showMiniToast(message, ms = 2600) {
+        const toast = getToast();
+        toast.textContent = message;
+        toast.classList.add('show');
+        clearTimeout(window.__mcoMiniToastTimer);
+        window.__mcoMiniToastTimer = setTimeout(() => toast.classList.remove('show'), ms);
+    }
+
+    function isIos() {
+        return /iphone|ipad|ipod/i.test(navigator.userAgent);
+    }
+
+    function isStandalone() {
+        return window.matchMedia('(display-mode: standalone)').matches ||
+               window.navigator.standalone === true;
+    }
+
+    function ensureInstallButton() {
+        const popup = document.querySelector('.ig-mobile-popup');
+        if (!popup) return null;
+
+        let button = document.getElementById('mcoInstallAppBtn');
+        if (!button) {
+            button = document.createElement('button');
+            button.id = 'mcoInstallAppBtn';
+            button.type = 'button';
+            button.className = 'mco-install-btn';
+            button.textContent = '📲 Instalar MCO GAMES no aparelho';
+            popup.appendChild(button);
+
+            button.addEventListener('click', async () => {
+                if (isStandalone()) {
+                    showMiniToast('MCO GAMES já está instalado.');
+                    return;
+                }
+
+                if (deferredInstallPrompt) {
+                    deferredInstallPrompt.prompt();
+                    try {
+                        const choice = await deferredInstallPrompt.userChoice;
+                        if (choice?.outcome === 'accepted') {
+                            showMiniToast('Instalação iniciada.');
+                        }
+                    } catch (_) {}
+                    deferredInstallPrompt = null;
+                    return;
+                }
+
+                if (isIos()) {
+                    showMiniToast('No Safari: Compartilhar → Adicionar à Tela de Início.', 4200);
+                } else {
+                    showMiniToast('Abra o menu do navegador e escolha “Instalar app” ou “Adicionar à tela inicial”.', 4200);
+                }
+            });
+        }
+
+        button.hidden = isStandalone();
+        return button;
+    }
+
+    window.addEventListener('beforeinstallprompt', event => {
+        event.preventDefault();
+        deferredInstallPrompt = event;
+        ensureInstallButton();
+    });
+
+    window.addEventListener('appinstalled', () => {
+        deferredInstallPrompt = null;
+        const btn = document.getElementById('mcoInstallAppBtn');
+        if (btn) btn.hidden = true;
+        showMiniToast('MCO GAMES instalado com sucesso.');
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        ensureInstallButton();
+
+        const input = document.getElementById('searchInput');
+        if (input) {
+            input.addEventListener('focus', () => {
+                if (typeof updateSearchSuggestions === 'function') updateSearchSuggestions();
+            });
+            input.addEventListener('keydown', event => {
+                if (event.key === 'Escape' && typeof hideSearchSuggestions === 'function') {
+                    hideSearchSuggestions();
+                }
+            });
+        }
+
+        document.addEventListener('pointerdown', event => {
+            if (!event.target.closest('.search-box') && typeof hideSearchSuggestions === 'function') {
+                hideSearchSuggestions();
+            }
+        }, {passive:true});
+
+        /* SEO base acompanha o endereço real caso o site seja movido de domínio. */
+        try {
+            const base = `${window.location.origin}${window.location.pathname}`;
+            const canonical = document.getElementById('canonicalUrl');
+            if (canonical && /^https?:$/i.test(window.location.protocol) && !window.location.search) {
+                canonical.href = base;
+                const ogUrl = document.querySelector('meta[property="og:url"]');
+                if (ogUrl) ogUrl.content = base;
+            }
+        } catch (_) {}
+
+        /* Service worker: opcional; não interfere se o arquivo ainda não foi enviado. */
+        if ('serviceWorker' in navigator && /^https?:$/i.test(window.location.protocol)) {
+            navigator.serviceWorker.register('./sw.js').catch(() => {});
+        }
     });
 })();
 </script>
