@@ -5166,7 +5166,10 @@ async function copyShareText(text) {
                 if (totalStock <= 0) {
                     stockBadgeHtml = `<span class="stock-badge soldout">Esgotado</span>`;
                 } else if (totalStock <= 3) {
-                    stockBadgeHtml = `<span class="stock-badge low">Últimas ${totalStock} un.</span>`;
+                    const stockText = totalStock === 1
+                        ? 'Última unidade'
+                        : `Últimas ${totalStock} un.`;
+                    stockBadgeHtml = `<span class="stock-badge low">${stockText}</span>`;
                 }
             }
 
