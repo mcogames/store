@@ -4272,6 +4272,10 @@ async function copyShareText(text) {
                 renderLaunchCarousel();
                 renderPreorderCarousel();
                 renderPromotionCarousel();
+
+                // Na abertura/atualização normal, começa em um jogo aleatório.
+                randomizeInitialInstagramGame();
+
                 renderGames();
                 const directGameApplied = applySharedGameFromUrl();
                 if (!directGameApplied) applySharedCategoryFromUrl();
@@ -5952,7 +5956,54 @@ async function copyShareText(text) {
         let instagramIndex = 0;
         let instagramVisibleGames = [];
         let instagramTransitionDirection = 0;
+        let instagramInitialRandomized = false;
         const preloadedGameImages = new Set();
+
+        function secureRandomIndex(max) {
+            if (!(max > 0)) return 0;
+
+            try {
+                if (window.crypto && window.crypto.getRandomValues) {
+                    const buffer = new Uint32Array(1);
+                    window.crypto.getRandomValues(buffer);
+                    return buffer[0] % max;
+                }
+            } catch (_) {}
+
+            return Math.floor(Math.random() * max);
+        }
+
+        function randomizeInitialInstagramGame() {
+            if (instagramInitialRandomized || !games.length) return;
+
+            instagramInitialRandomized = true;
+
+            // Respeita links antigos/específicos, caso alguém ainda os tenha salvo.
+            const params = new URLSearchParams(window.location.search);
+            if (params.has('jogo') || params.has('categoria')) return;
+
+            instagramCategory = 'ALL';
+
+            let candidates = games.map((game, index) => ({ game, index }));
+
+            // Evita, quando possível, abrir exatamente no mesmo jogo da última visita/refresh.
+            try {
+                const previousGameId = localStorage.getItem('mco:last-initial-game');
+                if (previousGameId && candidates.length > 1) {
+                    const withoutPrevious = candidates.filter(item => item.game.id !== previousGameId);
+                    if (withoutPrevious.length) candidates = withoutPrevious;
+                }
+            } catch (_) {}
+
+            const chosen = candidates[secureRandomIndex(candidates.length)];
+            if (!chosen) return;
+
+            instagramIndex = chosen.index;
+
+            try {
+                localStorage.setItem('mco:last-initial-game', chosen.game.id);
+            } catch (_) {}
+        }
 
         function getInstagramCategories() {
             const cats = getOrderedCategories(games.map(g => g.category));
