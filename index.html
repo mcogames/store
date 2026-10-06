@@ -3153,33 +3153,56 @@ async function copyShareText(text) {
         pointer-events: auto !important;
     }
 
-    /* Movimento inicial bem sutil.
-       A seta esquerda vai levemente para a esquerda e a direita para a direita. */
-    .mobile-cover-arrow.mco-arrow-hint-left {
-        animation: mcoArrowHintLeft 1.35s ease-in-out .65s 2;
+    /* As setas funcionam como dica temporária:
+       aparecem, indicam a direção e somem novamente. */
+    .mobile-cover-arrow {
+        opacity: 0 !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
     }
 
-    .mobile-cover-arrow.mco-arrow-hint-right {
-        animation: mcoArrowHintRight 1.35s ease-in-out .65s 2;
+    .mobile-cover-arrow.mco-arrow-cue-active:not([disabled]) {
+        visibility: visible !important;
+        pointer-events: auto !important;
     }
 
-    @keyframes mcoArrowHintLeft {
-        0%, 100% { transform: translateX(0); }
-        38%      { transform: translateX(-4px); }
-        62%      { transform: translateX(-1px); }
+    .mobile-cover-arrow-prev.mco-arrow-cue-active:not([disabled]) {
+        animation: mcoArrowCueLeft 2.25s ease-in-out both !important;
     }
 
-    @keyframes mcoArrowHintRight {
-        0%, 100% { transform: translateX(0); }
-        38%      { transform: translateX(4px); }
-        62%      { transform: translateX(1px); }
+    .mobile-cover-arrow-next.mco-arrow-cue-active:not([disabled]) {
+        animation: mcoArrowCueRight 2.25s ease-in-out both !important;
+    }
+
+    @keyframes mcoArrowCueLeft {
+        0%   { opacity: 0; transform: translateX(0) scale(.96); }
+        12%  { opacity: .92; transform: translateX(0) scale(1); }
+        30%  { opacity: 1; transform: translateX(-7px) scale(1.02); }
+        46%  { opacity: 1; transform: translateX(-2px) scale(1); }
+        62%  { opacity: 1; transform: translateX(-7px) scale(1.02); }
+        78%  { opacity: .92; transform: translateX(-2px) scale(1); }
+        100% { opacity: 0; transform: translateX(-9px) scale(.98); }
+    }
+
+    @keyframes mcoArrowCueRight {
+        0%   { opacity: 0; transform: translateX(0) scale(.96); }
+        12%  { opacity: .92; transform: translateX(0) scale(1); }
+        30%  { opacity: 1; transform: translateX(7px) scale(1.02); }
+        46%  { opacity: 1; transform: translateX(2px) scale(1); }
+        62%  { opacity: 1; transform: translateX(7px) scale(1.02); }
+        78%  { opacity: .92; transform: translateX(2px) scale(1); }
+        100% { opacity: 0; transform: translateX(9px) scale(.98); }
     }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .mobile-cover-arrow.mco-arrow-hint-left,
-    .mobile-cover-arrow.mco-arrow-hint-right {
-        animation: none !important;
+    .mobile-cover-arrow.mco-arrow-cue-active:not([disabled]) {
+        animation: mcoArrowCueReduced 1.8s ease-in-out both !important;
+    }
+
+    @keyframes mcoArrowCueReduced {
+        0%, 100% { opacity: 0; transform: none; }
+        20%, 78% { opacity: .9; transform: none; }
     }
 }
 </style>
@@ -6780,7 +6803,24 @@ async function buildCurrentMobileScreenShare(cardEl, game = null) {
 
 <script id="mco-search-arrow-final-fix-script">
 (() => {
-    let initialArrowHintUsed = false;
+    const ARROW_FIRST_DELAY = 420;
+    const ARROW_REPEAT_DELAY = 7200;
+
+    let cueStartTimer = null;
+    let cueRepeatTimer = null;
+    let activeCover = null;
+    let activeGameKey = '';
+
+    function clearArrowCueTimers() {
+        if (cueStartTimer) {
+            clearTimeout(cueStartTimer);
+            cueStartTimer = null;
+        }
+        if (cueRepeatTimer) {
+            clearInterval(cueRepeatTimer);
+            cueRepeatTimer = null;
+        }
+    }
 
     function getCurrentPositionFromUI() {
         const count = document.querySelector('#igViewer .ig-count');
@@ -6795,6 +6835,18 @@ async function buildCurrentMobileScreenShare(cardEl, game = null) {
         };
     }
 
+    function getCurrentGameKey(cover) {
+        const card = cover && cover.closest('.card');
+        const count = document.querySelector('#igViewer .ig-count');
+        const title = card && card.querySelector('.card-title');
+
+        return [
+            card?.dataset?.gameId || '',
+            String(count?.textContent || '').trim(),
+            String(title?.textContent || '').trim()
+        ].join('::');
+    }
+
     function moveTimerToCover(cover) {
         if (!cover) return;
 
@@ -6805,8 +6857,54 @@ async function buildCurrentMobileScreenShare(cardEl, game = null) {
         if (timer) cover.appendChild(timer);
     }
 
+    function restartArrowAnimation(button) {
+        if (!button || button.disabled) return;
+
+        button.classList.remove('mco-arrow-cue-active');
+        void button.offsetWidth;
+        button.classList.add('mco-arrow-cue-active');
+
+        const cleanup = () => {
+            button.classList.remove('mco-arrow-cue-active');
+            button.removeEventListener('animationend', cleanup);
+        };
+
+        button.addEventListener('animationend', cleanup);
+    }
+
+    function runArrowCue(nav) {
+        if (!nav || !nav.isConnected) return;
+
+        restartArrowAnimation(nav.querySelector('.mobile-cover-arrow-prev'));
+        restartArrowAnimation(nav.querySelector('.mobile-cover-arrow-next'));
+    }
+
+    function scheduleArrowCue(nav) {
+        clearArrowCueTimers();
+
+        cueStartTimer = setTimeout(() => {
+            runArrowCue(nav);
+
+            cueRepeatTimer = setInterval(() => {
+                const currentCover = document.querySelector('#igViewer .ig-post .card-img-container');
+
+                if (currentCover !== activeCover || !nav.isConnected) {
+                    clearArrowCueTimers();
+                    return;
+                }
+
+                runArrowCue(nav);
+            }, ARROW_REPEAT_DELAY);
+        }, ARROW_FIRST_DELAY);
+    }
+
     function buildMobileCoverArrows() {
-        if (!window.matchMedia('(max-width: 800px)').matches) return;
+        if (!window.matchMedia('(max-width: 800px)').matches) {
+            clearArrowCueTimers();
+            activeCover = null;
+            activeGameKey = '';
+            return;
+        }
 
         const viewer = document.getElementById('igViewer');
         if (!viewer) return;
@@ -6816,13 +6914,22 @@ async function buildCurrentMobileScreenShare(cardEl, game = null) {
 
         moveTimerToCover(cover);
 
-        const oldNav = cover.querySelector('.mobile-cover-nav');
-        if (oldNav) oldNav.remove();
+        const gameKey = getCurrentGameKey(cover);
+        let nav = cover.querySelector('.mobile-cover-nav');
+
+        if (nav && cover === activeCover && gameKey === activeGameKey) {
+            return;
+        }
+
+        clearArrowCueTimers();
+
+        if (nav) nav.remove();
 
         const position = getCurrentPositionFromUI();
 
-        const nav = document.createElement('div');
+        nav = document.createElement('div');
         nav.className = 'mobile-cover-nav';
+        nav.dataset.gameKey = gameKey;
 
         const prev = document.createElement('button');
         prev.type = 'button';
@@ -6836,6 +6943,7 @@ async function buildCurrentMobileScreenShare(cardEl, game = null) {
             event.stopPropagation();
 
             if (!prev.disabled && typeof moveInstagramGame === 'function') {
+                clearArrowCueTimers();
                 moveInstagramGame(-1);
             }
         });
@@ -6852,32 +6960,57 @@ async function buildCurrentMobileScreenShare(cardEl, game = null) {
             event.stopPropagation();
 
             if (!next.disabled && typeof moveInstagramGame === 'function') {
+                clearArrowCueTimers();
                 moveInstagramGame(1);
             }
         });
 
-        /* Só na primeira montagem da página.
-           Não repete a cada troca de jogo para não ficar chamativo. */
-        if (!initialArrowHintUsed) {
-            if (!prev.disabled) prev.classList.add('mco-arrow-hint-left');
-            if (!next.disabled) next.classList.add('mco-arrow-hint-right');
-            initialArrowHintUsed = true;
-        }
-
         nav.appendChild(prev);
         nav.appendChild(next);
         cover.appendChild(nav);
+
+        activeCover = cover;
+        activeGameKey = gameKey;
+
+        scheduleArrowCue(nav);
     }
 
+    let refreshQueued = false;
+
     function refreshMobileCardDecorations() {
-        requestAnimationFrame(buildMobileCoverArrows);
+        if (refreshQueued) return;
+        refreshQueued = true;
+
+        requestAnimationFrame(() => {
+            refreshQueued = false;
+            buildMobileCoverArrows();
+        });
     }
 
     function setupViewerObserver() {
         const viewer = document.getElementById('igViewer');
-        if (!viewer) return false;
+        if (!viewer || viewer.dataset.mcoArrowObserverReady === '1') return !!viewer;
 
-        const observer = new MutationObserver(refreshMobileCardDecorations);
+        viewer.dataset.mcoArrowObserverReady = '1';
+
+        const observer = new MutationObserver(mutations => {
+            const relevant = mutations.some(mutation => {
+                const nodes = [...mutation.addedNodes, ...mutation.removedNodes];
+                if (!nodes.length) return true;
+
+                return nodes.some(node => {
+                    if (!(node instanceof Element)) return true;
+
+                    return !(
+                        node.classList.contains('mobile-cover-nav') ||
+                        node.classList.contains('mobile-cover-arrow')
+                    );
+                });
+            });
+
+            if (relevant) refreshMobileCardDecorations();
+        });
+
         observer.observe(viewer, {
             childList: true,
             subtree: true
@@ -6896,9 +7029,6 @@ async function buildCurrentMobileScreenShare(cardEl, game = null) {
         input.disabled = false;
         input.readOnly = false;
         input.tabIndex = 0;
-
-        /* Nenhum listener de touch/click artificial:
-           o navegador recebe o toque diretamente no input e abre o teclado nativo. */
         input.style.pointerEvents = 'auto';
         box.style.pointerEvents = 'auto';
     }
@@ -6910,22 +7040,25 @@ async function buildCurrentMobileScreenShare(cardEl, game = null) {
             const wait = setInterval(() => {
                 if (setupViewerObserver()) clearInterval(wait);
             }, 250);
+
             setTimeout(() => clearInterval(wait), 8000);
         }
 
-        /* A rotina que move a busca para o header também roda no DOMContentLoaded.
-           Executar novamente no próximo frame garante as propriedades no elemento final. */
         requestAnimationFrame(guaranteeNativeSearch);
         setTimeout(guaranteeNativeSearch, 150);
         setTimeout(guaranteeNativeSearch, 600);
 
         window.addEventListener('resize', () => {
             guaranteeNativeSearch();
+            activeCover = null;
+            activeGameKey = '';
             refreshMobileCardDecorations();
         }, { passive: true });
 
         window.addEventListener('orientationchange', () => {
             guaranteeNativeSearch();
+            activeCover = null;
+            activeGameKey = '';
             refreshMobileCardDecorations();
         }, { passive: true });
     });
