@@ -3360,6 +3360,23 @@ async function copyShareText(text) {
 .mco-install-btn:hover{background:rgba(24,184,255,.14)}
 .mco-install-btn[hidden]{display:none!important}
 
+@media(max-width:800px){
+    .btn-share-circle[data-share-ready="0"]{
+        opacity:.46!important;
+        pointer-events:none!important;
+        cursor:wait!important;
+        animation:mcoSharePreparingPulse 1s ease-in-out infinite!important;
+    }
+    .btn-share-circle[data-share-ready="1"]{
+        opacity:1!important;
+        pointer-events:auto!important;
+    }
+    @keyframes mcoSharePreparingPulse{
+        0%,100%{transform:scale(.94)}
+        50%{transform:scale(1)}
+    }
+}
+
 /* Toast genérico */
 .mco-mini-toast{
     position:fixed;
@@ -4480,38 +4497,56 @@ async function copyShareText(text) {
         // Algumas capas vêm de domínios sem CORS. O navegador exibe a imagem normalmente,
         // mas o html2canvas não pode desenhá-la no canvas e ela acaba ficando em branco.
         // Usamos o proxy CORS do wsrv.nl somente para a captura do print.
+        const canvasImageDataCache = new Map();
+        const canvasImageRequestCache = new Map();
+
         async function getImageDataUrlForCanvas(sourceUrl) {
             if (!sourceUrl) return null;
             if (sourceUrl.startsWith('data:')) return sourceUrl;
 
-            const controller = new AbortController();
-            const timeout = setTimeout(() => controller.abort(), 7000);
+            if (canvasImageDataCache.has(sourceUrl)) return canvasImageDataCache.get(sourceUrl);
+            if (canvasImageRequestCache.has(sourceUrl)) return canvasImageRequestCache.get(sourceUrl);
 
-            try {
-                const proxyUrl = `https://images.weserv.nl/?url=${encodeURIComponent(sourceUrl)}`;
-                const response = await fetch(proxyUrl, {
-                    mode: 'cors',
-                    cache: 'no-store',
-                    signal: controller.signal
-                });
+            const task = (async () => {
+                const controller = new AbortController();
+                const timeout = setTimeout(() => controller.abort(), 7000);
 
-                if (!response.ok) throw new Error(`Proxy retornou ${response.status}`);
+                try {
+                    const proxyUrl = `https://images.weserv.nl/?url=${encodeURIComponent(sourceUrl)}`;
+                    const response = await fetch(proxyUrl, {
+                        mode: 'cors',
+                        cache: 'force-cache',
+                        signal: controller.signal
+                    });
 
-                const blob = await response.blob();
-                if (!blob.type.startsWith('image/')) throw new Error('A resposta não é uma imagem.');
+                    if (!response.ok) throw new Error(`Proxy retornou ${response.status}`);
 
-                return await new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onloadend = () => resolve(reader.result);
-                    reader.onerror = reject;
-                    reader.readAsDataURL(blob);
-                });
-            } catch (err) {
-                console.warn('Não foi possível preparar a capa pelo proxy:', err);
-                return null;
-            } finally {
-                clearTimeout(timeout);
-            }
+                    const blob = await response.blob();
+                    if (!blob.type.startsWith('image/')) throw new Error('A resposta não é uma imagem.');
+
+                    const dataUrl = await new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => resolve(reader.result);
+                        reader.onerror = reject;
+                        reader.readAsDataURL(blob);
+                    });
+
+                    canvasImageDataCache.set(sourceUrl, dataUrl);
+                    while (canvasImageDataCache.size > 12) {
+                        canvasImageDataCache.delete(canvasImageDataCache.keys().next().value);
+                    }
+                    return dataUrl;
+                } catch (err) {
+                    console.warn('Não foi possível preparar a imagem pelo proxy:', err);
+                    return null;
+                } finally {
+                    clearTimeout(timeout);
+                    canvasImageRequestCache.delete(sourceUrl);
+                }
+            })();
+
+            canvasImageRequestCache.set(sourceUrl, task);
+            return task;
         }
 
         async function loadImageForCanvas(imgElement) {
@@ -4844,16 +4879,6 @@ async function copyShareText(text) {
             toast.textContent = text;
             toast.classList.add('show');
             clearTimeout(window.__shareToastTimer);
-            window.__shareToastTimer = setTimeout(() => toast.classList.remove('show'), 5000);
-        }
-
-
-        function showShareStatus(text) {
-            const toast = document.getElementById('shareStatusToast');
-            if (!toast) return;
-            toast.textContent = text;
-            toast.classList.add('show');
-            clearTimeout(window.__shareToastTimer);
             window.__shareToastTimer = setTimeout(() => toast.classList.remove('show'), 4500);
         }
 
@@ -4996,6 +5021,117 @@ async function copyShareText(text) {
             return openGameById(gameId, false);
         }
 
+
+        const mobileSharePreparedFiles = new Map();
+        const mobileSharePreparing = new Map();
+        let mobileSharePrepareTimer = null;
+
+        function getMobileShareStateKey(game, cardEl) {
+            const selected = getSelectedItem(game.id);
+            const countText = document.querySelector('#igViewer .ig-count')?.textContent || '';
+            const categoryText = document.querySelector('#igViewer .ig-category-label')?.textContent || '';
+            const searchText = document.getElementById('searchInput')?.value || '';
+
+            return [
+                game.id,
+                selected?.platform || getDefaultPlatform(game) || '',
+                selected?.type || '',
+                countText.trim(),
+                categoryText.trim(),
+                searchText.trim()
+            ].join('||');
+        }
+
+        function getPreparedMobileShareFile(game, cardEl) {
+            return mobileSharePreparedFiles.get(getMobileShareStateKey(game, cardEl)) || null;
+        }
+
+        function setMobileShareButtonState(cardEl, ready) {
+            const button = cardEl && cardEl.querySelector('.btn-share-circle');
+            if (!button) return;
+            button.dataset.shareReady = ready ? '1' : '0';
+            button.setAttribute('aria-busy', ready ? 'false' : 'true');
+            button.title = ready ? 'Compartilhar oferta' : 'Preparando imagem para compartilhar…';
+        }
+
+        async function buildPreparedMobileShareFile(game, cardEl) {
+            if (!game || !cardEl || !cardEl.isConnected) return null;
+
+            const key = getMobileShareStateKey(game, cardEl);
+
+            if (mobileSharePreparedFiles.has(key)) {
+                setMobileShareButtonState(cardEl, true);
+                return mobileSharePreparedFiles.get(key);
+            }
+
+            if (mobileSharePreparing.has(key)) return mobileSharePreparing.get(key);
+
+            setMobileShareButtonState(cardEl, false);
+
+            const task = (async () => {
+                try {
+                    const coverEl = cardEl.querySelector('.card-img');
+                    const coverUrl = coverEl?.currentSrc || coverEl?.src || '';
+                    const logoEl = document.getElementById('siteLogoImage');
+                    const logoUrl = logoEl?.currentSrc || logoEl?.src || '';
+
+                    await Promise.allSettled([
+                        coverUrl ? getImageDataUrlForCanvas(coverUrl) : Promise.resolve(null),
+                        logoUrl ? getImageDataUrlForCanvas(logoUrl) : Promise.resolve(null)
+                    ]);
+
+                    if (!cardEl.isConnected) return null;
+
+                    const canvas = await buildCurrentMobileScreenShare(cardEl, game);
+                    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+                    if (!blob) return null;
+
+                    const safeName = game.name
+                        .normalize('NFD')
+                        .replace(/[\u0300-\u036f]/g, '')
+                        .replace(/[^a-zA-Z0-9]+/g, '_')
+                        .replace(/^_+|_+$/g, '');
+
+                    const file = new File(
+                        [blob],
+                        `MCO_GAMES_${safeName || 'oferta'}.png`,
+                        { type: 'image/png' }
+                    );
+
+                    mobileSharePreparedFiles.set(key, file);
+                    while (mobileSharePreparedFiles.size > 4) {
+                        mobileSharePreparedFiles.delete(mobileSharePreparedFiles.keys().next().value);
+                    }
+
+                    if (cardEl.isConnected && getMobileShareStateKey(game, cardEl) === key) {
+                        setMobileShareButtonState(cardEl, true);
+                    }
+                    return file;
+                } catch (error) {
+                    console.warn('Pré-preparo do compartilhamento falhou:', error);
+                    if (cardEl.isConnected) setMobileShareButtonState(cardEl, true);
+                    return null;
+                } finally {
+                    mobileSharePreparing.delete(key);
+                }
+            })();
+
+            mobileSharePreparing.set(key, task);
+            return task;
+        }
+
+        function scheduleMobileSharePreparation(game, cardEl) {
+            if (!window.matchMedia('(max-width: 800px)').matches) return;
+            if (!game || !cardEl) return;
+
+            clearTimeout(mobileSharePrepareTimer);
+            setMobileShareButtonState(cardEl, false);
+
+            mobileSharePrepareTimer = setTimeout(() => {
+                if (cardEl.isConnected) buildPreparedMobileShareFile(game, cardEl);
+            }, 180);
+        }
+
         async function shareGameOffer(event, gameId) {
             event.stopPropagation();
 
@@ -5013,7 +5149,6 @@ async function copyShareText(text) {
                 if (game.ps5Primary > 0) optionLines.push(`• Primária: ${moneyText(game.ps5Primary)}`);
                 if (game.ps5Secondary > 0) optionLines.push(`• Secundária: ${moneyText(game.ps5Secondary)}`);
             }
-
             if (game.ps4Primary > 0 || game.ps4Secondary > 0) {
                 optionLines.push(`🟦 *PS4*`);
                 if (game.ps4Primary > 0) optionLines.push(`• Primária: ${moneyText(game.ps4Primary)}`);
@@ -5028,14 +5163,78 @@ async function copyShareText(text) {
                 `🎮 Esse e outros jogos você encontra em:\n${SHARE_URL}`;
 
             const desktop = !isMobileDevice();
-            const desktopCopyPromise = desktop ? copyShareText(message) : null;
+
+            if (!desktop) {
+                const preparedFile = getPreparedMobileShareFile(game, cardEl);
+
+                const canSharePreparedFile = !!(
+                    preparedFile &&
+                    navigator.share &&
+                    navigator.canShare &&
+                    navigator.canShare({ files: [preparedFile] })
+                );
+
+                if (canSharePreparedFile) {
+                    try {
+                        await navigator.share({
+                            files: [preparedFile],
+                            text: message,
+                            title: `Oferta MCO GAMES - ${game.name}`
+                        });
+                        showShareStatus('Compartilhado com sucesso.');
+                        return;
+                    } catch (err) {
+                        if (err && err.name === 'AbortError') return;
+                        console.warn(
+                            'Compartilhamento nativo com arquivo falhou:',
+                            err,
+                            navigator.userActivation
+                                ? {
+                                    isActive: navigator.userActivation.isActive,
+                                    hasBeenActive: navigator.userActivation.hasBeenActive
+                                }
+                                : ''
+                        );
+                    }
+                }
+
+                showShareStatus('Preparando a imagem…');
+
+                let file = preparedFile;
+                if (!file) file = await buildPreparedMobileShareFile(game, cardEl);
+
+                if (file) {
+                    const mobileUrl = URL.createObjectURL(file);
+                    const a = document.createElement('a');
+                    a.href = mobileUrl;
+                    a.download = file.name;
+                    a.style.display = 'none';
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+
+                    setTimeout(() => {
+                        try { URL.revokeObjectURL(mobileUrl); } catch (_) {}
+                    }, 15000);
+
+                    showShareStatus('Imagem salva. Abrindo o WhatsApp com o texto.');
+                    await new Promise(resolve => setTimeout(resolve, 900));
+                    window.location.href = `https://wa.me/?text=${encodeURIComponent(message)}`;
+                    return;
+                }
+
+                showShareStatus('Não foi possível preparar a imagem. Abrindo o WhatsApp com o texto.');
+                await new Promise(resolve => setTimeout(resolve, 500));
+                window.location.href = `https://wa.me/?text=${encodeURIComponent(message)}`;
+                return;
+            }
+
+            const desktopCopyPromise = copyShareText(message);
 
             try {
                 showShareStatus('Gerando a imagem da oferta…');
 
-                // Celular e PC usam a captura visual atual da loja.
                 const canvas = await buildCurrentMobileScreenShare(cardEl, game);
-
                 const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
                 if (!blob) throw new Error('Não foi possível gerar o PNG.');
 
@@ -5046,63 +5245,8 @@ async function copyShareText(text) {
                     .replace(/^_+|_+$/g, '');
 
                 const fileName = `MCO_GAMES_${safeName || 'oferta'}.png`;
-                const file = new File([blob], fileName, { type: 'image/png' });
-
-                if (!desktop) {
-                    const canShareFile = !!(
-                        navigator.share &&
-                        navigator.canShare &&
-                        navigator.canShare({ files: [file] })
-                    );
-
-                    if (canShareFile) {
-                        try {
-                            await navigator.share({
-                                files: [file],
-                                text: message,
-                                title: `Oferta MCO GAMES - ${game.name}`
-                            });
-                            showShareStatus('Compartilhado com sucesso.');
-                            return;
-                        } catch (err) {
-                            if (err && err.name === 'AbortError') return;
-                            console.warn('Compartilhamento nativo não disponível:', err);
-                        }
-                    }
-
-                    const mobileUrl = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = mobileUrl;
-                    a.download = fileName;
-                    a.style.display = 'none';
-                    document.body.appendChild(a);
-
-                    showShareStatus('Salvando a imagem da oferta…');
-
-                    // Mantém o elemento e a URL vivos enquanto o navegador inicia
-                    // e conclui o salvamento. Em alguns Androids, abrir o WhatsApp
-                    // rápido demais interrompia o primeiro download.
-                    await new Promise(resolve => requestAnimationFrame(resolve));
-                    a.click();
-
-                    await new Promise(resolve => setTimeout(resolve, 2400));
-
-                    a.remove();
-                    showShareStatus('Imagem salva. Abrindo o WhatsApp…');
-
-                    await new Promise(resolve => setTimeout(resolve, 300));
-
-                    // Não revoga a URL antes de trocar de app: alguns navegadores
-                    // ainda podem estar finalizando o arquivo neste momento.
-                    setTimeout(() => {
-                        try { URL.revokeObjectURL(mobileUrl); } catch (_) {}
-                    }, 15000);
-
-                    window.location.href = `https://wa.me/?text=${encodeURIComponent(message)}`;
-                    return;
-                }
-
                 const desktopUrl = URL.createObjectURL(blob);
+
                 const a = document.createElement('a');
                 a.href = desktopUrl;
                 a.download = fileName;
@@ -5110,11 +5254,12 @@ async function copyShareText(text) {
                 document.body.appendChild(a);
                 a.click();
                 a.remove();
+
                 setTimeout(() => URL.revokeObjectURL(desktopUrl), 5000);
 
                 let textCopied = false;
                 try {
-                    textCopied = desktopCopyPromise ? await desktopCopyPromise : false;
+                    textCopied = await desktopCopyPromise;
                 } catch (err) {
                     console.warn('Não foi possível copiar o texto:', err);
                 }
@@ -5122,12 +5267,10 @@ async function copyShareText(text) {
                 showShareStatus(
                     textCopied
                         ? 'Imagem salva e texto copiado. Abra o WhatsApp e cole o texto.'
-                        : 'Imagem salva, mas não foi possível copiar o texto automaticamente. Tente copiar manualmente.'
+                        : 'Imagem salva, mas não foi possível copiar o texto automaticamente.'
                 );
-
             } catch (err) {
                 console.error('Erro no compartilhamento:', err);
-
                 showShareStatus(
                     err && err.message
                         ? `Não foi possível gerar a imagem: ${err.message}`
@@ -5245,7 +5388,8 @@ async function copyShareText(text) {
                         <button class="btn-buy-direct" ${selectedItem ? '' : 'disabled'} ${selectedItem ? '' : 'aria-disabled="true"'}
                                 title="${selectedItem ? 'Comprar este jogo' : 'Selecione a plataforma e depois Primária ou Secundária'}"
                                 onclick="buyGameDirect(event, '${game.id}')">🛒 Comprar</button>
-                        <button class="btn-share-circle" onclick="shareGameOffer(event, '${game.id}')" title="Compartilhar oferta no WhatsApp">
+                        <button type="button" class="btn-share-circle" data-share-ready="0" aria-busy="true"
+                                onclick="shareGameOffer(event, '${game.id}')" title="Preparando imagem para compartilhar…">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                                 <path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984 0 1.762.459 3.48 1.332 5.001l-1.416 5.17 5.291-1.387c1.467.8 3.123 1.22 4.78 1.22h.005c5.507 0 9.991-4.479 9.992-9.985 0-2.667-1.038-5.175-2.925-7.063C17.195 3.039 14.68 2 12.012 2z"/>
                             </svg>
@@ -5532,10 +5676,12 @@ async function copyShareText(text) {
                     link.download = fileName;
                     link.click();
 
+                    showCategoryShareStatus('Imagem salva. Abrindo o WhatsApp com o texto…');
+
                     setTimeout(() => {
                         URL.revokeObjectURL(url);
                         window.location.href = `https://wa.me/?text=${encodeURIComponent(message)}`;
-                    }, 700);
+                    }, 1000);
 
                     return;
                 }
@@ -6213,6 +6359,11 @@ async function copyShareText(text) {
             }
             updateTimers();
             preloadNearbyGameCovers();
+
+            const currentMobileCard = post.querySelector('.card');
+            if (currentMobileCard) {
+                scheduleMobileSharePreparation(game, currentMobileCard);
+            }
         }
 
         function renderGames() {
