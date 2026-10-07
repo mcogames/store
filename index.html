@@ -5361,13 +5361,13 @@ async function copyShareText(text) {
                 <div class="card-img-container">
                     ${preorderHtml}
                     <span class="platform-tag">${escapeHtml(platformTag)}</span>
+                    ${timerHtml}
                     ${stockBadgeHtml}
                     <img src="${escapeHtml(game.img)}" alt="${escapeHtml(game.name)}" class="card-img" loading="lazy"
                          onerror="this.onerror=null;this.src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTnOXAQFE6SWdIZy6b4OpXDWYJUjkIbnYx7gQLCRunJ3w&s=10';">
                 </div>
                 <div class="card-info">
                     <div class="card-title">${escapeHtml(game.name)}</div>
-                    ${timerHtml}
                     <div class="price-vip-row">
                         <div class="price-container">
                             ${game.oldPrice > game.mainPrice ? `<span class="old-price">R$ ${game.oldPrice.toFixed(2).replace('.', ',')}</span>` : ''}
