@@ -3833,15 +3833,31 @@ async function copyShareText(text) {
                 .toLowerCase();
         }
 
+        function getGameNameIdentity(game) {
+            return String(game?.name ?? '')
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/[™®©]/g, '')
+                .replace(/[^\p{L}\p{N}]+/gu, ' ')
+                .trim()
+                .toLowerCase()
+                .replace(/\s+/g, ' ');
+        }
+
         /*
          * REGRA DE PRIORIDADE DO SITE
          * ------------------------------------------------------------
-         * Se a mesma ID/código existir em PROMOCAO e CATALOGO,
-         * enquanto a promoção estiver ativa o site exibe somente
-         * a versão da PROMOCAO.
+         * Promoção ativa sempre substitui o mesmo jogo do Catálogo.
          *
-         * A comparação é feita pela coluna A (sheetId/código), e não
-         * pelo nome do jogo.
+         * A comparação usa primeiro o código/ID da coluna A.
+         * Como pode existir cadastro antigo com códigos diferentes entre
+         * PROMOCAO e CATALOGO, também usamos o nome exato normalizado
+         * como segunda chave de segurança.
+         *
+         * Exemplo:
+         *   Promoção: ARC Raiders
+         *   Catálogo: ARC Raiders
+         * Mesmo que os códigos estejam diferentes, só a Promoção aparece.
          *
          * Promoções vencidas são removidas ANTES desta comparação.
          * Assim, quando a promoção termina, o item do CATALOGO volta
@@ -3851,10 +3867,18 @@ async function copyShareText(text) {
             const activeGames = (Array.isArray(list) ? list : [])
                 .filter(game => !shouldHideExpiredTimedGame(game, now));
 
+            const promotions = activeGames
+                .filter(game => isCategory(game, 'Promoção'));
+
             const promotionIds = new Set(
-                activeGames
-                    .filter(game => isCategory(game, 'Promoção'))
+                promotions
                     .map(getGameSheetIdentity)
+                    .filter(Boolean)
+            );
+
+            const promotionNames = new Set(
+                promotions
+                    .map(getGameNameIdentity)
                     .filter(Boolean)
             );
 
@@ -3862,9 +3886,17 @@ async function copyShareText(text) {
                 if (!isCategory(game, 'Catálogo')) return true;
 
                 const identity = getGameSheetIdentity(game);
-                if (!identity) return true;
+                const nameIdentity = getGameNameIdentity(game);
 
-                return !promotionIds.has(identity);
+                const sameId =
+                    !!identity &&
+                    promotionIds.has(identity);
+
+                const sameName =
+                    !!nameIdentity &&
+                    promotionNames.has(nameIdentity);
+
+                return !sameId && !sameName;
             });
         }
 
@@ -4343,8 +4375,8 @@ async function copyShareText(text) {
                 /*
                  * Aplica todas as regras antes de renderizar:
                  * 1. remove Promoção/Pré-venda vencidas;
-                 * 2. se uma ID estiver em Promoção e Catálogo,
-                 *    mantém somente a versão da Promoção.
+                 * 2. se o mesmo jogo estiver em Promoção e Catálogo,
+                 *    por código ou nome normalizado, mantém só a Promoção.
                  */
                 games = applyStoreVisibilityRules(
                     sourceGames
