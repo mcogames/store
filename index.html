@@ -3708,6 +3708,9 @@ async function copyShareText(text) {
         ];
 
         let games = [];
+        // Mantém a lista original carregada das quatro abas.
+        // `games` contém somente os jogos que devem aparecer no site.
+        let sourceGames = [];
         let selectedCart = [];
         // Guarda a plataforma escolhida mesmo antes de o cliente selecionar Primária/Secundária.
         // Isso evita que o card volte automaticamente para PS4 após clicar em PS5.
@@ -3824,16 +3827,76 @@ async function copyShareText(text) {
             return !!target && target.getTime() <= now;
         }
 
+        function getGameSheetIdentity(game) {
+            return String(game?.sheetId ?? '')
+                .trim()
+                .toLowerCase();
+        }
+
+        /*
+         * REGRA DE PRIORIDADE DO SITE
+         * ------------------------------------------------------------
+         * Se a mesma ID/código existir em PROMOCAO e CATALOGO,
+         * enquanto a promoção estiver ativa o site exibe somente
+         * a versão da PROMOCAO.
+         *
+         * A comparação é feita pela coluna A (sheetId/código), e não
+         * pelo nome do jogo.
+         *
+         * Promoções vencidas são removidas ANTES desta comparação.
+         * Assim, quando a promoção termina, o item do CATALOGO volta
+         * automaticamente a ficar visível.
+         */
+        function applyStoreVisibilityRules(list, now = Date.now()) {
+            const activeGames = (Array.isArray(list) ? list : [])
+                .filter(game => !shouldHideExpiredTimedGame(game, now));
+
+            const promotionIds = new Set(
+                activeGames
+                    .filter(game => isCategory(game, 'Promoção'))
+                    .map(getGameSheetIdentity)
+                    .filter(Boolean)
+            );
+
+            return activeGames.filter(game => {
+                if (!isCategory(game, 'Catálogo')) return true;
+
+                const identity = getGameSheetIdentity(game);
+                if (!identity) return true;
+
+                return !promotionIds.has(identity);
+            });
+        }
+
+        function rebuildVisibleGames(now = Date.now()) {
+            const previousIds = games.map(game => game.id).join('||');
+
+            games = applyStoreVisibilityRules(
+                sourceGames,
+                now
+            );
+
+            const nextIds = games.map(game => game.id).join('||');
+            return previousIds !== nextIds;
+        }
+
         function removeExpiredTimedGames() {
             const now = Date.now();
-            const before = games.length;
 
-            games = games.filter(game => !shouldHideExpiredTimedGame(game, now));
+            /*
+             * Recalcula a lista visível partindo da fonte original.
+             * Isso é importante porque um jogo do Catálogo pode estar
+             * temporariamente escondido por uma Promoção ativa.
+             * Quando a Promoção vence, ele volta sem precisar recarregar
+             * a página.
+             */
+            const changed = rebuildVisibleGames(now);
 
-            if (games.length !== before) {
-                // Remove também do carrinho qualquer item que acabou de expirar.
+            if (changed) {
+                // Remove também do carrinho qualquer item que deixou de existir.
                 const validIds = new Set(games.map(game => game.id));
                 selectedCart = selectedCart.filter(item => validIds.has(item.gameId));
+
                 Object.keys(selectedPlatformByGame).forEach(gameId => {
                     if (!validIds.has(gameId)) delete selectedPlatformByGame[gameId];
                 });
@@ -4264,19 +4327,28 @@ async function copyShareText(text) {
                 // Lê as quatro abas em paralelo.
                 const results = await Promise.all(SHEET_TABS.map(parseSheetWithPapa));
 
-                games = results.flat();
+                sourceGames = results.flat();
 
-                // Evita duplicação acidental de IDs entre abas.
+                // Evita duplicação acidental dentro da mesma categoria.
+                // Mantemos categorias diferentes aqui porque a prioridade
+                // Promoção > Catálogo é aplicada logo abaixo pela sheetId.
                 const seen = new Set();
-                games = games.filter(game => {
-                    const key = `${game.category}::${game.id}`;
+                sourceGames = sourceGames.filter(game => {
+                    const key = `${categoryKey(game.category)}::${getGameSheetIdentity(game)}::${game.id}`;
                     if (seen.has(key)) return false;
                     seen.add(key);
                     return true;
                 });
 
-                // Pré-vendas e promoções com Data Encerramento vencida deixam de aparecer.
-                games = games.filter(game => !shouldHideExpiredTimedGame(game));
+                /*
+                 * Aplica todas as regras antes de renderizar:
+                 * 1. remove Promoção/Pré-venda vencidas;
+                 * 2. se uma ID estiver em Promoção e Catálogo,
+                 *    mantém somente a versão da Promoção.
+                 */
+                games = applyStoreVisibilityRules(
+                    sourceGames
+                );
 
                 if (games.length === 0) {
                     showError();
