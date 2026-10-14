@@ -3875,6 +3875,11 @@ async function copyShareText(text) {
         // Valores possíveis: ALL, PS5, PS4.
         let selectedPlatformFilter = 'ALL';
 
+        // Quando o cliente escolhe um resultado da busca,
+        // mostramos somente aquele jogo até ele limpar a busca
+        // ou trocar filtro/categoria.
+        let selectedSearchGameId = null;
+
         let selectedCart = [];
         // Guarda a plataforma escolhida mesmo antes de o cliente selecionar Primária/Secundária.
         // Isso evita que o card volte automaticamente para PS4 após clicar em PS5.
@@ -4046,6 +4051,7 @@ async function copyShareText(text) {
 
         function setPlatformFilter(value, closeMobilePopup = false) {
             selectedPlatformFilter = normalizePlatformFilter(value);
+            selectedSearchGameId = null;
 
             instagramIndex = 0;
 
@@ -5375,27 +5381,46 @@ async function copyShareText(text) {
             const search = document.getElementById('searchInput');
             const categorySelect = document.getElementById('categorySelect');
 
-            if (search) search.value = '';
+            /*
+             * Ao selecionar uma sugestão, entra no modo de jogo único.
+             * O campo mantém o nome escolhido para ficar claro o que
+             * está sendo exibido. O X da busca volta ao catálogo.
+             */
+            selectedSearchGameId = game.id;
+
+            if (search) {
+                search.value = game.name;
+            }
+
+            if (categorySelect) {
+                categorySelect.value = 'ALL';
+            }
+
+            instagramCategory = 'ALL';
+            instagramIndex = 0;
+            instagramTransitionDirection = 0;
+
             updateSearchClearButton();
             hideSearchSuggestions();
 
-            if (window.matchMedia('(max-width: 800px)').matches) {
-                instagramCategory = game.category;
-                instagramVisibleGames = games.filter(g => categoryKey(g.category) === categoryKey(game.category));
-                const foundIndex = instagramVisibleGames.findIndex(g => g.id === game.id);
-                instagramIndex = Math.max(0, foundIndex);
-                instagramTransitionDirection = 0;
-                renderInstagramView();
-            } else {
-                if (categorySelect) categorySelect.value = game.category;
-                renderGames();
+            renderGames();
+
+            if (window.matchMedia('(min-width: 801px)').matches) {
                 setTimeout(() => {
                     const card = [...document.querySelectorAll('.card[data-game-id]')]
                         .find(el => el.dataset.gameId === game.id);
+
                     if (card) {
                         card.classList.add('mco-direct-focus');
-                        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        setTimeout(() => card.classList.remove('mco-direct-focus'), 1700);
+                        card.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'center'
+                        });
+
+                        setTimeout(
+                            () => card.classList.remove('mco-direct-focus'),
+                            1700
+                        );
                     }
                 }, 80);
             }
@@ -5405,6 +5430,7 @@ async function copyShareText(text) {
             // A navegação entre jogos não altera mais o endereço da loja.
             return true;
         }
+
 
         function applySharedGameFromUrl() {
             const params = new URLSearchParams(window.location.search);
@@ -6440,6 +6466,10 @@ async function copyShareText(text) {
         }
 
         function handleCatalogFilterInput() {
+            // Qualquer nova digitação ou troca de categoria
+            // encerra o modo "somente o jogo selecionado".
+            selectedSearchGameId = null;
+
             updateSearchClearButton();
             instagramIndex = 0;
             renderGames();
@@ -6456,6 +6486,8 @@ async function copyShareText(text) {
 
         function clearCatalogSearch() {
             const input = document.getElementById('searchInput');
+
+            selectedSearchGameId = null;
 
             if (input) input.value = '';
 
@@ -6491,11 +6523,18 @@ async function copyShareText(text) {
                 return;
             }
 
-            let label = searchVal
-                ? `Resultados para "${escapeHtml(searchVal)}"`
-                : (catVal !== 'ALL' ? `Jogos de ${escapeHtml(catVal)}` : 'Resultados');
+            let label = selectedSearchGameId
+                ? 'Jogo selecionado'
+                : (
+                    searchVal
+                        ? `Resultados para "${escapeHtml(searchVal)}"`
+                        : (catVal !== 'ALL' ? `Jogos de ${escapeHtml(catVal)}` : 'Resultados')
+                  );
 
-            if (platformVal !== 'ALL') {
+            if (
+                !selectedSearchGameId &&
+                platformVal !== 'ALL'
+            ) {
                 label += ` • ${escapeHtml(platformVal)}`;
             }
 
@@ -6584,6 +6623,7 @@ async function copyShareText(text) {
         }
 
         function selectInstagramCategory(category) {
+            selectedSearchGameId = null;
             instagramCategory = category || 'ALL';
             toggleInstagramPopup(false);
             instagramIndex = 0;
@@ -6728,7 +6768,10 @@ async function copyShareText(text) {
                 btn.type = 'button';
                 // Durante uma busca, nenhuma categoria específica fica marcada:
                 // os resultados pertencem ao catálogo inteiro.
-                const activeCategory = searchVal ? 'ALL' : instagramCategory;
+                const activeCategory =
+                    (searchVal || selectedSearchGameId)
+                        ? 'ALL'
+                        : instagramCategory;
                 btn.className = 'ig-cat-btn' + (activeCategory === category ? ' active' : '');
                 btn.innerHTML = `<span>${category === 'ALL' ? '🎮' : categoryKey(category) === categoryKey('Pré Venda') ? '🚀' : categoryKey(category) === categoryKey('Lançamento em Oferta') ? '✨' : categoryKey(category) === categoryKey('Promoção') ? '🔥' : '🕹️'} ${escapeHtml(label)}</span><span class="ig-cat-count">${count}</span>`;
                 btn.addEventListener('click', () => selectInstagramCategory(category));
@@ -6744,12 +6787,21 @@ async function copyShareText(text) {
             });
             mobile.value = instagramCategory;
 
-            instagramVisibleGames = searchVal
-                ? getGlobalCatalogSearchResults(searchVal)
-                : platformGames.filter(game =>
-                    instagramCategory === 'ALL' ||
-                    categoryKey(game.category) === categoryKey(instagramCategory)
-                );
+            const selectedSearchGame =
+                selectedSearchGameId
+                    ? games.find(game => game.id === selectedSearchGameId)
+                    : null;
+
+            instagramVisibleGames = selectedSearchGame
+                ? [selectedSearchGame]
+                : (
+                    searchVal
+                        ? getGlobalCatalogSearchResults(searchVal)
+                        : platformGames.filter(game =>
+                            instagramCategory === 'ALL' ||
+                            categoryKey(game.category) === categoryKey(instagramCategory)
+                        )
+                  );
             if (instagramIndex >= instagramVisibleGames.length) instagramIndex = Math.max(0, instagramVisibleGames.length - 1);
             viewer.innerHTML = '';
             if (!instagramVisibleGames.length) {
@@ -6757,7 +6809,10 @@ async function copyShareText(text) {
                 return;
             }
             const game = instagramVisibleGames[instagramIndex];
-            const categoryLabel = searchVal ? game.category : (instagramCategory === 'ALL' ? game.category : instagramCategory);
+            const categoryLabel =
+                (searchVal || selectedSearchGameId)
+                    ? game.category
+                    : (instagramCategory === 'ALL' ? game.category : instagramCategory);
             const post = document.createElement('div');
             post.className = 'ig-post ' + (
                 instagramTransitionDirection > 0
@@ -6773,16 +6828,27 @@ async function copyShareText(text) {
             post.appendChild(top);
             post.appendChild(createCardElement(game));
             viewer.appendChild(post);
-            const nav = document.createElement('div');
-            nav.className = 'ig-navigation';
-            nav.innerHTML = `<button class="ig-arrow" type="button" ${instagramIndex === 0 ? 'disabled' : ''} aria-label="Jogo anterior" onclick="moveInstagramGame(-1)">‹ Anterior</button><div class="ig-dots" aria-label="Posição no catálogo"><button class="ig-dot active" type="button" aria-label="Jogo atual"></button></div><button class="ig-arrow" type="button" ${instagramIndex >= instagramVisibleGames.length - 1 ? 'disabled' : ''} aria-label="Próximo jogo" onclick="moveInstagramGame(1)">Próximo ›</button>`;
-            viewer.appendChild(nav);
-            const dots = nav.querySelector('.ig-dots');
-            const maxDots = Math.min(instagramVisibleGames.length, 9);
-            const first = Math.max(0, Math.min(instagramIndex - Math.floor(maxDots / 2), instagramVisibleGames.length - maxDots));
-            dots.innerHTML = '';
-            for (let i = first; i < first + maxDots; i++) {
-                const dot = document.createElement('button'); dot.type = 'button'; dot.className = 'ig-dot' + (i === instagramIndex ? ' active' : ''); dot.setAttribute('aria-label', `Ir para jogo ${i + 1}`); dot.title = instagramVisibleGames[i].name; dot.addEventListener('click', () => jumpInstagramGame(i)); dots.appendChild(dot);
+            if (instagramVisibleGames.length > 1) {
+                const nav = document.createElement('div');
+                nav.className = 'ig-navigation';
+                nav.innerHTML = `<button class="ig-arrow" type="button" ${instagramIndex === 0 ? 'disabled' : ''} aria-label="Jogo anterior" onclick="moveInstagramGame(-1)">‹ Anterior</button><div class="ig-dots" aria-label="Posição no catálogo"><button class="ig-dot active" type="button" aria-label="Jogo atual"></button></div><button class="ig-arrow" type="button" ${instagramIndex >= instagramVisibleGames.length - 1 ? 'disabled' : ''} aria-label="Próximo jogo" onclick="moveInstagramGame(1)">Próximo ›</button>`;
+                viewer.appendChild(nav);
+
+                const dots = nav.querySelector('.ig-dots');
+                const maxDots = Math.min(instagramVisibleGames.length, 9);
+                const first = Math.max(0, Math.min(instagramIndex - Math.floor(maxDots / 2), instagramVisibleGames.length - maxDots));
+
+                dots.innerHTML = '';
+
+                for (let i = first; i < first + maxDots; i++) {
+                    const dot = document.createElement('button');
+                    dot.type = 'button';
+                    dot.className = 'ig-dot' + (i === instagramIndex ? ' active' : '');
+                    dot.setAttribute('aria-label', `Ir para jogo ${i + 1}`);
+                    dot.title = instagramVisibleGames[i].name;
+                    dot.addEventListener('click', () => jumpInstagramGame(i));
+                    dots.appendChild(dot);
+                }
             }
             updateTimers();
             preloadNearbyGameCovers();
@@ -6811,14 +6877,24 @@ async function copyShareText(text) {
                 if (catalogContainer) catalogContainer.innerHTML = '';
                 // Quando há texto de busca, consulta o catálogo completo e ignora a categoria.
                 // Sem busca, mantém o filtro normal da categoria selecionada.
-                const filtered = searchVal
-                    ? getGlobalCatalogSearchResults(searchVal)
-                    : platformGames.filter(game =>
-                        catVal === 'ALL' ||
-                        categoryKey(game.category) === categoryKey(catVal)
+                const selectedSearchGame =
+                    selectedSearchGameId
+                        ? games.find(game => game.id === selectedSearchGameId)
+                        : null;
+
+                const filtered = selectedSearchGame
+                    ? [selectedSearchGame]
+                    : (
+                        searchVal
+                            ? getGlobalCatalogSearchResults(searchVal)
+                            : platformGames.filter(game =>
+                                catVal === 'ALL' ||
+                                categoryKey(game.category) === categoryKey(catVal)
+                            )
                     );
 
                 if (
+                    selectedSearchGame ||
                     searchVal ||
                     catVal !== 'ALL' ||
                     platformVal !== 'ALL'
