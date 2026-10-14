@@ -578,6 +578,47 @@
             box-shadow: 0 0 0 3px rgba(24,184,255,0.09);
         }
 
+
+        .platform-filter-select {
+            flex: 0 0 190px;
+            border-color: #225575;
+        }
+
+        .ig-platform-filter-mobile {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px;
+            margin: 0 0 12px;
+            padding: 0 0 12px;
+            border-bottom: 1px solid #20364a;
+        }
+
+        .ig-platform-filter-btn {
+            min-height: 42px;
+            border: 1px solid #2b4357;
+            border-radius: 12px;
+            background: #121e29;
+            color: #bcd0df;
+            font-size: .78rem;
+            font-weight: 900;
+            cursor: pointer;
+            transition: .18s ease;
+        }
+
+        .ig-platform-filter-btn:hover,
+        .ig-platform-filter-btn.active {
+            border-color: #19bfff;
+            background: rgba(24,184,255,.14);
+            color: #fff;
+            box-shadow: 0 0 14px rgba(24,184,255,.13);
+        }
+
+        @media (max-width: 800px) {
+            #platformSelect {
+                display: none !important;
+            }
+        }
+
         .search-results-title {
             display: flex;
             align-items: baseline;
@@ -3478,6 +3519,14 @@ async function copyShareText(text) {
             <select id="categorySelect" class="category-select" onchange="handleCatalogFilterInput()" aria-label="Filtrar por categoria">
                 <option value="ALL">Todas as Categorias</option>
             </select>
+            <select id="platformSelect"
+                    class="category-select platform-filter-select"
+                    onchange="handlePlatformFilterChange()"
+                    aria-label="Filtrar por plataforma">
+                <option value="ALL">Todas as plataformas</option>
+                <option value="PS5">Somente PS5</option>
+                <option value="PS4">Somente PS4</option>
+            </select>
             <button type="button" class="mobile-categories-inline"
                     onclick="toggleInstagramPopup(true)"
                     aria-label="Abrir categorias">☰ Categorias</button>
@@ -3517,6 +3566,30 @@ async function copyShareText(text) {
             <div id="igMobilePopupBackdrop" class="ig-mobile-popup-backdrop" onclick="if(event.target===this)toggleInstagramPopup(false)">
                 <div class="ig-mobile-popup" role="dialog" aria-modal="true" aria-label="Navegação rápida por categoria">
                     <div class="ig-mobile-popup-head"><span>🎮 Navegação rápida</span><button type="button" class="ig-mobile-popup-close" onclick="toggleInstagramPopup(false)">Fechar ✕</button></div>
+
+                    <div id="igMobilePlatformFilter"
+                         class="ig-platform-filter-mobile"
+                         aria-label="Filtrar jogos por plataforma">
+                        <button type="button"
+                                class="ig-platform-filter-btn active"
+                                data-platform-filter="ALL"
+                                onclick="selectMobilePlatformFilter('ALL')">
+                            Todos
+                        </button>
+                        <button type="button"
+                                class="ig-platform-filter-btn"
+                                data-platform-filter="PS5"
+                                onclick="selectMobilePlatformFilter('PS5')">
+                            PS5
+                        </button>
+                        <button type="button"
+                                class="ig-platform-filter-btn"
+                                data-platform-filter="PS4"
+                                onclick="selectMobilePlatformFilter('PS4')">
+                            PS4
+                        </button>
+                    </div>
+
                     <div id="igMobileCategoryMenu" class="ig-category-menu"></div>
                 </div>
             </div>
@@ -3711,6 +3784,11 @@ async function copyShareText(text) {
         // Mantém a lista original carregada das quatro abas.
         // `games` contém somente os jogos que devem aparecer no site.
         let sourceGames = [];
+
+        // Filtro global de plataforma aplicado no desktop, mobile e busca.
+        // Valores possíveis: ALL, PS5, PS4.
+        let selectedPlatformFilter = 'ALL';
+
         let selectedCart = [];
         // Guarda a plataforma escolhida mesmo antes de o cliente selecionar Primária/Secundária.
         // Isso evita que o card volte automaticamente para PS4 após clicar em PS5.
@@ -3806,6 +3884,104 @@ async function copyShareText(text) {
         function isCategory(game, categoryName) {
             return categoryKey(game.category) === categoryKey(categoryName);
         }
+
+        function normalizePlatformFilter(value) {
+            const normalized = String(value || 'ALL').trim().toUpperCase();
+            return ['PS4', 'PS5'].includes(normalized) ? normalized : 'ALL';
+        }
+
+        function gameMatchesPlatformFilter(game, platform = selectedPlatformFilter) {
+            const target = normalizePlatformFilter(platform);
+            if (target === 'ALL') return true;
+            if (!game) return false;
+
+            const platforms = Array.isArray(game.platforms)
+                ? game.platforms.map(item => String(item || '').toUpperCase())
+                : [];
+
+            if (platforms.includes(target)) return true;
+
+            // Fallback pelos preços, caso platforms não esteja preenchido.
+            if (target === 'PS5') {
+                return Number(game.ps5Primary || 0) > 0 ||
+                       Number(game.ps5Secondary || 0) > 0;
+            }
+
+            if (target === 'PS4') {
+                return Number(game.ps4Primary || 0) > 0 ||
+                       Number(game.ps4Secondary || 0) > 0;
+            }
+
+            return true;
+        }
+
+        function getPlatformFilteredGames(list = games) {
+            const source = Array.isArray(list) ? list : [];
+            return source.filter(game => gameMatchesPlatformFilter(game));
+        }
+
+        function getGameMainPriceForCurrentFilter(game) {
+            const platform = normalizePlatformFilter(selectedPlatformFilter);
+
+            if (platform !== 'ALL' && gameMatchesPlatformFilter(game, platform)) {
+                const data = getPlatformData(game, platform);
+                const prices = [
+                    Number(data.primary || 0),
+                    Number(data.secondary || 0)
+                ].filter(value => value > 0);
+
+                if (prices.length) {
+                    return Math.min(...prices);
+                }
+            }
+
+            return Number(game?.mainPrice || 0);
+        }
+
+        function syncPlatformFilterUi() {
+            const desktopSelect = document.getElementById('platformSelect');
+            if (desktopSelect) {
+                desktopSelect.value = selectedPlatformFilter;
+            }
+
+            document
+                .querySelectorAll('[data-platform-filter]')
+                .forEach(button => {
+                    const platform = normalizePlatformFilter(
+                        button.getAttribute('data-platform-filter')
+                    );
+
+                    button.classList.toggle(
+                        'active',
+                        platform === selectedPlatformFilter
+                    );
+                });
+        }
+
+        function setPlatformFilter(value, closeMobilePopup = false) {
+            selectedPlatformFilter = normalizePlatformFilter(value);
+
+            instagramIndex = 0;
+
+            populateCategories();
+            syncPlatformFilterUi();
+            renderGames();
+            updateSearchSuggestions();
+
+            if (closeMobilePopup) {
+                toggleInstagramPopup(false);
+            }
+        }
+
+        function handlePlatformFilterChange() {
+            const select = document.getElementById('platformSelect');
+            setPlatformFilter(select ? select.value : 'ALL', false);
+        }
+
+        function selectMobilePlatformFilter(platform) {
+            setPlatformFilter(platform, true);
+        }
+
 
         // A categoria agora vem do nome da aba da planilha.
         function isPreorderGame(game) {
@@ -3934,6 +4110,7 @@ async function copyShareText(text) {
                 });
 
                 populateCategories();
+                syncPlatformFilterUi();
                 renderLaunchCarousel();
                 renderPreorderCarousel();
                 renderPromotionCarousel();
@@ -3976,9 +4153,13 @@ async function copyShareText(text) {
             return `<span class="expand-button-text">${escapeHtml(label)}</span><span class="expand-chevron" aria-hidden="true">${icon}</span>`;
         }
 
-        function getDiscountPercent(game) {
-            if (!game || !(game.oldPrice > game.mainPrice) || game.mainPrice <= 0) return 0;
-            return Math.round(((game.oldPrice - game.mainPrice) / game.oldPrice) * 100);
+        function getDiscountPercent(game, currentPrice = null) {
+            const price = currentPrice === null
+                ? Number(game?.mainPrice || 0)
+                : Number(currentPrice || 0);
+
+            if (!game || !(game.oldPrice > price) || price <= 0) return 0;
+            return Math.round(((game.oldPrice - price) / game.oldPrice) * 100);
         }
 
         function escapeHtml(value) {
@@ -4423,15 +4604,28 @@ async function copyShareText(text) {
 
         function populateCategories() {
             const select = document.getElementById('categorySelect');
+            if (!select) return;
+
+            const previousValue = select.value || 'ALL';
             select.innerHTML = '<option value="ALL">Todas as Categorias</option>';
 
-            const categories = getOrderedCategories(games.map(g => g.category));
+            const platformGames = getPlatformFilteredGames(games);
+            const categories = getOrderedCategories(platformGames.map(g => g.category));
+
             categories.forEach(cat => {
                 const opt = document.createElement('option');
                 opt.value = cat;
                 opt.innerText = cat;
                 select.appendChild(opt);
             });
+
+            const canKeepPrevious =
+                previousValue === 'ALL' ||
+                [...select.options].some(option =>
+                    categoryKey(option.value) === categoryKey(previousValue)
+                );
+
+            select.value = canKeepPrevious ? previousValue : 'ALL';
         }
 
         function getPlatformData(game, platform) {
@@ -4468,6 +4662,14 @@ async function copyShareText(text) {
             const rememberedPlatform = selectedPlatformByGame[game.id];
             if (rememberedPlatform && game.platforms.includes(rememberedPlatform)) {
                 return rememberedPlatform;
+            }
+
+            const filteredPlatform = normalizePlatformFilter(selectedPlatformFilter);
+            if (
+                filteredPlatform !== 'ALL' &&
+                game.platforms.includes(filteredPlatform)
+            ) {
+                return filteredPlatform;
             }
 
             return game.platforms[0];
@@ -5394,7 +5596,8 @@ async function copyShareText(text) {
 
             if (selectedItem) card.classList.add('selected');
 
-            const discount = getDiscountPercent(game);
+            const displayMainPrice = getGameMainPriceForCurrentFilter(game);
+            const discount = getDiscountPercent(game, displayMainPrice);
             const platformList = game.platforms || [];
             const data = getPlatformData(game, selectedPlatform);
 
@@ -5474,9 +5677,9 @@ async function copyShareText(text) {
                     <div class="card-title">${escapeHtml(game.name)}</div>
                     <div class="price-vip-row">
                         <div class="price-container">
-                            ${game.oldPrice > game.mainPrice ? `<span class="old-price">R$ ${game.oldPrice.toFixed(2).replace('.', ',')}</span>` : ''}
+                            ${game.oldPrice > displayMainPrice ? `<span class="old-price">R$ ${game.oldPrice.toFixed(2).replace('.', ',')}</span>` : ''}
                             <div class="current-price-row">
-                                <span class="current-price">A partir de R$ ${game.mainPrice.toFixed(2).replace('.', ',')}</span>
+                                <span class="current-price">A partir de R$ ${displayMainPrice.toFixed(2).replace('.', ',')}</span>
                                 ${discount > 0 ? `<span class="discount-inline">-${discount}%</span>` : ''}
                             </div>
                         </div>
@@ -6064,8 +6267,13 @@ async function copyShareText(text) {
         function getGlobalCatalogSearchResults(rawTerm) {
             const term = normalizeCatalogSearch(rawTerm);
             if (!term) return [];
-            // A origem é sempre `games`, preenchida com todas as abas da planilha.
-            return games.filter(game => gameMatchesGlobalSearch(game, term));
+
+            // A busca continua global entre categorias, mas respeita
+            // a plataforma escolhida pelo cliente.
+            return games.filter(game =>
+                gameMatchesPlatformFilter(game) &&
+                gameMatchesGlobalSearch(game, term)
+            );
         }
 
 
@@ -6094,7 +6302,10 @@ async function copyShareText(text) {
             if (!term) return [];
 
             return games
-                .filter(game => gameMatchesGlobalSearch(game, term))
+                .filter(game =>
+                    gameMatchesPlatformFilter(game) &&
+                    gameMatchesGlobalSearch(game, term)
+                )
                 .sort((a, b) => {
                     const aName = normalizeCatalogSearch(a.name);
                     const bName = normalizeCatalogSearch(b.name);
@@ -6130,7 +6341,7 @@ async function copyShareText(text) {
                         role="option" data-game-id="${escapeHtml(game.id)}">
                     <span class="mco-search-suggestion-name">${escapeHtml(game.name)}</span>
                     <span class="mco-search-suggestion-meta">${escapeHtml(game.category)} • ${escapeHtml(game.platform)}</span>
-                    <span class="mco-search-suggestion-price">R$ ${Number(game.mainPrice || 0).toFixed(2).replace('.', ',')}</span>
+                    <span class="mco-search-suggestion-price">R$ ${getGameMainPriceForCurrentFilter(game).toFixed(2).replace('.', ',')}</span>
                 </button>
             `).join('');
 
@@ -6177,7 +6388,7 @@ async function copyShareText(text) {
             });
         }
 
-        function renderFilteredResults(filteredGames, searchVal, catVal) {
+        function renderFilteredResults(filteredGames, searchVal, catVal, platformVal = 'ALL') {
             const catalogContainer = document.getElementById('catalogContainer');
             if (!catalogContainer) return;
 
@@ -6188,15 +6399,19 @@ async function copyShareText(text) {
                     <div class="search-empty">
                         <div style="font-size:1.8rem; margin-bottom:8px;">🔎</div>
                         <strong>Nenhum jogo encontrado</strong>
-                        <div style="margin-top:6px;">Tente outro nome ou escolha outra categoria.</div>
+                        <div style="margin-top:6px;">Tente outro nome, categoria ou plataforma.</div>
                     </div>
                 `;
                 return;
             }
 
-            const label = searchVal
+            let label = searchVal
                 ? `Resultados para "${escapeHtml(searchVal)}"`
                 : (catVal !== 'ALL' ? `Jogos de ${escapeHtml(catVal)}` : 'Resultados');
+
+            if (platformVal !== 'ALL') {
+                label += ` • ${escapeHtml(platformVal)}`;
+            }
 
             catalogContainer.innerHTML = `
                 <div class="search-results-title">
@@ -6270,7 +6485,8 @@ async function copyShareText(text) {
         }
 
         function getInstagramCategories() {
-            const cats = getOrderedCategories(games.map(g => g.category));
+            const platformGames = getPlatformFilteredGames(games);
+            const cats = getOrderedCategories(platformGames.map(g => g.category));
             return ['ALL', ...cats];
         }
 
@@ -6393,16 +6609,35 @@ async function copyShareText(text) {
             if (!viewer || !menu || !mobile || !searchInput) return;
 
             const searchVal = normalizeCatalogSearch(searchInput.value);
+            const platformGames = getPlatformFilteredGames(games);
             const allCategories = getInstagramCategories();
             const catsOnly = allCategories.filter(c => c !== 'ALL');
+
+            if (
+                instagramCategory !== 'ALL' &&
+                !catsOnly.some(category =>
+                    categoryKey(category) === categoryKey(instagramCategory)
+                )
+            ) {
+                instagramCategory = 'ALL';
+            }
+
+            syncPlatformFilterUi();
+
             menu.innerHTML = '';
             if (popupMenu) popupMenu.innerHTML = '';
             mobile.innerHTML = '<option value="ALL">🎮 Ver todos os jogos</option>';
+
             const counts = {};
-            catsOnly.forEach(c => counts[c] = games.filter(g => categoryKey(g.category) === categoryKey(c)).length);
+            catsOnly.forEach(c =>
+                counts[c] = platformGames.filter(g =>
+                    categoryKey(g.category) === categoryKey(c)
+                ).length
+            );
+
             allCategories.forEach(category => {
                 const label = category === 'ALL' ? 'Ver todos' : category;
-                const count = category === 'ALL' ? games.length : counts[category] || 0;
+                const count = category === 'ALL' ? platformGames.length : counts[category] || 0;
                 const btn = document.createElement('button');
                 btn.type = 'button';
                 // Durante uma busca, nenhuma categoria específica fica marcada:
@@ -6425,8 +6660,10 @@ async function copyShareText(text) {
 
             instagramVisibleGames = searchVal
                 ? getGlobalCatalogSearchResults(searchVal)
-                : games.filter(game => instagramCategory === 'ALL' ||
-                    categoryKey(game.category) === categoryKey(instagramCategory));
+                : platformGames.filter(game =>
+                    instagramCategory === 'ALL' ||
+                    categoryKey(game.category) === categoryKey(instagramCategory)
+                );
             if (instagramIndex >= instagramVisibleGames.length) instagramIndex = Math.max(0, instagramVisibleGames.length - 1);
             viewer.innerHTML = '';
             if (!instagramVisibleGames.length) {
@@ -6476,7 +6713,11 @@ async function copyShareText(text) {
             const mobileCategory = document.getElementById('igMobileCategory');
             const searchVal = normalizeCatalogSearch(document.getElementById('searchInput')?.value || '');
             const catVal = document.getElementById('categorySelect')?.value || 'ALL';
+            const platformVal = normalizePlatformFilter(selectedPlatformFilter);
+            const platformGames = getPlatformFilteredGames(games);
             const desktopMode = window.matchMedia('(min-width: 801px)').matches;
+
+            syncPlatformFilterUi();
 
             if (desktopMode) {
                 if (layout) layout.style.display = 'none';
@@ -6486,11 +6727,18 @@ async function copyShareText(text) {
                 // Sem busca, mantém o filtro normal da categoria selecionada.
                 const filtered = searchVal
                     ? getGlobalCatalogSearchResults(searchVal)
-                    : games.filter(game => catVal === 'ALL' ||
-                        categoryKey(game.category) === categoryKey(catVal));
-                if (searchVal || catVal !== 'ALL') {
+                    : platformGames.filter(game =>
+                        catVal === 'ALL' ||
+                        categoryKey(game.category) === categoryKey(catVal)
+                    );
+
+                if (
+                    searchVal ||
+                    catVal !== 'ALL' ||
+                    platformVal !== 'ALL'
+                ) {
                     setFeatureSectionsVisible(false);
-                    renderFilteredResults(filtered, searchVal, catVal);
+                    renderFilteredResults(filtered, searchVal, catVal, platformVal);
                 } else {
                     setFeatureSectionsVisible(true);
                     renderLaunchCarousel();
