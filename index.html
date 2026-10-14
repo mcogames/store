@@ -4692,8 +4692,20 @@ async function copyShareText(text) {
          * Assim, quando a promoção termina, o item do CATALOGO volta
          * automaticamente a ficar visível.
          */
+        function hasValidStorePrice(game) {
+            if (!game) return false;
+
+            return [
+                game.ps4Primary,
+                game.ps4Secondary,
+                game.ps5Primary,
+                game.ps5Secondary
+            ].some(value => Number(value || 0) > 0);
+        }
+
         function applyStoreVisibilityRules(list, now = Date.now()) {
             const activeGames = (Array.isArray(list) ? list : [])
+                .filter(game => hasValidStorePrice(game))
                 .filter(game => !shouldHideExpiredTimedGame(game, now));
 
             const promotions = activeGames
