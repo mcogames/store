@@ -1805,7 +1805,173 @@
           .ig-post .btn-buy-direct { min-height:31px!important; }
           .ig-navigation { padding:1px 0!important; }
         }
-    </style>
+    
+
+        /* =====================================================
+           CONSOLE PADRÃO — PRIMEIRO ACESSO
+           ===================================================== */
+
+        .mco-console-onboarding {
+            position: fixed;
+            inset: 0;
+            z-index: 999999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(4, 8, 12, .86);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .mco-console-onboarding.visible {
+            display: flex;
+        }
+
+        .mco-console-box {
+            width: min(520px, 100%);
+            border: 1px solid rgba(74, 112, 138, .48);
+            border-radius: 22px;
+            padding: 24px;
+            background:
+                radial-gradient(circle at 50% -15%, rgba(31, 171, 230, .13), transparent 40%),
+                #0f1720;
+            box-shadow: 0 28px 90px rgba(0, 0, 0, .50);
+        }
+
+        .mco-console-kicker {
+            color: #65d7ff;
+            font-size: 10px;
+            font-weight: 950;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+        }
+
+        .mco-console-title {
+            margin: 7px 0 7px;
+            color: #fff;
+            font-size: clamp(24px, 5vw, 31px);
+            line-height: 1.08;
+            font-weight: 950;
+        }
+
+        .mco-console-copy {
+            margin: 0;
+            color: #9bb1c2;
+            font-size: 13px;
+            line-height: 1.55;
+        }
+
+        .mco-console-options {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .mco-console-option {
+            min-height: 76px;
+            border: 1px solid #29465b;
+            border-radius: 15px;
+            padding: 12px 10px;
+            background: #111d27;
+            color: #fff;
+            font: inherit;
+            font-size: 15px;
+            font-weight: 950;
+            cursor: pointer;
+            transition:
+                transform .15s ease,
+                border-color .15s ease,
+                background .15s ease;
+        }
+
+        .mco-console-option:hover,
+        .mco-console-option:focus-visible {
+            transform: translateY(-1px);
+            border-color: #43caff;
+            background: #142633;
+            outline: none;
+        }
+
+        .mco-console-option span {
+            display: block;
+            margin-top: 5px;
+            color: #7892a5;
+            font-size: 9px;
+            line-height: 1.3;
+            font-weight: 800;
+        }
+
+        .mco-console-note {
+            margin-top: 13px;
+            color: #708798;
+            font-size: 10px;
+            line-height: 1.45;
+            text-align: center;
+        }
+
+        .mco-console-default-btn {
+            min-height: 48px;
+            flex: 0 0 auto;
+            border: 1px solid #284a62;
+            border-radius: 10px;
+            padding: 0 13px;
+            background: #101c25;
+            color: #8db6ce;
+            font: inherit;
+            font-size: .72rem;
+            font-weight: 900;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .mco-console-default-btn:hover,
+        .mco-console-default-btn:focus-visible {
+            border-color: #3aaee6;
+            color: #d9f4ff;
+            outline: none;
+        }
+
+        .mco-mobile-console-default {
+            width: 100%;
+            min-height: 40px;
+            margin: 0 0 12px;
+            border: 1px dashed #2d5069;
+            border-radius: 11px;
+            background: rgba(18, 34, 46, .65);
+            color: #84afc9;
+            font: inherit;
+            font-size: .72rem;
+            font-weight: 900;
+            cursor: pointer;
+        }
+
+        @media (max-width: 800px) {
+            .controls > .mco-console-default-btn {
+                display: none;
+            }
+        }
+
+        @media (max-width: 560px) {
+            .mco-console-onboarding {
+                padding: 14px;
+            }
+
+            .mco-console-box {
+                padding: 20px 16px;
+                border-radius: 19px;
+            }
+
+            .mco-console-options {
+                grid-template-columns: 1fr;
+            }
+
+            .mco-console-option {
+                min-height: 58px;
+            }
+        }
+</style>
 
 <script>
 async function copyShareText(text) {
@@ -3565,8 +3731,103 @@ async function copyShareText(text) {
 }
 </style>
 
+
+<style id="mco-experience-upgrade-v1">
+/* ===== MCO: modo produto, ordenação, recentes e disponibilidade ===== */
+.product-sort-select{min-width:175px}
+.mco-product-view{margin:8px 0 30px}
+.mco-product-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:0 0 14px;padding:12px 14px;border:1px solid var(--border-color);border-radius:12px;background:rgba(19,24,32,.72)}
+.mco-product-toolbar-left,.mco-product-toolbar-right{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.mco-product-toolbar-title{font-size:.8rem;color:var(--text-muted);font-weight:800}
+.mco-product-action{border:1px solid #334353;background:#111923;color:#fff;border-radius:999px;padding:9px 13px;font-size:.76rem;font-weight:850;cursor:pointer;transition:.18s ease}
+.mco-product-action:hover{border-color:var(--accent-green);color:var(--accent-green);transform:translateY(-1px)}
+.mco-product-action.primary{background:rgba(0,230,118,.10);border-color:rgba(0,230,118,.55);color:var(--accent-green)}
+.mco-product-card-wrap{max-width:1040px;margin:0 auto}
+.mco-product-card-wrap .card{display:grid;grid-template-columns:minmax(330px,44%) minmax(0,1fr);min-height:440px;border-color:#314152;box-shadow:0 22px 55px rgba(0,0,0,.26)}
+.mco-product-card-wrap .card:hover{transform:none}
+.mco-product-card-wrap .card-img-container{height:100%;aspect-ratio:auto;min-height:440px}
+.mco-product-card-wrap .card-img{height:100%;aspect-ratio:auto;object-fit:cover}
+.mco-product-card-wrap .card-info{padding:24px;gap:13px;justify-content:center}
+.mco-product-card-wrap .card-title{font-size:1.38rem;min-height:0;-webkit-line-clamp:3}
+.mco-product-card-wrap .current-price{font-size:1.42rem}
+.mco-product-card-wrap .type-btn{min-height:66px}
+.mco-product-card-wrap .btn-buy-direct{min-height:48px;font-size:.92rem;flex:1}
+.mco-open-product{cursor:pointer}
+.mco-open-product:hover{color:var(--accent-green)}
+.availability-chip{display:inline-flex;align-items:center;width:fit-content;gap:5px;border-radius:999px;padding:4px 8px;font-size:.66rem;font-weight:900;border:1px solid rgba(0,230,118,.28);background:rgba(0,230,118,.08);color:#64e8a4}
+.availability-chip.promo{border-color:rgba(255,193,7,.30);background:rgba(255,193,7,.08);color:#ffd35d}
+.availability-chip.preorder{border-color:rgba(154,111,255,.34);background:rgba(154,111,255,.10);color:#c3a9ff}
+.availability-chip.soldout{border-color:rgba(255,82,82,.32);background:rgba(255,82,82,.08);color:#ff8d8d}
+.recent-section .carousel-title .title-main{display:flex;align-items:center;gap:6px}
+.mco-recent-clear{border:0;background:transparent;color:var(--text-muted);font-size:.72rem;font-weight:800;cursor:pointer}
+.mco-recent-clear:hover{color:#fff}
+.mco-mobile-sort{padding:11px 12px;border-bottom:1px solid rgba(255,255,255,.07)}
+.mco-mobile-sort label{display:block;font-size:.68rem;font-weight:900;color:#8fa1b4;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em}
+.mco-mobile-sort select{width:100%;min-height:40px;border-radius:9px;border:1px solid #314050;background:#101721;color:#fff;padding:0 10px;font-weight:750}
+.ig-cat-btn.mco-recent-btn{border-color:rgba(72,171,255,.26)}
+.ig-cat-btn.mco-recent-btn.active{border-color:#4eafff;background:rgba(78,175,255,.10);color:#9fd1ff}
+@media(max-width:800px){
+  #sortSelect{display:none!important}
+  .mco-product-toolbar{margin:0 10px 8px;padding:9px 10px}
+  .mco-product-toolbar-title{display:none}
+  .mco-product-action{padding:8px 10px;font-size:.7rem}
+  .mco-product-card-wrap{max-width:none;margin:0}
+  .mco-product-card-wrap .card{display:flex;min-height:0;border:0;box-shadow:none}
+  .mco-product-card-wrap .card-img-container{min-height:0;height:auto;aspect-ratio:1/1}
+  .mco-product-card-wrap .card-info{padding:9px 11px 12px;gap:6px}
+  .mco-product-card-wrap .card-title{font-size:.94rem}
+  .mco-product-card-wrap .current-price{font-size:1rem}
+}
+</style>
+
 </head>
 <body>
+
+    <div
+        id="mcoConsoleOnboarding"
+        class="mco-console-onboarding"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="mcoConsoleTitle"
+    >
+        <div class="mco-console-box">
+            <div class="mco-console-kicker">Personalizar catálogo</div>
+
+            <h2 id="mcoConsoleTitle" class="mco-console-title">
+                Qual console você tem?
+            </h2>
+
+            <p class="mco-console-copy">
+                Sua escolha será usada somente como plataforma padrão quando você abrir a loja.
+                Você continuará podendo trocar entre PS4, PS5 e todas as plataformas normalmente.
+            </p>
+
+            <div class="mco-console-options">
+                <button type="button" class="mco-console-option"
+                        onclick="saveInitialConsolePreference('PS4')">
+                    PS4
+                    <span>Abre mostrando os jogos compatíveis com PS4</span>
+                </button>
+
+                <button type="button" class="mco-console-option"
+                        onclick="saveInitialConsolePreference('PS5')">
+                    PS5
+                    <span>Abre mostrando os jogos compatíveis com PS5</span>
+                </button>
+
+                <button type="button" class="mco-console-option"
+                        onclick="saveInitialConsolePreference('ALL')">
+                    Não informar
+                    <span>Abre mostrando todas as plataformas</span>
+                </button>
+            </div>
+
+            <div class="mco-console-note">
+                Essa preferência fica salva somente neste navegador/dispositivo e pode ser alterada depois.
+            </div>
+        </div>
+    </div>
+
 
     <div id="shareStatusToast" role="status" aria-live="polite"></div>
 
@@ -3602,7 +3863,7 @@ async function copyShareText(text) {
                 <input type="text" id="searchInput" class="search-input" placeholder="Pesquisar por nome do jogo..." oninput="handleCatalogFilterInput()" autocomplete="off">
                 <button type="button" id="searchClearBtn" class="search-clear-btn" onclick="clearCatalogSearch()" aria-label="Limpar busca">✕</button>
             </div>
-            <select id="categorySelect" class="category-select" onchange="handleCatalogFilterInput()" aria-label="Filtrar por categoria">
+            <select id="categorySelect" class="category-select" onchange="handleCategoryFilterChange()" aria-label="Filtrar por categoria">
                 <option value="ALL">Todas as Categorias</option>
             </select>
             <select id="platformSelect"
@@ -3612,6 +3873,23 @@ async function copyShareText(text) {
                 <option value="ALL">Todas as plataformas</option>
                 <option value="PS5">Somente PS5</option>
                 <option value="PS4">Somente PS4</option>
+            </select>
+            <button
+                type="button"
+                id="mcoConsoleDefaultBtn"
+                class="mco-console-default-btn"
+                onclick="openConsolePreferencePrompt()"
+                title="Alterar a plataforma padrão das próximas visitas">
+                🎮 Padrão: —
+            </button>
+            <select id="sortSelect"
+                    class="category-select product-sort-select"
+                    onchange="handleSortChange(this.value)"
+                    aria-label="Ordenar jogos">
+                <option value="RELEVANCE">Mais relevantes</option>
+                <option value="PRICE_ASC">Menor preço</option>
+                <option value="DISCOUNT_DESC">Maior desconto</option>
+                <option value="NAME_ASC">Nome A–Z</option>
             </select>
             <button type="button" class="mobile-categories-inline"
                     onclick="toggleInstagramPopup(true)"
@@ -3676,6 +3954,24 @@ async function copyShareText(text) {
                         </button>
                     </div>
 
+                    <button
+                        type="button"
+                        id="mcoMobileConsoleDefaultBtn"
+                        class="mco-mobile-console-default"
+                        onclick="openConsolePreferencePrompt()">
+                        🎮 Console padrão: —
+                    </button>
+
+                    <div class="mco-mobile-sort">
+                        <label for="igMobileSort">Ordenar</label>
+                        <select id="igMobileSort" onchange="handleSortChange(this.value)">
+                            <option value="RELEVANCE">Mais relevantes</option>
+                            <option value="PRICE_ASC">Menor preço</option>
+                            <option value="DISCOUNT_DESC">Maior desconto</option>
+                            <option value="NAME_ASC">Nome A–Z</option>
+                        </select>
+                    </div>
+
                     <div id="igMobileCategoryMenu" class="ig-category-menu"></div>
                 </div>
             </div>
@@ -3714,6 +4010,14 @@ async function copyShareText(text) {
                 <div id="promotionGrid" class="carousel-grid"></div>
                 <div id="promotionGridExtra" class="feature-extra-grid" hidden></div>
                 <div id="promotionGridExpand" class="feature-expand-row" hidden></div>
+            </div>
+
+            <div class="carousel-section category-feature-section recent-section" id="recentSection" style="display:none;">
+                <div class="carousel-title">
+                    <span class="title-main">🕘 Vistos recentemente</span>
+                    <button type="button" class="mco-recent-clear" onclick="clearRecentlyViewed()">Limpar</button>
+                </div>
+                <div id="recentGrid" class="carousel-grid"></div>
             </div>
 
             <div id="catalogContainer"></div>
@@ -3873,12 +4177,130 @@ async function copyShareText(text) {
 
         // Filtro global de plataforma aplicado no desktop, mobile e busca.
         // Valores possíveis: ALL, PS5, PS4.
+        const MCO_CONSOLE_PREFERENCE_KEY = 'mco:console-default-v1';
+
         let selectedPlatformFilter = 'ALL';
+
+        function normalizeStoredConsolePreference(value) {
+            const normalized = String(value || '').trim().toUpperCase();
+
+            if (normalized === 'PS4' || normalized === 'PS5' || normalized === 'ALL') {
+                return normalized;
+            }
+
+            return null;
+        }
+
+        function readInitialConsolePreference() {
+            try {
+                return normalizeStoredConsolePreference(
+                    localStorage.getItem(MCO_CONSOLE_PREFERENCE_KEY)
+                );
+            } catch (_) {
+                return null;
+            }
+        }
+
+        function getConsolePreferenceLabel(value) {
+            const normalized = normalizeStoredConsolePreference(value);
+
+            if (normalized === 'PS4') return 'PS4';
+            if (normalized === 'PS5') return 'PS5';
+            return 'Todas';
+        }
+
+        function updateConsolePreferenceLabels() {
+            const preference = readInitialConsolePreference();
+            const desktop = document.getElementById('mcoConsoleDefaultBtn');
+            const mobile = document.getElementById('mcoMobileConsoleDefaultBtn');
+
+            const label = preference === null
+                ? 'não definido'
+                : getConsolePreferenceLabel(preference);
+
+            if (desktop) {
+                desktop.textContent = `🎮 Padrão: ${label}`;
+            }
+
+            if (mobile) {
+                mobile.textContent = `🎮 Console padrão: ${label} · alterar`;
+            }
+        }
+
+        function applyInitialConsolePreference(preference, rerender = true) {
+            const normalized =
+                normalizeStoredConsolePreference(preference) || 'ALL';
+
+            selectedPlatformFilter = normalized;
+            syncPlatformFilterUi();
+
+            if (!rerender || !games.length) {
+                return;
+            }
+
+            populateCategories();
+            renderLaunchCarousel();
+            renderPreorderCarousel();
+            renderPromotionCarousel();
+            renderRecentSection();
+
+            instagramIndex = 0;
+            renderGames();
+            updateSearchSuggestions();
+        }
+
+        function openConsolePreferencePrompt() {
+            const modal = document.getElementById('mcoConsoleOnboarding');
+
+            if (modal) {
+                modal.classList.add('visible');
+            }
+        }
+
+        function showInitialConsolePromptIfNeeded() {
+            const preference = readInitialConsolePreference();
+
+            updateConsolePreferenceLabels();
+
+            if (preference !== null) {
+                applyInitialConsolePreference(preference, false);
+                return preference;
+            }
+
+            openConsolePreferencePrompt();
+            return null;
+        }
+
+        function saveInitialConsolePreference(preference) {
+            const normalized =
+                normalizeStoredConsolePreference(preference) || 'ALL';
+
+            try {
+                localStorage.setItem(
+                    MCO_CONSOLE_PREFERENCE_KEY,
+                    normalized
+                );
+            } catch (_) {
+            }
+
+            const modal = document.getElementById('mcoConsoleOnboarding');
+
+            if (modal) {
+                modal.classList.remove('visible');
+            }
+
+            updateConsolePreferenceLabels();
+            applyInitialConsolePreference(normalized, true);
+        }
 
         // Quando o cliente escolhe um resultado da busca,
         // mostramos somente aquele jogo até ele limpar a busca
         // ou trocar filtro/categoria.
         let selectedSearchGameId = null;
+        let searchBeforeProductMode = '';
+        let selectedSortMode = 'RELEVANCE';
+        const RECENT_STORAGE_KEY = 'mco:recent-games-v1';
+        const RECENT_LIMIT = 8;
 
         let selectedCart = [];
         // Guarda a plataforma escolhida mesmo antes de o cliente selecionar Primária/Secundária.
@@ -4029,7 +4451,135 @@ async function copyShareText(text) {
             return Number(game?.mainPrice || 0);
         }
 
+        function getGameStableRef(game) {
+            return String(game?.sheetId || game?.id || '').trim();
+        }
+
+        function resolveGameReference(ref) {
+            const key = String(ref || '').trim();
+            if (!key) return null;
+            return games.find(game =>
+                String(game.id || '') === key ||
+                String(game.sheetId || '') === key
+            ) || null;
+        }
+
+        function getRecentlyViewedRefs() {
+            try {
+                const value = JSON.parse(localStorage.getItem(RECENT_STORAGE_KEY) || '[]');
+                return Array.isArray(value) ? value.map(String).filter(Boolean) : [];
+            } catch (_) {
+                return [];
+            }
+        }
+
+        function getRecentlyViewedGames() {
+            const refs = getRecentlyViewedRefs();
+            return refs
+                .map(resolveGameReference)
+                .filter(Boolean);
+        }
+
+        function rememberViewedGame(game) {
+            if (!game) return;
+            const ref = getGameStableRef(game);
+            if (!ref) return;
+            try {
+                const refs = getRecentlyViewedRefs().filter(item => item !== ref);
+                refs.unshift(ref);
+                localStorage.setItem(RECENT_STORAGE_KEY, JSON.stringify(refs.slice(0, RECENT_LIMIT)));
+            } catch (_) {}
+            renderRecentSection();
+        }
+
+        function clearRecentlyViewed() {
+            try { localStorage.removeItem(RECENT_STORAGE_KEY); } catch (_) {}
+            if (instagramCategory === '__RECENT__') {
+                instagramCategory = 'ALL';
+                instagramIndex = 0;
+            }
+            renderRecentSection();
+            renderGames();
+        }
+
+        function getAvailabilityState(game) {
+            if (!game) return { label: 'Indisponível', className: 'soldout' };
+            const priced = [
+                game.ps4Primary > 0 ? game.stockPs4Primary : null,
+                game.ps4Secondary > 0 ? game.stockPs4Secondary : null,
+                game.ps5Primary > 0 ? game.stockPs5Primary : null,
+                game.ps5Secondary > 0 ? game.stockPs5Secondary : null
+            ].filter(value => value !== null);
+            const totalStock = priced.reduce((sum, value) => sum + Number(value || 0), 0);
+            if (game.hasStockInfo && priced.length && totalStock <= 0) {
+                return { label: 'Esgotado', className: 'soldout' };
+            }
+            if (isCategory(game, 'Pré Venda')) {
+                return { label: 'Pré-venda aberta', className: 'preorder' };
+            }
+            if (isCategory(game, 'Promoção')) {
+                return { label: 'Oferta ativa', className: 'promo' };
+            }
+            return { label: 'Disponível', className: '' };
+        }
+
+        function sortGamesForCurrentView(list, searchTerm = '') {
+            const source = Array.isArray(list) ? [...list] : [];
+            const mode = String(selectedSortMode || 'RELEVANCE');
+            if (mode === 'PRICE_ASC') {
+                return source.sort((a, b) => {
+                    const ap = getGameMainPriceForCurrentFilter(a) || Number.POSITIVE_INFINITY;
+                    const bp = getGameMainPriceForCurrentFilter(b) || Number.POSITIVE_INFINITY;
+                    return ap - bp || a.name.localeCompare(b.name, 'pt-BR');
+                });
+            }
+            if (mode === 'DISCOUNT_DESC') {
+                return source.sort((a, b) => {
+                    const ad = getDiscountPercent(a, getGameMainPriceForCurrentFilter(a));
+                    const bd = getDiscountPercent(b, getGameMainPriceForCurrentFilter(b));
+                    return bd - ad || getGameMainPriceForCurrentFilter(a) - getGameMainPriceForCurrentFilter(b);
+                });
+            }
+            if (mode === 'NAME_ASC') {
+                return source.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+            }
+            return source;
+        }
+
+        function syncSortUi() {
+            const desktop = document.getElementById('sortSelect');
+            const mobile = document.getElementById('igMobileSort');
+            if (desktop) desktop.value = selectedSortMode;
+            if (mobile) mobile.value = selectedSortMode;
+        }
+
+        function handleSortChange(value) {
+            selectedSortMode = ['PRICE_ASC','DISCOUNT_DESC','NAME_ASC'].includes(String(value))
+                ? String(value)
+                : 'RELEVANCE';
+            instagramIndex = 0;
+            syncSortUi();
+            renderGames();
+        }
+
+        function renderRecentSection() {
+            const section = document.getElementById('recentSection');
+            const grid = document.getElementById('recentGrid');
+            if (!section || !grid) return;
+            const recent = getRecentlyViewedGames();
+            if (!recent.length || !window.matchMedia('(min-width: 801px)').matches) {
+                section.style.display = 'none';
+                grid.innerHTML = '';
+                return;
+            }
+            grid.innerHTML = '';
+            recent.slice(0, 6).forEach(game => grid.appendChild(createCardElement(game)));
+            section.style.display = '';
+            updateTimers();
+        }
+
         function syncPlatformFilterUi() {
+            syncSortUi();
             const desktopSelect = document.getElementById('platformSelect');
             if (desktopSelect) {
                 desktopSelect.value = selectedPlatformFilter;
@@ -4050,8 +4600,8 @@ async function copyShareText(text) {
         }
 
         function setPlatformFilter(value, closeMobilePopup = false) {
+            leaveProductModeForFilter();
             selectedPlatformFilter = normalizePlatformFilter(value);
-            selectedSearchGameId = null;
 
             instagramIndex = 0;
 
@@ -4663,7 +5213,16 @@ async function copyShareText(text) {
                 document.getElementById('loadingContainer').style.display = 'none';
                 document.getElementById('mainContent').style.display = 'block';
 
+                const initialConsolePreference =
+                    showInitialConsolePromptIfNeeded();
+
+                if (initialConsolePreference === null) {
+                    selectedPlatformFilter = 'ALL';
+                    syncPlatformFilterUi();
+                }
+
                 populateCategories();
+                syncSortUi();
                 renderLaunchCarousel();
                 renderPreorderCarousel();
                 renderPromotionCarousel();
@@ -5310,8 +5869,9 @@ async function copyShareText(text) {
         }
 
         function getGameDirectUrl(game) {
-            // Mantém sempre o endereço normal da loja.
-            return SHARE_URL;
+            const ref = getGameStableRef(game);
+            if (!ref) return getStoreBaseUrl();
+            return `${getStoreBaseUrl()}?jogo=${encodeURIComponent(ref)}`;
         }
 
         function setMetaTag(selector, attrName, attrValue, content) {
@@ -5327,8 +5887,8 @@ async function copyShareText(text) {
         function updateSeoForGame(game) {
             if (!game) return;
 
-            const directUrl = SHARE_URL;
-            const price = Number(game.mainPrice || 0);
+            const directUrl = getGameDirectUrl(game);
+            const price = Number(getGameMainPriceForCurrentFilter(game) || game.mainPrice || 0);
             const description = `${game.name} para ${game.platform || 'PlayStation'} na MCO GAMES${price > 0 ? ` — a partir de R$ ${price.toFixed(2).replace('.', ',')}` : ''}.`;
 
             document.title = `${game.name} | MCO GAMES`;
@@ -5375,26 +5935,21 @@ async function copyShareText(text) {
         }
 
         function openGameById(gameId, updateUrl = true) {
-            const game = games.find(g => g.id === gameId);
+            const game = resolveGameReference(gameId);
             if (!game) return false;
 
             const search = document.getElementById('searchInput');
             const categorySelect = document.getElementById('categorySelect');
 
-            /*
-             * Ao selecionar uma sugestão, entra no modo de jogo único.
-             * O campo mantém o nome escolhido para ficar claro o que
-             * está sendo exibido. O X da busca volta ao catálogo.
-             */
+            if (!selectedSearchGameId) {
+                searchBeforeProductMode = search ? search.value.trim() : '';
+            }
+
             selectedSearchGameId = game.id;
+            rememberViewedGame(game);
 
-            if (search) {
-                search.value = game.name;
-            }
-
-            if (categorySelect) {
-                categorySelect.value = 'ALL';
-            }
+            if (search) search.value = game.name;
+            if (categorySelect) categorySelect.value = 'ALL';
 
             instagramCategory = 'ALL';
             instagramIndex = 0;
@@ -5403,34 +5958,77 @@ async function copyShareText(text) {
             updateSearchClearButton();
             hideSearchSuggestions();
 
+            if (updateUrl && window.history && window.history.pushState) {
+                window.history.pushState({ jogo: getGameStableRef(game) }, '', getGameDirectUrl(game));
+            }
+
             renderGames();
 
             if (window.matchMedia('(min-width: 801px)').matches) {
                 setTimeout(() => {
-                    const card = [...document.querySelectorAll('.card[data-game-id]')]
-                        .find(el => el.dataset.gameId === game.id);
-
-                    if (card) {
-                        card.classList.add('mco-direct-focus');
-                        card.scrollIntoView({
-                            behavior: 'smooth',
-                            block: 'center'
-                        });
-
-                        setTimeout(
-                            () => card.classList.remove('mco-direct-focus'),
-                            1700
-                        );
-                    }
+                    const card = document.querySelector('.mco-product-card-wrap .card');
+                    if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }, 80);
             }
 
             updateSeoForGame(game);
-
-            // A navegação entre jogos não altera mais o endereço da loja.
             return true;
         }
 
+        function backFromProductMode() {
+            selectedSearchGameId = null;
+            const input = document.getElementById('searchInput');
+            if (input) input.value = searchBeforeProductMode || '';
+            updateSearchClearButton();
+            if (window.history && window.history.pushState) {
+                window.history.pushState({}, '', getStoreBaseUrl());
+            }
+            document.title = 'MCO GAMES — Sua Loja Digital';
+            instagramIndex = 0;
+            renderGames();
+            updateSearchSuggestions();
+            if (input && input.value) input.focus();
+        }
+
+        async function copyDirectGameLink(gameId) {
+            const game = resolveGameReference(gameId);
+            if (!game) return;
+            const url = getGameDirectUrl(game);
+            try {
+                await navigator.clipboard.writeText(url);
+                showShareStatus('Link do jogo copiado.');
+            } catch (_) {
+                try {
+                    const area = document.createElement('textarea');
+                    area.value = url;
+                    area.style.position = 'fixed';
+                    area.style.opacity = '0';
+                    document.body.appendChild(area);
+                    area.select();
+                    document.execCommand('copy');
+                    area.remove();
+                    showShareStatus('Link do jogo copiado.');
+                } catch (_) {
+                    showShareStatus('Não foi possível copiar o link automaticamente.');
+                }
+            }
+        }
+
+        async function shareDirectGameLink(gameId) {
+            const game = resolveGameReference(gameId);
+            if (!game) return;
+            const url = getGameDirectUrl(game);
+            const text = `🎮 ${game.name} na MCO GAMES\n${url}`;
+            if (navigator.share) {
+                try {
+                    await navigator.share({ title: game.name, text, url });
+                    return;
+                } catch (err) {
+                    if (err && err.name === 'AbortError') return;
+                }
+            }
+            await copyDirectGameLink(gameId);
+        }
 
         function applySharedGameFromUrl() {
             const params = new URLSearchParams(window.location.search);
@@ -5439,6 +6037,20 @@ async function copyShareText(text) {
             return openGameById(gameId, false);
         }
 
+
+        window.addEventListener('popstate', () => {
+            const params = new URLSearchParams(window.location.search);
+            const ref = params.get('jogo');
+            if (ref) {
+                openGameById(ref, false);
+            } else if (selectedSearchGameId) {
+                selectedSearchGameId = null;
+                const input = document.getElementById('searchInput');
+                if (input) input.value = searchBeforeProductMode || '';
+                updateSearchClearButton();
+                renderGames();
+            }
+        });
 
         const mobileSharePreparedFiles = new Map();
         const mobileSharePreparing = new Map();
@@ -5578,7 +6190,7 @@ async function copyShareText(text) {
                 `Confira esta oferta:\n` +
                 `🕹️ *${game.name}*\n\n` +
                 `${optionLines.join('\n')}\n\n` +
-                `🎮 Esse e outros jogos você encontra em:\n${SHARE_URL}`;
+                `🔗 Ver este jogo:\n${getGameDirectUrl(game)}`;
 
             const desktop = !isMobileDevice();
 
@@ -5712,6 +6324,7 @@ async function copyShareText(text) {
             const discount = getDiscountPercent(game, displayMainPrice);
             const platformList = game.platforms || [];
             const data = getPlatformData(game, selectedPlatform);
+            const availability = getAvailabilityState(game);
 
             let platformHtml = '';
             if (platformList.length > 1) {
@@ -5764,11 +6377,15 @@ async function copyShareText(text) {
                 game.ps5Secondary > 0 ? game.stockPs5Secondary : null
             ].filter(value => value !== null);
             const totalStock = pricedStockValues.reduce((sum, value) => sum + Number(value || 0), 0);
+            const hideLowStockBadge =
+                isCategory(game, 'Promoção') ||
+                isCategory(game, 'Pré Venda');
+
             let stockBadgeHtml = '';
             if (game.hasStockInfo && pricedStockValues.length) {
                 if (totalStock <= 0) {
                     stockBadgeHtml = `<span class="stock-badge soldout">Esgotado</span>`;
-                } else if (totalStock <= 3) {
+                } else if (totalStock <= 3 && !hideLowStockBadge) {
                     const stockText = totalStock === 1
                         ? 'Última unidade'
                         : `Últimas ${totalStock} un.`;
@@ -5777,7 +6394,7 @@ async function copyShareText(text) {
             }
 
             card.innerHTML = `
-                <div class="card-img-container">
+                <div class="card-img-container mco-open-product" onclick="openGameById('${game.id}', true)" title="Ver detalhes de ${escapeHtml(game.name)}">
                     ${preorderHtml}
                     <span class="platform-tag">${escapeHtml(platformTag)}</span>
                     ${timerHtml}
@@ -5786,7 +6403,8 @@ async function copyShareText(text) {
                          onerror="this.onerror=null;this.src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTnOXAQFE6SWdIZy6b4OpXDWYJUjkIbnYx7gQLCRunJ3w&s=10';">
                 </div>
                 <div class="card-info">
-                    <div class="card-title">${escapeHtml(game.name)}</div>
+                    <div class="card-title mco-open-product" onclick="openGameById('${game.id}', true)" title="Ver detalhes">${escapeHtml(game.name)}</div>
+                    <span class="availability-chip ${availability.className}">${escapeHtml(availability.label)}</span>
                     <div class="price-vip-row">
                         <div class="price-container">
                             ${game.oldPrice > displayMainPrice ? `<span class="old-price">R$ ${game.oldPrice.toFixed(2).replace('.', ',')}</span>` : ''}
@@ -6465,10 +7083,33 @@ async function copyShareText(text) {
             panel.classList.add('open');
         }
 
-        function handleCatalogFilterInput() {
-            // Qualquer nova digitação ou troca de categoria
-            // encerra o modo "somente o jogo selecionado".
+        function leaveProductModeForFilter() {
+            if (!selectedSearchGameId) return;
             selectedSearchGameId = null;
+            searchBeforeProductMode = '';
+            const input = document.getElementById('searchInput');
+            if (input) input.value = '';
+            updateSearchClearButton();
+            if (window.history && window.history.replaceState) {
+                window.history.replaceState({}, '', getStoreBaseUrl());
+            }
+        }
+
+        function handleCategoryFilterChange() {
+            leaveProductModeForFilter();
+            instagramIndex = 0;
+            renderGames();
+            hideSearchSuggestions();
+        }
+
+        function handleCatalogFilterInput() {
+            // Qualquer nova digitação ou troca de categoria encerra o modo produto.
+            if (selectedSearchGameId) {
+                selectedSearchGameId = null;
+                if (window.history && window.history.replaceState) {
+                    window.history.replaceState({}, '', getStoreBaseUrl());
+                }
+            }
 
             updateSearchClearButton();
             instagramIndex = 0;
@@ -6488,6 +7129,10 @@ async function copyShareText(text) {
             const input = document.getElementById('searchInput');
 
             selectedSearchGameId = null;
+            searchBeforeProductMode = '';
+            if (window.history && window.history.replaceState) {
+                window.history.replaceState({}, '', getStoreBaseUrl());
+            }
 
             if (input) input.value = '';
 
@@ -6500,7 +7145,7 @@ async function copyShareText(text) {
         }
 
         function setFeatureSectionsVisible(visible) {
-            ['launchSection', 'preorderSection', 'promotionSection'].forEach(id => {
+            ['launchSection', 'preorderSection', 'promotionSection', 'recentSection'].forEach(id => {
                 const section = document.getElementById(id);
                 if (section) section.style.display = visible ? '' : 'none';
             });
@@ -6518,40 +7163,47 @@ async function copyShareText(text) {
                         <div style="font-size:1.8rem; margin-bottom:8px;">🔎</div>
                         <strong>Nenhum jogo encontrado</strong>
                         <div style="margin-top:6px;">Tente outro nome, categoria ou plataforma.</div>
-                    </div>
-                `;
+                    </div>`;
                 return;
             }
 
-            let label = selectedSearchGameId
-                ? 'Jogo selecionado'
-                : (
-                    searchVal
-                        ? `Resultados para "${escapeHtml(searchVal)}"`
-                        : (catVal !== 'ALL' ? `Jogos de ${escapeHtml(catVal)}` : 'Resultados')
-                  );
-
-            if (
-                !selectedSearchGameId &&
-                platformVal !== 'ALL'
-            ) {
-                label += ` • ${escapeHtml(platformVal)}`;
+            if (selectedSearchGameId && filteredGames.length === 1) {
+                const game = filteredGames[0];
+                catalogContainer.innerHTML = `
+                    <div class="mco-product-view">
+                        <div class="mco-product-toolbar">
+                            <div class="mco-product-toolbar-left">
+                                <button type="button" class="mco-product-action" onclick="backFromProductMode()">← Voltar aos resultados</button>
+                                <span class="mco-product-toolbar-title">Você está vendo somente este jogo</span>
+                            </div>
+                            <div class="mco-product-toolbar-right">
+                                <button type="button" class="mco-product-action" onclick="copyDirectGameLink('${escapeHtml(game.id)}')">🔗 Copiar link</button>
+                                <button type="button" class="mco-product-action primary" onclick="shareDirectGameLink('${escapeHtml(game.id)}')">↗ Compartilhar</button>
+                            </div>
+                        </div>
+                        <div class="mco-product-card-wrap" id="mcoProductCardWrap"></div>
+                    </div>`;
+                const wrap = document.getElementById('mcoProductCardWrap');
+                if (wrap) wrap.appendChild(createCardElement(game));
+                updateTimers();
+                return;
             }
+
+            let label = searchVal
+                ? `Resultados para "${escapeHtml(searchVal)}"`
+                : (catVal !== 'ALL' ? `Jogos de ${escapeHtml(catVal)}` : 'Resultados');
+
+            if (platformVal !== 'ALL') label += ` • ${escapeHtml(platformVal)}`;
 
             catalogContainer.innerHTML = `
                 <div class="search-results-title">
                     <h3>${label}</h3>
                     <span>${filteredGames.length} jogo(s) encontrado(s)</span>
-                </div>
-            `;
+                </div>`;
 
             const grid = document.createElement('div');
             grid.className = 'category-grid';
-
-            filteredGames.forEach(game => {
-                grid.appendChild(createCardElement(game));
-            });
-
+            filteredGames.forEach(game => grid.appendChild(createCardElement(game)));
             catalogContainer.appendChild(grid);
             updateTimers();
         }
@@ -6616,6 +7268,9 @@ async function copyShareText(text) {
         }
 
         function toggleInstagramPopup(open) {
+            if (open) {
+                updateConsolePreferenceLabels();
+            }
             const popup = document.getElementById('igMobilePopupBackdrop');
             if (!popup) return;
             popup.classList.toggle('open', !!open);
@@ -6623,6 +7278,7 @@ async function copyShareText(text) {
         }
 
         function selectInstagramCategory(category) {
+            leaveProductModeForFilter();
             selectedSearchGameId = null;
             instagramCategory = category || 'ALL';
             toggleInstagramPopup(false);
@@ -6638,6 +7294,8 @@ async function copyShareText(text) {
             instagramTransitionDirection = delta > 0 ? 1 : -1;
             instagramIndex = nextIndex;
             renderInstagramView();
+            const viewed = instagramVisibleGames[instagramIndex];
+            if (viewed) rememberViewedGame(viewed);
         }
 
         function jumpInstagramGame(index) {
@@ -6645,6 +7303,8 @@ async function copyShareText(text) {
             instagramTransitionDirection = nextIndex > instagramIndex ? 1 : (nextIndex < instagramIndex ? -1 : 0);
             instagramIndex = nextIndex;
             renderInstagramView();
+            const viewed = instagramVisibleGames[instagramIndex];
+            if (viewed) rememberViewedGame(viewed);
         }
 
         function preloadGameCover(game) {
@@ -6741,6 +7401,7 @@ async function copyShareText(text) {
 
             if (
                 instagramCategory !== 'ALL' &&
+                instagramCategory !== '__RECENT__' &&
                 !catsOnly.some(category =>
                     categoryKey(category) === categoryKey(instagramCategory)
                 )
@@ -6753,6 +7414,25 @@ async function copyShareText(text) {
             menu.innerHTML = '';
             if (popupMenu) popupMenu.innerHTML = '';
             mobile.innerHTML = '<option value="ALL">🎮 Ver todos os jogos</option>';
+
+            const recentGames = getRecentlyViewedGames().filter(game => gameMatchesPlatformFilter(game));
+            if (recentGames.length) {
+                const recentBtn = document.createElement('button');
+                recentBtn.type = 'button';
+                recentBtn.className = 'ig-cat-btn mco-recent-btn' + (instagramCategory === '__RECENT__' && !searchVal && !selectedSearchGameId ? ' active' : '');
+                recentBtn.innerHTML = `<span>🕘 Vistos recentemente</span><span class="ig-cat-count">${recentGames.length}</span>`;
+                recentBtn.addEventListener('click', () => selectInstagramCategory('__RECENT__'));
+                menu.appendChild(recentBtn);
+                if (popupMenu) {
+                    const popupRecent = recentBtn.cloneNode(true);
+                    popupRecent.addEventListener('click', () => selectInstagramCategory('__RECENT__'));
+                    popupMenu.appendChild(popupRecent);
+                }
+                const recentOpt = document.createElement('option');
+                recentOpt.value = '__RECENT__';
+                recentOpt.textContent = `Vistos recentemente (${recentGames.length})`;
+                mobile.appendChild(recentOpt);
+            }
 
             const counts = {};
             catsOnly.forEach(c =>
@@ -6797,11 +7477,18 @@ async function copyShareText(text) {
                 : (
                     searchVal
                         ? getGlobalCatalogSearchResults(searchVal)
-                        : platformGames.filter(game =>
-                            instagramCategory === 'ALL' ||
-                            categoryKey(game.category) === categoryKey(instagramCategory)
-                        )
+                        : (
+                            instagramCategory === '__RECENT__'
+                                ? recentGames
+                                : platformGames.filter(game =>
+                                    instagramCategory === 'ALL' ||
+                                    categoryKey(game.category) === categoryKey(instagramCategory)
+                                  )
+                          )
                   );
+            if (!selectedSearchGame) {
+                instagramVisibleGames = sortGamesForCurrentView(instagramVisibleGames, searchVal);
+            }
             if (instagramIndex >= instagramVisibleGames.length) instagramIndex = Math.max(0, instagramVisibleGames.length - 1);
             viewer.innerHTML = '';
             if (!instagramVisibleGames.length) {
@@ -6812,7 +7499,11 @@ async function copyShareText(text) {
             const categoryLabel =
                 (searchVal || selectedSearchGameId)
                     ? game.category
-                    : (instagramCategory === 'ALL' ? game.category : instagramCategory);
+                    : (
+                        instagramCategory === '__RECENT__'
+                            ? 'Vistos recentemente'
+                            : (instagramCategory === 'ALL' ? game.category : instagramCategory)
+                      );
             const post = document.createElement('div');
             post.className = 'ig-post ' + (
                 instagramTransitionDirection > 0
@@ -6882,7 +7573,7 @@ async function copyShareText(text) {
                         ? games.find(game => game.id === selectedSearchGameId)
                         : null;
 
-                const filtered = selectedSearchGame
+                let filtered = selectedSearchGame
                     ? [selectedSearchGame]
                     : (
                         searchVal
@@ -6892,6 +7583,10 @@ async function copyShareText(text) {
                                 categoryKey(game.category) === categoryKey(catVal)
                             )
                     );
+
+                if (!selectedSearchGame) {
+                    filtered = sortGamesForCurrentView(filtered, searchVal);
+                }
 
                 if (
                     selectedSearchGame ||
@@ -6906,6 +7601,7 @@ async function copyShareText(text) {
                     renderLaunchCarousel();
                     renderPreorderCarousel();
                     renderPromotionCarousel();
+                    renderRecentSection();
                 }
             } else {
                 if (layout) layout.style.display = '';
