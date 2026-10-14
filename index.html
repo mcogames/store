@@ -4514,6 +4514,17 @@ async function copyShareText(text) {
             if (game.hasStockInfo && priced.length && totalStock <= 0) {
                 return { label: 'Esgotado', className: 'soldout' };
             }
+            if (game.isCombo) {
+                if (isCategory(game, 'Promoção')) {
+                    return { label: 'Combo em oferta', className: 'combo' };
+                }
+
+                if (isCategory(game, 'Pré Venda')) {
+                    return { label: 'Combo em pré-venda', className: 'combo' };
+                }
+
+                return { label: 'Combo disponível', className: 'combo' };
+            }
             if (isCategory(game, 'Pré Venda')) {
                 return { label: 'Pré-venda aberta', className: 'preorder' };
             }
@@ -4939,7 +4950,11 @@ async function copyShareText(text) {
                 ps4Secondary: col(9, 'PS4 Secundária', 'PS4 Secundaria'),
                 stockPs4Secondary: col(10, 'Estoque PS4 Secundária', 'Estoque PS4 Secundaria'),
                 endDate: col(11, 'Data Encerramento', 'Data de Encerramento', 'Data de lançamento', 'Data de lancamento'),
-                cover: col(12, 'Capa', 'Imagem', 'URL Capa')
+                cover: col(12, 'Capa', 'Imagem', 'URL Capa'),
+                itemType: col(13, 'Tipo', 'Tipo Produto'),
+                comboCodes: col(14, 'Códigos Combo', 'Codigos Combo'),
+                comboNames: col(15, 'Jogos do Combo', 'Nomes Combo'),
+                comboCovers: col(16, 'Capas do Combo', 'Capas Combo')
             };
 
             const money = value => {
@@ -4961,6 +4976,26 @@ async function copyShareText(text) {
             };
 
             const text = value => String(value === null || value === undefined ? '' : value).trim();
+
+            const arrayField = value => {
+                const raw = text(value);
+                if (!raw) return [];
+
+                try {
+                    const parsed = JSON.parse(raw);
+                    if (Array.isArray(parsed)) {
+                        return parsed
+                            .map(item => String(item || '').trim())
+                            .filter(Boolean);
+                    }
+                } catch (_) {}
+
+                return raw
+                    .split(/\s*\|\|\|\s*/)
+                    .map(item => String(item || '').trim())
+                    .filter(Boolean);
+            };
+
             const parsedGames = [];
 
             for (let i = 1; i < rows.length; i++) {
@@ -4969,6 +5004,12 @@ async function copyShareText(text) {
 
                 const name = text(row[C.name]);
                 if (!name || ['jogo', 'nome'].includes(name.toLowerCase())) continue;
+
+                const itemType = text(row[C.itemType]).toUpperCase();
+                const isCombo = itemType === 'COMBO';
+                const comboCodes = isCombo ? arrayField(row[C.comboCodes]) : [];
+                const comboNames = isCombo ? arrayField(row[C.comboNames]) : [];
+                const comboCovers = isCombo ? arrayField(row[C.comboCovers]) : [];
 
                 const ps4Primary = money(row[C.ps4Primary]);
                 const ps4Secondary = money(row[C.ps4Secondary]);
@@ -5000,7 +5041,11 @@ async function copyShareText(text) {
                 if (ps4Primary > 0 || ps4Secondary > 0) platforms.push('PS4');
                 if (ps5Primary > 0 || ps5Secondary > 0) platforms.push('PS5');
 
-                const imgRaw = text(row[C.cover]);
+                const comboFirstCover =
+                    comboCovers.find(url => /^https?:\/\//i.test(url)) || '';
+
+                const imgRaw = comboFirstCover || text(row[C.cover]);
+
                 const imgUrl = imgRaw && /^https?:\/\//i.test(imgRaw)
                     ? imgRaw
                     : "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTnOXAQFE6SWdIZy6b4OpXDWYJUjkIbnYx7gQLCRunJ3w&s=10";
@@ -5015,6 +5060,13 @@ async function copyShareText(text) {
 
                     // A categoria agora vem da ABA, e não de uma coluna.
                     category,
+
+                    isCombo,
+                    itemType,
+                    comboCodes,
+                    comboNames,
+                    comboCovers,
+                    comboCount: comboNames.length || comboCodes.length,
 
                     oldPrice,
                     ps4Primary,
@@ -5237,6 +5289,7 @@ async function copyShareText(text) {
                 startAutoScroll('launchGrid');
                 startAutoScroll('preorderGrid');
                 startAutoScroll('promotionGrid');
+                startComboCoverRotator();
 
                 updateTimers();
                 setInterval(updateTimers, 1000);
@@ -5889,7 +5942,12 @@ async function copyShareText(text) {
 
             const directUrl = getGameDirectUrl(game);
             const price = Number(getGameMainPriceForCurrentFilter(game) || game.mainPrice || 0);
-            const description = `${game.name} para ${game.platform || 'PlayStation'} na MCO GAMES${price > 0 ? ` — a partir de R$ ${price.toFixed(2).replace('.', ',')}` : ''}.`;
+            const comboDescription =
+                game.isCombo && Array.isArray(game.comboNames) && game.comboNames.length
+                    ? ` Combo com ${game.comboNames.join(', ')}.`
+                    : '';
+
+            const description = `${game.name} para ${game.platform || 'PlayStation'} na MCO GAMES${comboDescription}${price > 0 ? ` A partir de R$ ${price.toFixed(2).replace('.', ',')}.` : '.'}`;
 
             document.title = `${game.name} | MCO GAMES`;
             setMetaTag('meta[name="description"]', 'name', 'description', description);
@@ -6185,12 +6243,18 @@ async function copyShareText(text) {
                 if (game.ps4Secondary > 0) optionLines.push(`• Secundária: ${moneyText(game.ps4Secondary)}`);
             }
 
+            const comboLines =
+                game.isCombo && Array.isArray(game.comboNames) && game.comboNames.length
+                    ? `🎁 *COMBO com ${game.comboNames.length} jogos:*\n${game.comboNames.map(name => `• ${name}`).join('\n')}\n\n`
+                    : '';
+
             const message =
                 `🎮 *MCO GAMES*\n\n` +
                 `Confira esta oferta:\n` +
-                `🕹️ *${game.name}*\n\n` +
+                `${game.isCombo ? '🎁' : '🕹️'} *${game.name}*\n\n` +
+                comboLines +
                 `${optionLines.join('\n')}\n\n` +
-                `🔗 Ver este jogo:\n${getGameDirectUrl(game)}`;
+                `🔗 Ver ${game.isCombo ? 'este combo' : 'este jogo'}:\n${getGameDirectUrl(game)}`;
 
             const desktop = !isMobileDevice();
 
@@ -6309,6 +6373,97 @@ async function copyShareText(text) {
             }
         }
 
+        let comboCoverRotatorStarted = false;
+
+        function getComboCoverList(game) {
+            const covers =
+                Array.isArray(game?.comboCovers)
+                    ? game.comboCovers.filter(url => /^https?:\/\//i.test(String(url || '')))
+                    : [];
+
+            if (!covers.length && game?.img) {
+                covers.push(game.img);
+            }
+
+            return covers;
+        }
+
+        function getComboCoverMarkup(game) {
+            if (!game?.isCombo) {
+                return `<img src="${escapeHtml(game.img)}" alt="${escapeHtml(game.name)}" class="card-img" loading="lazy"
+                         onerror="this.onerror=null;this.src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTnOXAQFE6SWdIZy6b4OpXDWYJUjkIbnYx7gQLCRunJ3w&s=10';">`;
+            }
+
+            const covers = getComboCoverList(game);
+
+            if (covers.length <= 1) {
+                const only = covers[0] || game.img;
+                return `
+                    <div class="combo-cover-carousel" data-combo-index="0">
+                        <img src="${escapeHtml(only)}"
+                             alt="${escapeHtml(game.name)}"
+                             class="card-img combo-cover-image active"
+                             loading="lazy">
+                    </div>`;
+            }
+
+            return `
+                <div class="combo-cover-carousel" data-combo-index="0">
+                    ${covers.map((url, index) => `
+                        <img src="${escapeHtml(url)}"
+                             alt="${escapeHtml((game.comboNames && game.comboNames[index]) || game.name)}"
+                             class="card-img combo-cover-image ${index === 0 ? 'active' : ''}"
+                             data-combo-cover-index="${index}"
+                             loading="lazy"
+                             onerror="this.style.display='none'">
+                    `).join('')}
+
+                    <div class="combo-cover-dots" aria-label="Capas do combo">
+                        ${covers.map((_, index) => `
+                            <button type="button"
+                                    class="combo-cover-dot ${index === 0 ? 'active' : ''}"
+                                    aria-label="Ver capa ${index + 1}"
+                                    onclick="event.stopPropagation(); setComboCarouselIndex(this.closest('.combo-cover-carousel'), ${index})"></button>
+                        `).join('')}
+                    </div>
+                </div>`;
+        }
+
+        function setComboCarouselIndex(carousel, index) {
+            if (!carousel) return;
+
+            const images = [...carousel.querySelectorAll('.combo-cover-image')];
+            const dots = [...carousel.querySelectorAll('.combo-cover-dot')];
+
+            if (!images.length) return;
+
+            const safeIndex =
+                ((Number(index) || 0) % images.length + images.length) % images.length;
+
+            images.forEach((img, i) => img.classList.toggle('active', i === safeIndex));
+            dots.forEach((dot, i) => dot.classList.toggle('active', i === safeIndex));
+            carousel.dataset.comboIndex = String(safeIndex);
+        }
+
+        function advanceComboCoverCarousels() {
+            document
+                .querySelectorAll('.combo-cover-carousel')
+                .forEach(carousel => {
+                    const images = carousel.querySelectorAll('.combo-cover-image');
+                    if (images.length <= 1) return;
+
+                    const current = Number(carousel.dataset.comboIndex || 0);
+                    setComboCarouselIndex(carousel, current + 1);
+                });
+        }
+
+        function startComboCoverRotator() {
+            if (comboCoverRotatorStarted) return;
+            comboCoverRotatorStarted = true;
+            setInterval(advanceComboCoverCarousels, 2800);
+        }
+
+
         function createCardElement(game) {
             const card = document.createElement('div');
             card.className = 'card';
@@ -6325,6 +6480,14 @@ async function copyShareText(text) {
             const platformList = game.platforms || [];
             const data = getPlatformData(game, selectedPlatform);
             const availability = getAvailabilityState(game);
+
+            const comboBadgeHtml = game.isCombo
+                ? `<span class="combo-badge">🎁 COMBO${game.comboCount ? ` • ${game.comboCount} JOGOS` : ''}</span>`
+                : '';
+
+            const comboItemsHtml = game.isCombo && Array.isArray(game.comboNames) && game.comboNames.length
+                ? `<div class="combo-items-summary"><strong>Inclui:</strong> ${game.comboNames.map(escapeHtml).join(' • ')}</div>`
+                : '';
 
             let platformHtml = '';
             if (platformList.length > 1) {
@@ -6397,13 +6560,14 @@ async function copyShareText(text) {
                 <div class="card-img-container mco-open-product" onclick="openGameById('${game.id}', true)" title="Ver detalhes de ${escapeHtml(game.name)}">
                     ${preorderHtml}
                     <span class="platform-tag">${escapeHtml(platformTag)}</span>
+                    ${comboBadgeHtml}
                     ${timerHtml}
                     ${stockBadgeHtml}
-                    <img src="${escapeHtml(game.img)}" alt="${escapeHtml(game.name)}" class="card-img" loading="lazy"
-                         onerror="this.onerror=null;this.src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTnOXAQFE6SWdIZy6b4OpXDWYJUjkIbnYx7gQLCRunJ3w&s=10';">
+                    ${getComboCoverMarkup(game)}
                 </div>
                 <div class="card-info">
                     <div class="card-title mco-open-product" onclick="openGameById('${game.id}', true)" title="Ver detalhes">${escapeHtml(game.name)}</div>
+                    ${comboItemsHtml}
                     <span class="availability-chip ${availability.className}">${escapeHtml(availability.label)}</span>
                     <div class="price-vip-row">
                         <div class="price-container">
@@ -6980,6 +7144,9 @@ async function copyShareText(text) {
                 ...(Array.isArray(game?.platforms) ? game.platforms : []),
                 game?.sheetId,
                 game?.id,
+                ...(Array.isArray(game?.comboNames) ? game.comboNames : []),
+                ...(Array.isArray(game?.comboCodes) ? game.comboCodes : []),
+                game?.isCombo ? 'combo pacote pack' : '',
                 game?.targetDate,
                 game?.oldPrice,
                 game?.mainPrice,
@@ -7069,8 +7236,13 @@ async function copyShareText(text) {
             panel.innerHTML = suggestions.map(game => `
                 <button type="button" class="mco-search-suggestion"
                         role="option" data-game-id="${escapeHtml(game.id)}">
-                    <span class="mco-search-suggestion-name">${escapeHtml(game.name)}</span>
-                    <span class="mco-search-suggestion-meta">${escapeHtml(game.category)} • ${escapeHtml(game.platform)}</span>
+                    <span class="mco-search-suggestion-name">
+                        ${escapeHtml(game.name)}
+                        ${game.isCombo ? '<span class="mco-search-suggestion-combo">COMBO</span>' : ''}
+                    </span>
+                    <span class="mco-search-suggestion-meta">
+                        ${game.isCombo ? `${game.comboCount || 0} jogos • ` : ''}${escapeHtml(game.category)} • ${escapeHtml(game.platform)}
+                    </span>
                     <span class="mco-search-suggestion-price">R$ ${getGameMainPriceForCurrentFilter(game).toFixed(2).replace('.', ',')}</span>
                 </button>
             `).join('');
@@ -7174,7 +7346,7 @@ async function copyShareText(text) {
                         <div class="mco-product-toolbar">
                             <div class="mco-product-toolbar-left">
                                 <button type="button" class="mco-product-action" onclick="backFromProductMode()">← Voltar aos resultados</button>
-                                <span class="mco-product-toolbar-title">Você está vendo somente este jogo</span>
+                                <span class="mco-product-toolbar-title">${game.isCombo ? 'Você está vendo somente este combo' : 'Você está vendo somente este jogo'}</span>
                             </div>
                             <div class="mco-product-toolbar-right">
                                 <button type="button" class="mco-product-action" onclick="copyDirectGameLink('${escapeHtml(game.id)}')">🔗 Copiar link</button>
@@ -7838,6 +8010,130 @@ async function copyShareText(text) {
 @media (min-width:801px) {
   header .search-box {display:none!important;}
 }
+
+
+        /* =====================================================
+           COMBOS
+           ===================================================== */
+
+        .combo-cover-carousel {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #10151c;
+        }
+
+        .combo-cover-carousel .combo-cover-image {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transform: scale(1.025);
+            transition:
+                opacity .42s ease,
+                transform .55s ease;
+            pointer-events: none;
+        }
+
+        .combo-cover-carousel .combo-cover-image.active {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .combo-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 6;
+            display: inline-flex;
+            align-items: center;
+            min-height: 25px;
+            padding: 0 8px;
+            border: 1px solid rgba(255, 216, 103, .52);
+            border-radius: 999px;
+            background: rgba(17, 12, 3, .88);
+            color: #ffdc72;
+            font-size: .62rem;
+            font-weight: 950;
+            letter-spacing: .04em;
+            box-shadow: 0 5px 18px rgba(0,0,0,.26);
+        }
+
+        .combo-cover-dots {
+            position: absolute;
+            left: 50%;
+            bottom: 10px;
+            z-index: 6;
+            display: flex;
+            gap: 5px;
+            transform: translateX(-50%);
+        }
+
+        .combo-cover-dot {
+            width: 7px;
+            height: 7px;
+            min-width: 7px;
+            min-height: 7px;
+            padding: 0;
+            border: 0;
+            border-radius: 999px;
+            background: rgba(255,255,255,.42);
+            cursor: pointer;
+            box-shadow: 0 1px 5px rgba(0,0,0,.5);
+        }
+
+        .combo-cover-dot.active {
+            width: 18px;
+            background: #fff;
+        }
+
+        .combo-items-summary {
+            margin: 7px 0 4px;
+            padding: 7px 8px;
+            border: 1px solid rgba(255, 196, 67, .17);
+            border-radius: 9px;
+            background: rgba(255, 183, 44, .055);
+            color: #aebdca;
+            font-size: .68rem;
+            line-height: 1.42;
+        }
+
+        .combo-items-summary strong {
+            color: #f6cf69;
+        }
+
+        .availability-chip.combo {
+            border-color: rgba(255, 194, 63, .35);
+            background: rgba(255, 180, 31, .10);
+            color: #ffd36a;
+        }
+
+        .mco-search-suggestion-combo {
+            display: inline-flex;
+            margin-left: 5px;
+            padding: 2px 5px;
+            border-radius: 999px;
+            background: rgba(255, 183, 40, .12);
+            color: #f6c957;
+            font-size: .58rem;
+            font-weight: 950;
+            vertical-align: middle;
+        }
+
+        @media(max-width: 800px) {
+            .combo-badge {
+                top: 9px;
+                right: 9px;
+            }
+
+            .combo-items-summary {
+                font-size: .72rem;
+            }
+        }
+
 </style>
 <script id="mco-mobile-header-search">
 (function(){
