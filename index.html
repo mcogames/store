@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="mco-mobile-engine" content="vertical-feed-optimized-v3">
     <title>MCO GAMES | Sua Loja Digital</title>
     
     <!-- Meta Tags para redes sociais e WhatsApp -->
@@ -44,9 +45,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
     <!-- html2canvas para gerar print PNG dos cards -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
-    <style>
+<style>
         :root {
             --bg-color: #0b0d10;
             --card-bg: #13171d;
@@ -1783,7 +1782,7 @@
           html, body { height:100%; height:100dvh; overflow:hidden!important; overscroll-behavior:none; }
           body { position:relative; width:100%; }
           header { flex-shrink:0; }
-          body > .container { height:calc(100dvh - 100px); max-height:calc(100dvh - 100px); overflow:hidden!important; display:flex; flex-direction:column; }
+          body > .container { height:calc(100svh - 100px); max-height:calc(100svh - 100px); overflow:hidden!important; display:flex; flex-direction:column; }
           #mainContent { flex:1 1 auto; min-height:0; height:100%; overflow:hidden!important; display:flex; flex-direction:column; }
           #instagramLayout { flex:1 1 auto; min-height:0; height:100%; overflow:hidden!important; padding-bottom:42px!important; }
           .ig-feed { height:100%; min-height:0; overflow:hidden!important; display:flex; flex-direction:column; }
@@ -3126,68 +3125,6 @@ async function copyShareText(text) {
         position: relative !important;
     }
 
-    /* -------- SETAS FLUTUANTES -------- */
-    .mobile-cover-nav {
-        position: absolute !important;
-        left: 0 !important;
-        right: 0 !important;
-        bottom: 14px !important;
-        display: flex !important;
-        justify-content: space-between !important;
-        align-items: center !important;
-        padding: 0 12px !important;
-        pointer-events: none !important;
-        z-index: 12 !important;
-    }
-
-    .mobile-cover-arrow {
-        pointer-events: auto !important;
-        width: 42px !important;
-        height: 42px !important;
-        min-width: 42px !important;
-        border: 1px solid rgba(45, 199, 255, .82) !important;
-        border-radius: 999px !important;
-        background:
-            linear-gradient(135deg,
-                rgba(0, 164, 255, .56),
-                rgba(0, 86, 210, .42)) !important;
-        backdrop-filter: blur(4px) !important;
-        -webkit-backdrop-filter: blur(4px) !important;
-        color: #ffffff !important;
-        display: inline-flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        font-size: 1.35rem !important;
-        line-height: 1 !important;
-        text-shadow: 0 0 8px rgba(255,255,255,.55) !important;
-        box-shadow:
-            0 0 8px rgba(0, 190, 255, .48),
-            0 0 18px rgba(0, 130, 255, .30),
-            inset 0 0 9px rgba(85, 211, 255, .18) !important;
-        cursor: pointer !important;
-        transition:
-            transform .15s ease,
-            opacity .15s ease,
-            background .15s ease !important;
-        -webkit-tap-highlight-color: transparent !important;
-        touch-action: manipulation !important;
-    }
-
-    .mobile-cover-arrow:active {
-        transform: scale(.94) !important;
-        background:
-            linear-gradient(135deg,
-                rgba(0, 190, 255, .72),
-                rgba(0, 93, 230, .58)) !important;
-    }
-
-    .mobile-cover-arrow[disabled] {
-        opacity: .24 !important;
-        cursor: default !important;
-        box-shadow:
-            0 0 5px rgba(0, 150, 255, .18),
-            inset 0 0 7px rgba(60, 190, 255, .08) !important;
-    }
 
     /* -------- BUSCA: prioridade de toque e foco -------- */
     .controls {
@@ -3252,17 +3189,6 @@ async function copyShareText(text) {
 }
 
 @media (max-width: 390px) {
-    .mobile-cover-nav {
-        bottom: 10px !important;
-        padding: 0 10px !important;
-    }
-
-    .mobile-cover-arrow {
-        width: 38px !important;
-        height: 38px !important;
-        min-width: 38px !important;
-        font-size: 1.2rem !important;
-    }
 
     .ig-post .card-img-container > .timer-badge {
         top: 9px !important;
@@ -3360,58 +3286,6 @@ async function copyShareText(text) {
         pointer-events: auto !important;
     }
 
-    /* As setas funcionam como dica temporária:
-       aparecem, indicam a direção e somem novamente. */
-    .mobile-cover-arrow {
-        /* Sem !important no opacity: os keyframes precisam poder animá-lo. */
-        opacity: 0;
-        visibility: hidden !important;
-        pointer-events: none !important;
-    }
-
-    .mobile-cover-arrow.mco-arrow-cue-active:not([disabled]) {
-        visibility: visible !important;
-        pointer-events: auto !important;
-    }
-
-    .mobile-cover-arrow-prev.mco-arrow-cue-active:not([disabled]) {
-        animation: mcoArrowCueLeft 2.25s ease-in-out both !important;
-    }
-
-    .mobile-cover-arrow-next.mco-arrow-cue-active:not([disabled]) {
-        animation: mcoArrowCueRight 2.25s ease-in-out both !important;
-    }
-
-    @keyframes mcoArrowCueLeft {
-        0%   { opacity: 0; transform: translateX(0) scale(.94); filter:brightness(1); }
-        10%  { opacity: .95; transform: translateX(0) scale(1); }
-        28%  { opacity: 1; transform: translateX(-10px) scale(1.04); filter:brightness(1.18); }
-        43%  { opacity: 1; transform: translateX(-2px) scale(1); }
-        60%  { opacity: 1; transform: translateX(-10px) scale(1.04); filter:brightness(1.18); }
-        77%  { opacity: .95; transform: translateX(-2px) scale(1); }
-        100% { opacity: 0; transform: translateX(-12px) scale(.96); filter:brightness(1); }
-    }
-
-    @keyframes mcoArrowCueRight {
-        0%   { opacity: 0; transform: translateX(0) scale(.94); filter:brightness(1); }
-        10%  { opacity: .95; transform: translateX(0) scale(1); }
-        28%  { opacity: 1; transform: translateX(10px) scale(1.04); filter:brightness(1.18); }
-        43%  { opacity: 1; transform: translateX(2px) scale(1); }
-        60%  { opacity: 1; transform: translateX(10px) scale(1.04); filter:brightness(1.18); }
-        77%  { opacity: .95; transform: translateX(2px) scale(1); }
-        100% { opacity: 0; transform: translateX(12px) scale(.96); filter:brightness(1); }
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .mobile-cover-arrow.mco-arrow-cue-active:not([disabled]) {
-        animation: mcoArrowCueReduced 1.8s ease-in-out both !important;
-    }
-
-    @keyframes mcoArrowCueReduced {
-        0%, 100% { opacity: 0; transform: none; }
-        20%, 78% { opacity: .9; transform: none; }
-    }
 }
 </style>
 
@@ -3815,7 +3689,7 @@ async function copyShareText(text) {
   }
 
   #igViewer.mco-vertical-feed {
-    --mco-feed-height: calc(100dvh - 116px);
+    --mco-feed-height: calc(100svh - 116px);
 
     display: block !important;
     width: 100% !important;
@@ -4023,7 +3897,7 @@ async function copyShareText(text) {
 /* Celulares baixos */
 @media (max-width: 800px) and (max-height: 690px) {
   #igViewer.mco-vertical-feed {
-    --mco-feed-height: calc(100dvh - 100px);
+    --mco-feed-height: calc(100svh - 100px);
     min-height: 450px !important;
   }
 
@@ -4059,7 +3933,7 @@ async function copyShareText(text) {
    * com transform na GPU.
    */
   #igViewer.mco-vertical-feed {
-    --mco-feed-height: calc(100dvh - 116px);
+    --mco-feed-height: calc(100svh - 116px);
 
     position: relative !important;
     display: block !important;
@@ -4192,7 +4066,7 @@ async function copyShareText(text) {
 
 @media (max-width: 800px) and (max-height: 690px) {
   #igViewer.mco-vertical-feed {
-    --mco-feed-height: calc(100dvh - 100px);
+    --mco-feed-height: calc(100svh - 100px);
     min-height: 445px !important;
   }
 
@@ -4212,6 +4086,58 @@ async function copyShareText(text) {
   .mco-feed-page .type-btn,
   .mco-feed-page .btn-buy-direct {
     min-height: 34px !important;
+  }
+}
+</style>
+
+
+<style id="mco-disable-legacy-horizontal-mobile-nav">
+@media (max-width: 800px) {
+    #igViewer .mobile-cover-nav,
+    #igViewer .mobile-cover-arrow,
+    #igViewer .ig-navigation,
+    #igViewer .ig-arrow,
+    #igViewer .ig-dots,
+    #igViewer .ig-dot {
+        display: none !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+        touch-action: none !important;
+    }
+}
+</style>
+
+
+<style id="mco-mobile-feed-performance">
+@media (max-width: 800px) {
+  /*
+   * Evita repaints caros enquanto o card inteiro se move.
+   */
+  .mco-feed-page .timer-badge,
+  .mco-feed-page .preorder-label,
+  .mco-feed-page .stock-badge {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  /*
+   * Os brilhos animados dos botões eram decorativos e ficavam
+   * rodando em até 3 cards ao mesmo tempo.
+   */
+  .mco-feed-page .type-btn::before,
+  .mco-feed-page .type-btn::after {
+    animation: none !important;
+  }
+
+  /*
+   * Só a página central recebe eventos.
+   */
+  .mco-feed-page:not(.mco-feed-current) {
+    pointer-events: none !important;
+  }
+
+  .mco-feed-track {
+    transform-style: preserve-3d;
   }
 }
 </style>
@@ -4916,16 +4842,71 @@ async function copyShareText(text) {
                 .filter(Boolean);
         }
 
+        let mcoRememberViewedTimer = null;
+
+        function scheduleRememberViewedGame(
+            game
+        ) {
+            clearTimeout(
+                mcoRememberViewedTimer
+            );
+
+            mcoRememberViewedTimer =
+                setTimeout(
+                    () => {
+                        rememberViewedGame(
+                            game
+                        );
+                    },
+                    240
+                );
+        }
+
+
         function rememberViewedGame(game) {
             if (!game) return;
-            const ref = getGameStableRef(game);
+
+            const ref =
+                getGameStableRef(
+                    game
+                );
+
             if (!ref) return;
+
             try {
-                const refs = getRecentlyViewedRefs().filter(item => item !== ref);
-                refs.unshift(ref);
-                localStorage.setItem(RECENT_STORAGE_KEY, JSON.stringify(refs.slice(0, RECENT_LIMIT)));
+                const refs =
+                    getRecentlyViewedRefs()
+                        .filter(
+                            item =>
+                                item !== ref
+                        );
+
+                refs.unshift(
+                    ref
+                );
+
+                localStorage.setItem(
+                    RECENT_STORAGE_KEY,
+                    JSON.stringify(
+                        refs.slice(
+                            0,
+                            RECENT_LIMIT
+                        )
+                    )
+                );
             } catch (_) {}
-            renderRecentSection();
+
+            /*
+             * A seção de recentes é desktop.
+             * Não há motivo para redesenhá-la a cada swipe mobile.
+             */
+            if (
+                window.matchMedia(
+                    '(min-width: 801px)'
+                ).matches
+            ) {
+                renderRecentSection();
+            }
         }
 
         function clearRecentlyViewed() {
@@ -5190,34 +5171,64 @@ async function copyShareText(text) {
         }
 
         function removeExpiredTimedGames() {
-            const now = Date.now();
+            const now =
+                Date.now();
 
-            /*
-             * Recalcula a lista visível partindo da fonte original.
-             * Isso é importante porque um jogo do Catálogo pode estar
-             * temporariamente escondido por uma Promoção ativa.
-             * Quando a Promoção vence, ele volta sem precisar recarregar
-             * a página.
-             */
-            const changed = rebuildVisibleGames(now);
+            const changed =
+                rebuildVisibleGames(
+                    now
+                );
 
-            if (changed) {
-                // Remove também do carrinho qualquer item que deixou de existir.
-                const validIds = new Set(games.map(game => game.id));
-                selectedCart = selectedCart.filter(item => validIds.has(item.gameId));
+            if (!changed) {
+                return;
+            }
 
-                Object.keys(selectedPlatformByGame).forEach(gameId => {
-                    if (!validIds.has(gameId)) delete selectedPlatformByGame[gameId];
-                });
+            const validIds =
+                new Set(
+                    games.map(
+                        game => game.id
+                    )
+                );
 
-                populateCategories();
-                syncPlatformFilterUi();
+            selectedCart =
+                selectedCart.filter(
+                    item =>
+                        validIds.has(
+                            item.gameId
+                        )
+                );
+
+            Object.keys(
+                selectedPlatformByGame
+            ).forEach(
+                gameId => {
+                    if (
+                        !validIds.has(
+                            gameId
+                        )
+                    ) {
+                        delete selectedPlatformByGame[
+                            gameId
+                        ];
+                    }
+                }
+            );
+
+            populateCategories();
+            syncPlatformFilterUi();
+
+            if (
+                window.matchMedia(
+                    '(min-width: 801px)'
+                ).matches
+            ) {
                 renderLaunchCarousel();
                 renderPreorderCarousel();
                 renderPromotionCarousel();
-                renderGames();
-                updateBottomBar();
             }
+
+            renderGames();
+            updateBottomBar();
         }
 
         function getOrderedCategories(categories) {
@@ -5272,22 +5283,62 @@ async function copyShareText(text) {
                 .replace(/'/g, '&#039;');
         }
 
-        function updateTimers() {
-            removeExpiredTimedGames();
+        let mcoLastVisibilitySweep = 0;
 
-            const timerElements = document.querySelectorAll('.timer-badge');
-            timerElements.forEach(el => {
-                const targetStr = el.getAttribute('data-target');
-                if (targetStr) {
-                    const countdown = getCountdownString(targetStr);
+        function updateTimers() {
+            const now =
+                Date.now();
+
+            /*
+             * Recalcular toda a lista de centenas de jogos a cada
+             * segundo era desnecessário. O contador continua em 1s,
+             * mas a validade Promo/Pré-venda é revista a cada 15s.
+             */
+            if (
+                now -
+                mcoLastVisibilitySweep >=
+                15000
+            ) {
+                mcoLastVisibilitySweep =
+                    now;
+
+                removeExpiredTimedGames();
+            }
+
+            const timerElements =
+                document.querySelectorAll(
+                    '.timer-badge'
+                );
+
+            timerElements.forEach(
+                el => {
+                    const targetStr =
+                        el.getAttribute(
+                            'data-target'
+                        );
+
+                    if (!targetStr) {
+                        return;
+                    }
+
+                    const countdown =
+                        getCountdownString(
+                            targetStr
+                        );
+
                     if (countdown) {
-                        el.innerHTML = `⏳ ${countdown}`;
-                        el.style.display = 'inline-flex';
+                        el.innerHTML =
+                            `⏳ ${countdown}`;
+
+                        el.style.display =
+                            'inline-flex';
+
                     } else {
-                        el.style.display = 'none';
+                        el.style.display =
+                            'none';
                     }
                 }
-            });
+            );
         }
 
 
@@ -5734,9 +5785,24 @@ async function copyShareText(text) {
                 const directGameApplied = applySharedGameFromUrl();
                 if (!directGameApplied) applySharedCategoryFromUrl();
 
-                startAutoScroll('launchGrid');
-                startAutoScroll('preorderGrid');
-                startAutoScroll('promotionGrid');
+                if (
+                    window.matchMedia(
+                        '(min-width: 801px)'
+                    ).matches
+                ) {
+                    startAutoScroll(
+                        'launchGrid'
+                    );
+
+                    startAutoScroll(
+                        'preorderGrid'
+                    );
+
+                    startAutoScroll(
+                        'promotionGrid'
+                    );
+                }
+
                 startComboCoverRotator();
 
                 updateTimers();
@@ -5841,21 +5907,46 @@ async function copyShareText(text) {
             return selectedCart.find(i => i.gameId === gameId) || null;
         }
 
-        function selectPlatform(gameId, platform) {
-            const game = games.find(g => g.id === gameId);
-            if (!game || !game.platforms.includes(platform)) return;
+        function selectPlatform(
+            gameId,
+            platform
+        ) {
+            const game =
+                games.find(
+                    g =>
+                        g.id === gameId
+                );
 
-            // GUARDA A ESCOLHA. Antes, o código só redesenhava o card e
-            // imediatamente voltava para a primeira plataforma (normalmente PS4).
-            selectedPlatformByGame[gameId] = platform;
+            if (
+                !game ||
+                !game.platforms.includes(
+                    platform
+                )
+            ) {
+                return;
+            }
 
-            // Ao trocar de plataforma, remove a escolha de Primária/Secundária
-            // anterior porque ela pertence à outra plataforma.
-            selectedCart = selectedCart.filter(i => i.gameId !== gameId);
+            selectedPlatformByGame[
+                gameId
+            ] =
+                platform;
 
-            renderLaunchCarousel();
-            renderPreorderCarousel();
-            renderPromotionCarousel();
+            selectedCart =
+                selectedCart.filter(
+                    item =>
+                        item.gameId !== gameId
+                );
+
+            if (
+                window.matchMedia(
+                    '(min-width: 801px)'
+                ).matches
+            ) {
+                renderLaunchCarousel();
+                renderPreorderCarousel();
+                renderPromotionCarousel();
+            }
+
             renderGames();
             updateBottomBar();
         }
@@ -5897,9 +5988,16 @@ async function copyShareText(text) {
                 });
             }
 
-            renderLaunchCarousel();
-            renderPreorderCarousel();
-            renderPromotionCarousel();
+            if (
+                window.matchMedia(
+                    '(min-width: 801px)'
+                ).matches
+            ) {
+                renderLaunchCarousel();
+                renderPreorderCarousel();
+                renderPromotionCarousel();
+            }
+
             renderGames();
             updateBottomBar();
         }
@@ -6656,16 +6754,23 @@ async function copyShareText(text) {
             return task;
         }
 
-        function scheduleMobileSharePreparation(game, cardEl) {
-            if (!window.matchMedia('(max-width: 800px)').matches) return;
-            if (!game || !cardEl) return;
+        function scheduleMobileSharePreparation(
+            game,
+            cardEl
+        ) {
+            /*
+             * Antes o site executava html2canvas ~180 ms após
+             * CADA troca de jogo. Isso é muito pesado para o feed.
+             *
+             * Agora a imagem é gerada somente quando o usuário
+             * realmente toca em Compartilhar.
+             */
+            if (!cardEl) return;
 
-            clearTimeout(mobileSharePrepareTimer);
-            setMobileShareButtonState(cardEl, false);
-
-            mobileSharePrepareTimer = setTimeout(() => {
-                if (cardEl.isConnected) buildPreparedMobileShareFile(game, cardEl);
-            }, 180);
+            setMobileShareButtonState(
+                cardEl,
+                true
+            );
         }
 
         async function shareGameOffer(event, gameId) {
@@ -6894,15 +6999,45 @@ async function copyShareText(text) {
         }
 
         function advanceComboCoverCarousels() {
-            document
-                .querySelectorAll('.combo-cover-carousel')
-                .forEach(carousel => {
-                    const images = carousel.querySelectorAll('.combo-cover-image');
-                    if (images.length <= 1) return;
+            const mobile =
+                window.matchMedia(
+                    '(max-width: 800px)'
+                ).matches;
 
-                    const current = Number(carousel.dataset.comboIndex || 0);
-                    setComboCarouselIndex(carousel, current + 1);
-                });
+            const selector =
+                mobile
+                    ? '.mco-feed-current .combo-cover-carousel'
+                    : '.combo-cover-carousel';
+
+            document
+                .querySelectorAll(
+                    selector
+                )
+                .forEach(
+                    carousel => {
+                        const images =
+                            carousel.querySelectorAll(
+                                '.combo-cover-image'
+                            );
+
+                        if (
+                            images.length <= 1
+                        ) {
+                            return;
+                        }
+
+                        const current =
+                            Number(
+                                carousel.dataset.comboIndex ||
+                                0
+                            );
+
+                        setComboCarouselIndex(
+                            carousel,
+                            current + 1
+                        );
+                    }
+                );
         }
 
         function startComboCoverRotator() {
@@ -7037,8 +7172,8 @@ async function copyShareText(text) {
                         <button class="btn-buy-direct" ${selectedItem ? '' : 'disabled'} ${selectedItem ? '' : 'aria-disabled="true"'}
                                 title="${selectedItem ? 'Comprar este jogo' : 'Selecione a plataforma e depois Primária ou Secundária'}"
                                 onclick="buyGameDirect(event, '${game.id}')">🛒 Comprar</button>
-                        <button type="button" class="btn-share-circle" data-share-ready="0" aria-busy="true"
-                                onclick="shareGameOffer(event, '${game.id}')" title="Preparando imagem para compartilhar…">
+                        <button type="button" class="btn-share-circle" data-share-ready="1" aria-busy="false"
+                                onclick="shareGameOffer(event, '${game.id}')" title="Compartilhar oferta">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                                 <path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984 0 1.762.459 3.48 1.332 5.001l-1.416 5.17 5.291-1.387c1.467.8 3.123 1.22 4.78 1.22h.005c5.507 0 9.991-4.479 9.992-9.985 0-2.667-1.038-5.175-2.925-7.063C17.195 3.039 14.68 2 12.012 2z"/>
                             </svg>
@@ -7050,10 +7185,30 @@ async function copyShareText(text) {
                     </div>
                 </div>`;
 
-            card.querySelectorAll('.type-btn').forEach(btn => {
-                btn.style.setProperty('--type-glow-duration', `${(5.8 + Math.random() * 4.8).toFixed(2)}s`);
-                btn.style.setProperty('--type-glow-delay', `${(-Math.random() * 8).toFixed(2)}s`);
-            });
+            if (
+                window.matchMedia(
+                    '(min-width: 801px)'
+                ).matches
+            ) {
+                card
+                    .querySelectorAll(
+                        '.type-btn'
+                    )
+                    .forEach(
+                        btn => {
+                            btn.style.setProperty(
+                                '--type-glow-duration',
+                                `${(5.8 + Math.random() * 4.8).toFixed(2)}s`
+                            );
+
+                            btn.style.setProperty(
+                                '--type-glow-delay',
+                                `${(-Math.random() * 8).toFixed(2)}s`
+                            );
+                        }
+                    );
+            }
+
             return card;
         }
 
@@ -8007,11 +8162,38 @@ async function copyShareText(text) {
         }
 
         function preloadNearbyGameCovers() {
-            if (!instagramVisibleGames.length) return;
-            [-1, 1, 2].forEach(offset => {
-                const target = instagramVisibleGames[instagramIndex + offset];
-                if (target) preloadGameCover(target);
-            });
+            const length =
+                instagramVisibleGames.length;
+
+            if (!length) {
+                return;
+            }
+
+            [
+                -1,
+                1,
+                2
+            ].forEach(
+                offset => {
+                    const index =
+                        moduloFeedIndex(
+                            instagramIndex +
+                            offset,
+                            length
+                        );
+
+                    const target =
+                        instagramVisibleGames[
+                            index
+                        ];
+
+                    if (target) {
+                        preloadGameCover(
+                            target
+                        );
+                    }
+                }
+            );
         }
 
         (function setupInstagramGestures() {
@@ -8033,6 +8215,7 @@ async function copyShareText(text) {
             }, {passive:true});
 
             document.addEventListener('pointermove', e => {
+                if (window.matchMedia('(max-width: 800px)').matches) return;
                 if (activePointer !== e.pointerId || !draggingPost) return;
                 const dx = e.clientX - startX;
                 const dy = e.clientY - startY;
@@ -8044,6 +8227,12 @@ async function copyShareText(text) {
             }, {passive:true});
 
             function finishSwipe(e) {
+                if (window.matchMedia('(max-width: 800px)').matches) {
+                    activePointer = null;
+                    draggingPost = null;
+                    return;
+                }
+
                 if (activePointer !== e.pointerId) return;
                 const dx = e.clientX - startX;
                 const dy = e.clientY - startY;
@@ -8064,6 +8253,12 @@ async function copyShareText(text) {
 
             document.addEventListener('pointerup', finishSwipe, {passive:true});
             document.addEventListener('pointercancel', e => {
+                if (window.matchMedia('(max-width: 800px)').matches) {
+                    activePointer = null;
+                    draggingPost = null;
+                    return;
+                }
+
                 if (activePointer !== e.pointerId) return;
                 if (draggingPost) {
                     draggingPost.style.transform = '';
@@ -8074,6 +8269,7 @@ async function copyShareText(text) {
             }, {passive:true});
 
             document.addEventListener('keydown', e => {
+                if (window.matchMedia('(max-width: 800px)').matches) return;
                 if (e.target.matches('input,textarea,select')) return;
                 if (e.key === 'ArrowRight') moveInstagramGame(1);
                 if (e.key === 'ArrowLeft') moveInstagramGame(-1);
@@ -8134,36 +8330,45 @@ async function copyShareText(text) {
             );
         }
 
-        function completeInstagramFeedStep(direction) {
-            if (!instagramVisibleGames.length) {
-                instagramFeedAnimating = false;
+        function completeInstagramFeedStep(
+            direction
+        ) {
+            if (
+                !instagramVisibleGames.length
+            ) {
+                instagramFeedAnimating =
+                    false;
+
                 return;
             }
 
             instagramIndex =
                 moduloFeedIndex(
-                    instagramIndex + direction,
+                    instagramIndex +
+                    direction,
                     instagramVisibleGames.length
                 );
 
             instagramTransitionDirection =
                 direction;
 
-            const viewed =
-                instagramVisibleGames[
-                    instagramIndex
-                ];
-
-            if (viewed) {
-                rememberViewedGame(viewed);
-            }
-
-            instagramFeedAnimating = false;
+            instagramFeedAnimating =
+                false;
 
             /*
-             * O card que acabou de entrar já é visualmente igual
-             * ao novo card central. Recriamos os 3 vizinhos e
-             * reposicionamos sem animação, portanto não há salto.
+             * Caminho rápido:
+             * mantém 2 cards existentes e cria somente 1 novo.
+             */
+            if (
+                recycleInstagramFeedTrack(
+                    direction
+                )
+            ) {
+                return;
+            }
+
+            /*
+             * Fallback seguro.
              */
             renderInstagramView();
         }
@@ -8295,7 +8500,7 @@ async function copyShareText(text) {
                         event.target &&
                         event.target.closest
                             ? event.target.closest(
-                                'input, select, textarea'
+                                'input, select, textarea, .mobile-cover-nav, .mobile-cover-arrow'
                               )
                             : null;
 
@@ -8590,6 +8795,280 @@ async function copyShareText(text) {
                     );
                 } catch (_) {}
             }, 5200);
+        }
+
+
+        function getFastFeedCategoryLabel(
+            game
+        ) {
+            const searchInput =
+                document.getElementById(
+                    'searchInput'
+                );
+
+            const searchVal =
+                normalizeCatalogSearch(
+                    searchInput
+                        ? searchInput.value
+                        : ''
+                );
+
+            if (
+                searchVal ||
+                selectedSearchGameId
+            ) {
+                return game.category;
+            }
+
+            if (
+                instagramCategory ===
+                '__RECENT__'
+            ) {
+                return 'Vistos recentemente';
+            }
+
+            if (
+                instagramCategory ===
+                'ALL'
+            ) {
+                return game.category;
+            }
+
+            return instagramCategory;
+        }
+
+
+        function createFastFeedPage(
+            game,
+            realIndex,
+            isCurrent = false
+        ) {
+            const page =
+                document.createElement(
+                    'section'
+                );
+
+            page.className =
+                'mco-feed-page' +
+                (
+                    isCurrent
+                        ? ' mco-feed-current'
+                        : ''
+                );
+
+            page.dataset.realIndex =
+                String(
+                    realIndex
+                );
+
+            const post =
+                document.createElement(
+                    'div'
+                );
+
+            post.className =
+                'ig-post';
+
+            const top =
+                document.createElement(
+                    'div'
+                );
+
+            top.className =
+                'ig-topline';
+
+            top.innerHTML =
+                `<span class="ig-category-label">` +
+                `${escapeHtml(getFastFeedCategoryLabel(game) || 'MCO Games')}` +
+                `</span>` +
+                `<span class="ig-count">` +
+                `${realIndex + 1} / ${instagramVisibleGames.length}` +
+                `</span>`;
+
+            post.appendChild(
+                top
+            );
+
+            post.appendChild(
+                createCardElement(
+                    game
+                )
+            );
+
+            page.appendChild(
+                post
+            );
+
+            return {
+                page,
+                post,
+                game,
+                realIndex
+            };
+        }
+
+
+        function refreshFastFeedAfterStep() {
+            updateTimers();
+            preloadNearbyGameCovers();
+
+            const viewer =
+                document.getElementById(
+                    'igViewer'
+                );
+
+            const currentPage =
+                viewer &&
+                viewer.querySelector(
+                    '.mco-feed-current'
+                );
+
+            const currentCard =
+                currentPage &&
+                currentPage.querySelector(
+                    '.card'
+                );
+
+            if (currentCard) {
+                setMobileShareButtonState(
+                    currentCard,
+                    true
+                );
+            }
+
+            const currentGame =
+                instagramVisibleGames[
+                    instagramIndex
+                ];
+
+            if (currentGame) {
+                scheduleRememberViewedGame(
+                    currentGame
+                );
+            }
+
+            if (
+                typeof window.mcoRefreshVerticalFeedDecorations ===
+                'function'
+            ) {
+                window.mcoRefreshVerticalFeedDecorations();
+            }
+        }
+
+
+        function recycleInstagramFeedTrack(
+            direction
+        ) {
+            const viewer =
+                document.getElementById(
+                    'igViewer'
+                );
+
+            const track =
+                getInstagramFeedTrack(
+                    viewer
+                );
+
+            if (
+                !viewer ||
+                !track ||
+                instagramVisibleGames.length <= 1
+            ) {
+                return false;
+            }
+
+            track.classList.remove(
+                'animating'
+            );
+
+            if (direction > 0) {
+                const first =
+                    track.firstElementChild;
+
+                if (first) {
+                    first.remove();
+                }
+
+                const nextIndex =
+                    moduloFeedIndex(
+                        instagramIndex + 1,
+                        instagramVisibleGames.length
+                    );
+
+                const next =
+                    createFastFeedPage(
+                        instagramVisibleGames[
+                            nextIndex
+                        ],
+                        nextIndex,
+                        false
+                    );
+
+                track.appendChild(
+                    next.page
+                );
+
+            } else {
+                const last =
+                    track.lastElementChild;
+
+                if (last) {
+                    last.remove();
+                }
+
+                const previousIndex =
+                    moduloFeedIndex(
+                        instagramIndex - 1,
+                        instagramVisibleGames.length
+                    );
+
+                const previous =
+                    createFastFeedPage(
+                        instagramVisibleGames[
+                            previousIndex
+                        ],
+                        previousIndex,
+                        false
+                    );
+
+                track.insertBefore(
+                    previous.page,
+                    track.firstChild
+                );
+            }
+
+            const pages =
+                [
+                    ...track.children
+                ];
+
+            pages.forEach(
+                (
+                    page,
+                    index
+                ) => {
+                    page.classList.toggle(
+                        'mco-feed-current',
+                        index === 1
+                    );
+                }
+            );
+
+            const height =
+                Math.max(
+                    1,
+                    viewer.clientHeight
+                );
+
+            positionInstagramFeedTrack(
+                track,
+                -height,
+                false
+            );
+
+            refreshFastFeedAfterStep();
+
+            return true;
         }
 
 
@@ -8919,6 +9398,13 @@ async function copyShareText(text) {
                     only.game
                 );
 
+                if (
+                    typeof window.mcoRefreshVerticalFeedDecorations ===
+                    'function'
+                ) {
+                    window.mcoRefreshVerticalFeedDecorations();
+                }
+
                 return;
             }
 
@@ -9015,6 +9501,13 @@ async function copyShareText(text) {
             maybeAddFeedSwipeHint(
                 current.page
             );
+
+            if (
+                typeof window.mcoRefreshVerticalFeedDecorations ===
+                'function'
+            ) {
+                window.mcoRefreshVerticalFeedDecorations();
+            }
         }
 
         function renderGames() {
@@ -9079,10 +9572,48 @@ async function copyShareText(text) {
             }
         }
 
-        window.addEventListener('resize', () => {
-            clearTimeout(window.__mcoResponsiveRender);
-            window.__mcoResponsiveRender = setTimeout(renderGames, 120);
-        });
+        const mcoResponsiveMedia =
+            window.matchMedia(
+                '(min-width: 801px)'
+            );
+
+        function handleResponsiveModeChange() {
+            instagramFeedAnimating = false;
+            renderGames();
+        }
+
+        if (
+            typeof mcoResponsiveMedia.addEventListener ===
+            'function'
+        ) {
+            mcoResponsiveMedia.addEventListener(
+                'change',
+                handleResponsiveModeChange
+            );
+        } else if (
+            typeof mcoResponsiveMedia.addListener ===
+            'function'
+        ) {
+            mcoResponsiveMedia.addListener(
+                handleResponsiveModeChange
+            );
+        }
+
+        window.addEventListener(
+            'orientationchange',
+            () => {
+                clearTimeout(
+                    window.__mcoOrientationRender
+                );
+
+                window.__mcoOrientationRender =
+                    setTimeout(
+                        renderGames,
+                        180
+                    );
+            },
+            { passive: true }
+        );
 
         function calculateTotal() {
             return selectedCart.reduce((acc, item) => acc + item.price, 0);
@@ -9248,45 +9779,6 @@ async function copyShareText(text) {
         fetchCatalogFromSheets();
     </script>
 
-<script id="mco-final-mobile-layout-hook">
-(() => {
-  function settleMobileLayout() {
-    if (!window.matchMedia('(max-width:800px)').matches) return;
-    const viewer = document.getElementById('igViewer');
-    if (!viewer) return;
-
-    // Força um novo cálculo de flex/layout depois que imagem e dados entram no DOM.
-    viewer.style.display = 'none';
-    void viewer.offsetHeight;
-    viewer.style.display = '';
-
-    requestAnimationFrame(() => {
-      const img = viewer.querySelector('.card-img');
-      if (img && !img.complete) {
-        img.addEventListener('load', () => {
-          requestAnimationFrame(() => {
-            viewer.style.display = 'none';
-            void viewer.offsetHeight;
-            viewer.style.display = '';
-          });
-        }, { once:true });
-      }
-    });
-  }
-
-  const observer = new MutationObserver(settleMobileLayout);
-  document.addEventListener('DOMContentLoaded', () => {
-    const viewer = document.getElementById('igViewer');
-    if (viewer) observer.observe(viewer, { childList:true });
-    settleMobileLayout();
-  });
-
-  window.addEventListener('resize', settleMobileLayout, { passive:true });
-  window.addEventListener('orientationchange', settleMobileLayout, { passive:true });
-})();
-</script>
-
-
 <style id="mco-layout-reference-update">
 /* Cabeçalho mobile inspirado na referência: logo e busca na mesma linha. */
 @media (max-width: 800px) {
@@ -9296,11 +9788,18 @@ async function copyShareText(text) {
   header.mco-search-in-header .header-actions {display:none!important;}
   header.mco-search-in-header .search-box {display:flex!important;flex:1 1 48%!important;width:auto!important;min-width:0!important;height:44px!important;min-height:44px!important;border:1px solid #25465b!important;border-radius:24px!important;background:#10151c!important;box-shadow:0 0 0 2px rgba(22,191,255,.06), inset 0 0 10px rgba(22,191,255,.04)!important;}
   header.mco-search-in-header .search-input {font-size:.9rem!important;padding-left:35px!important;padding-right:28px!important;}
-  .controls.mco-search-moved {height:43px!important;min-height:43px!important;flex-basis:43px!important;display:flex!important;justify-content:flex-end!important;padding:0 5px 4px!important;}
+  .controls.mco-search-moved {
+    display:none!important;
+    width:0!important;
+    height:0!important;
+    min-height:0!important;
+    flex-basis:0!important;
+    margin:0!important;
+    padding:0!important;
+    border:0!important;
+    pointer-events:none!important;
+  }
   .controls.mco-search-moved .search-box {display:none!important;}
-  .ig-post .card-img-container {aspect-ratio:1/1!important;height:auto!important;max-height:none!important;min-height:0!important;}
-  .ig-post .card-img {width:100%!important;height:100%!important;object-fit:cover!important;}
-  .ig-post .card-info {padding:9px 11px 12px!important;gap:6px!important;}
 }
 @media (min-width:801px) {
   header .search-box {display:none!important;}
@@ -9431,24 +9930,123 @@ async function copyShareText(text) {
 
 </style>
 <script id="mco-mobile-header-search">
-(function(){
-  function placeSearch(){
-    const header=document.querySelector('header');
-    const controls=document.querySelector('.controls');
-    const brand=header&&header.querySelector('.brand');
-    const search=controls&&controls.querySelector('.search-box');
-    if(!header||!controls||!brand||!search)return;
-    if(window.matchMedia('(max-width: 800px)').matches){
-      if(search.parentElement!==header){header.insertBefore(search,header.querySelector('.header-actions'));}
-      header.classList.add('mco-search-in-header');controls.classList.add('mco-search-moved');
-    }else{
-      if(search.parentElement!==controls)controls.insertBefore(search,controls.firstChild);
-      header.classList.remove('mco-search-in-header');controls.classList.remove('mco-search-moved');
+(() => {
+  const media =
+    window.matchMedia(
+      '(max-width: 800px)'
+    );
+
+  function placeSearch() {
+    const header =
+      document.querySelector(
+        'header'
+      );
+
+    const controls =
+      document.querySelector(
+        '.controls'
+      );
+
+    const brand =
+      header &&
+      header.querySelector(
+        '.brand'
+      );
+
+    const search =
+      controls &&
+      controls.querySelector(
+        '.search-box'
+      );
+
+    /*
+     * Quando a busca já foi movida para o header,
+     * ela deixa de estar dentro de .controls.
+     */
+    const currentSearch =
+      (
+        header &&
+        header.querySelector(
+          ':scope > .search-box'
+        )
+      ) ||
+      search;
+
+    if (
+      !header ||
+      !controls ||
+      !brand ||
+      !currentSearch
+    ) {
+      return;
     }
+
+    if (media.matches) {
+      if (
+        currentSearch.parentElement !==
+        header
+      ) {
+        header.insertBefore(
+          currentSearch,
+          header.querySelector(
+            '.header-actions'
+          )
+        );
+      }
+
+      header.classList.add(
+        'mco-search-in-header'
+      );
+
+      controls.classList.add(
+        'mco-search-moved'
+      );
+
+      return;
+    }
+
+    if (
+      currentSearch.parentElement !==
+      controls
+    ) {
+      controls.insertBefore(
+        currentSearch,
+        controls.firstChild
+      );
+    }
+
+    header.classList.remove(
+      'mco-search-in-header'
+    );
+
+    controls.classList.remove(
+      'mco-search-moved'
+    );
   }
-  document.addEventListener('DOMContentLoaded',placeSearch);
-  window.addEventListener('resize',placeSearch,{passive:true});
-  window.addEventListener('orientationchange',placeSearch,{passive:true});
+
+  document.addEventListener(
+    'DOMContentLoaded',
+    placeSearch,
+    { once: true }
+  );
+
+  if (
+    typeof media.addEventListener ===
+    'function'
+  ) {
+    media.addEventListener(
+      'change',
+      placeSearch
+    );
+  } else if (
+    typeof media.addListener ===
+    'function'
+  ) {
+    media.addListener(
+      placeSearch
+    );
+  }
+
   placeSearch();
 })();
 </script>
@@ -9456,9 +10054,65 @@ async function copyShareText(text) {
 
 
 <script id="mco-mobile-share-current-screen">
+let mcoHtml2CanvasPromise = null;
+
+async function ensureHtml2CanvasLoaded() {
+    if (
+        typeof window.html2canvas ===
+        'function'
+    ) {
+        return window.html2canvas;
+    }
+
+    if (mcoHtml2CanvasPromise) {
+        return mcoHtml2CanvasPromise;
+    }
+
+    mcoHtml2CanvasPromise =
+        new Promise(
+            (resolve, reject) => {
+                const script =
+                    document.createElement(
+                        'script'
+                    );
+
+                script.src =
+                    'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+
+                script.async = true;
+
+                script.onload =
+                    () => resolve(
+                        window.html2canvas
+                    );
+
+                script.onerror =
+                    () => reject(
+                        new Error(
+                            'Não foi possível carregar o gerador de imagem.'
+                        )
+                    );
+
+                document.head.appendChild(
+                    script
+                );
+            }
+        );
+
+    return mcoHtml2CanvasPromise;
+}
+
+
 async function buildCurrentMobileScreenShare(cardEl, game = null) {
-    if (typeof html2canvas === 'undefined') {
-        throw new Error('html2canvas não foi carregado.');
+    await ensureHtml2CanvasLoaded();
+
+    if (
+        typeof html2canvas ===
+        'undefined'
+    ) {
+        throw new Error(
+            'html2canvas não foi carregado.'
+        );
     }
 
     const currentMobilePost = cardEl ? cardEl.closest('.ig-post') : null;
@@ -9823,265 +10477,164 @@ async function buildCurrentMobileScreenShare(cardEl, game = null) {
 
 <script id="mco-search-arrow-final-fix-script">
 (() => {
-    const ARROW_FIRST_DELAY = 280;
-    const ARROW_REPEAT_DELAY = 7200;
+    /*
+     * Feed vertical ativo:
+     * as antigas setas esquerda/direita foram desativadas de vez.
+     * Mantemos somente:
+     * 1) colocar o relógio sobre a capa;
+     * 2) garantir que a busca continue editável.
+     */
 
-    let cueStartTimer = null;
-    let cueRepeatTimer = null;
-    let activeCover = null;
-    let activeGameKey = '';
+    function removeLegacyMobileArrows() {
+        document
+            .querySelectorAll(
+                '#igViewer .mobile-cover-nav, #igViewer .mobile-cover-arrow'
+            )
+            .forEach(
+                element => element.remove()
+            );
+    }
 
-    function clearArrowCueTimers() {
-        if (cueStartTimer) {
-            clearTimeout(cueStartTimer);
-            cueStartTimer = null;
+    function moveTimersToCovers() {
+        if (
+            !window.matchMedia(
+                '(max-width: 800px)'
+            ).matches
+        ) {
+            return;
         }
-        if (cueRepeatTimer) {
-            clearInterval(cueRepeatTimer);
-            cueRepeatTimer = null;
+
+        const viewer =
+            document.getElementById(
+                'igViewer'
+            );
+
+        if (!viewer) {
+            return;
         }
-    }
 
-    function getCurrentPositionFromUI() {
-        const count = document.querySelector('#igViewer .ig-count');
-        if (!count) return { index: 0, total: 0 };
+        removeLegacyMobileArrows();
 
-        const match = String(count.textContent || '').match(/(\d+)\s*\/\s*(\d+)/);
-        if (!match) return { index: 0, total: 0 };
+        viewer
+            .querySelectorAll(
+                '.ig-post .card'
+            )
+            .forEach(
+                card => {
+                    const cover =
+                        card.querySelector(
+                            '.card-img-container'
+                        );
 
-        return {
-            index: Math.max(0, Number(match[1]) - 1),
-            total: Math.max(0, Number(match[2]))
-        };
-    }
+                    const timer =
+                        card.querySelector(
+                            '.card-info .timer-badge'
+                        );
 
-    function getCurrentGameKey(cover) {
-        const card = cover && cover.closest('.card');
-        const count = document.querySelector('#igViewer .ig-count');
-        const title = card && card.querySelector('.card-title');
-
-        return [
-            card?.dataset?.gameId || '',
-            String(count?.textContent || '').trim(),
-            String(title?.textContent || '').trim()
-        ].join('::');
-    }
-
-    function moveTimerToCover(cover) {
-        if (!cover) return;
-
-        const card = cover.closest('.card');
-        if (!card) return;
-
-        const timer = card.querySelector('.card-info .timer-badge');
-        if (timer) cover.appendChild(timer);
-    }
-
-    function restartArrowAnimation(button) {
-        if (!button || button.disabled) return;
-
-        button.classList.remove('mco-arrow-cue-active');
-        void button.offsetWidth;
-        button.classList.add('mco-arrow-cue-active');
-
-        const cleanup = () => {
-            button.classList.remove('mco-arrow-cue-active');
-            button.removeEventListener('animationend', cleanup);
-        };
-
-        button.addEventListener('animationend', cleanup);
-    }
-
-    function runArrowCue(nav) {
-        if (!nav || !nav.isConnected) return;
-
-        restartArrowAnimation(nav.querySelector('.mobile-cover-arrow-prev'));
-        restartArrowAnimation(nav.querySelector('.mobile-cover-arrow-next'));
-    }
-
-    function scheduleArrowCue(nav) {
-        clearArrowCueTimers();
-
-        cueStartTimer = setTimeout(() => {
-            runArrowCue(nav);
-
-            cueRepeatTimer = setInterval(() => {
-                const currentCover = document.querySelector('#igViewer .ig-post .card-img-container');
-
-                if (currentCover !== activeCover || !nav.isConnected) {
-                    clearArrowCueTimers();
-                    return;
+                    if (
+                        cover &&
+                        timer
+                    ) {
+                        cover.appendChild(
+                            timer
+                        );
+                    }
                 }
-
-                runArrowCue(nav);
-            }, ARROW_REPEAT_DELAY);
-        }, ARROW_FIRST_DELAY);
-    }
-
-    function buildMobileCoverArrows() {
-        if (!window.matchMedia('(max-width: 800px)').matches) {
-            clearArrowCueTimers();
-            activeCover = null;
-            activeGameKey = '';
-            return;
-        }
-
-        const viewer = document.getElementById('igViewer');
-        if (!viewer) return;
-
-        const cover = viewer.querySelector('.ig-post .card-img-container');
-        if (!cover) return;
-
-        moveTimerToCover(cover);
-
-        const gameKey = getCurrentGameKey(cover);
-        let nav = cover.querySelector('.mobile-cover-nav');
-
-        if (nav && cover === activeCover && gameKey === activeGameKey) {
-            return;
-        }
-
-        clearArrowCueTimers();
-
-        if (nav) nav.remove();
-
-        const position = getCurrentPositionFromUI();
-
-        nav = document.createElement('div');
-        nav.className = 'mobile-cover-nav';
-        nav.dataset.gameKey = gameKey;
-
-        const prev = document.createElement('button');
-        prev.type = 'button';
-        prev.className = 'mobile-cover-arrow mobile-cover-arrow-prev';
-        prev.setAttribute('aria-label', 'Jogo anterior');
-        prev.innerHTML = '&#8249;';
-        prev.disabled = position.index <= 0;
-
-        prev.addEventListener('click', (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-
-            if (!prev.disabled && typeof moveInstagramGame === 'function') {
-                clearArrowCueTimers();
-                moveInstagramGame(-1);
-            }
-        });
-
-        const next = document.createElement('button');
-        next.type = 'button';
-        next.className = 'mobile-cover-arrow mobile-cover-arrow-next';
-        next.setAttribute('aria-label', 'Próximo jogo');
-        next.innerHTML = '&#8250;';
-        next.disabled = position.total > 0 && position.index >= position.total - 1;
-
-        next.addEventListener('click', (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-
-            if (!next.disabled && typeof moveInstagramGame === 'function') {
-                clearArrowCueTimers();
-                moveInstagramGame(1);
-            }
-        });
-
-        nav.appendChild(prev);
-        nav.appendChild(next);
-        cover.appendChild(nav);
-
-        activeCover = cover;
-        activeGameKey = gameKey;
-
-        scheduleArrowCue(nav);
-    }
-
-    let refreshQueued = false;
-
-    function refreshMobileCardDecorations() {
-        if (refreshQueued) return;
-        refreshQueued = true;
-
-        requestAnimationFrame(() => {
-            refreshQueued = false;
-            buildMobileCoverArrows();
-        });
-    }
-
-    function setupViewerObserver() {
-        const viewer = document.getElementById('igViewer');
-        if (!viewer || viewer.dataset.mcoArrowObserverReady === '1') return !!viewer;
-
-        viewer.dataset.mcoArrowObserverReady = '1';
-
-        const observer = new MutationObserver(mutations => {
-            const relevant = mutations.some(mutation => {
-                const nodes = [...mutation.addedNodes, ...mutation.removedNodes];
-                if (!nodes.length) return true;
-
-                return nodes.some(node => {
-                    if (!(node instanceof Element)) return true;
-
-                    return !(
-                        node.classList.contains('mobile-cover-nav') ||
-                        node.classList.contains('mobile-cover-arrow')
-                    );
-                });
-            });
-
-            if (relevant) refreshMobileCardDecorations();
-        });
-
-        observer.observe(viewer, {
-            childList: true,
-            subtree: true
-        });
-
-        refreshMobileCardDecorations();
-        return true;
+            );
     }
 
     function guaranteeNativeSearch() {
-        const input = document.getElementById('searchInput');
-        const box = input && input.closest('.search-box');
+        const input =
+            document.getElementById(
+                'searchInput'
+            );
 
-        if (!input || !box) return;
+        const box =
+            input &&
+            input.closest(
+                '.search-box'
+            );
+
+        if (
+            !input ||
+            !box
+        ) {
+            return;
+        }
 
         input.disabled = false;
         input.readOnly = false;
         input.tabIndex = 0;
-        input.style.pointerEvents = 'auto';
-        box.style.pointerEvents = 'auto';
+        input.style.pointerEvents =
+            'auto';
+
+        box.style.pointerEvents =
+            'auto';
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-        guaranteeNativeSearch();
+    let refreshQueued = false;
 
-        if (!setupViewerObserver()) {
-            const wait = setInterval(() => {
-                if (setupViewerObserver()) clearInterval(wait);
-            }, 250);
-
-            setTimeout(() => clearInterval(wait), 8000);
+    function refreshVerticalFeedDecorations() {
+        if (refreshQueued) {
+            return;
         }
 
-        requestAnimationFrame(guaranteeNativeSearch);
-        setTimeout(guaranteeNativeSearch, 150);
-        setTimeout(guaranteeNativeSearch, 600);
+        refreshQueued = true;
 
-        window.addEventListener('resize', () => {
-            guaranteeNativeSearch();
-            activeCover = null;
-            activeGameKey = '';
-            refreshMobileCardDecorations();
-        }, { passive: true });
+        requestAnimationFrame(
+            () => {
+                refreshQueued = false;
+                moveTimersToCovers();
+            }
+        );
+    }
 
-        window.addEventListener('orientationchange', () => {
+    /*
+     * O motor principal chama isto depois de renderizar.
+     * Não acompanhamos cada mutação do DOM.
+     */
+    window.mcoRefreshVerticalFeedDecorations =
+        refreshVerticalFeedDecorations;
+
+    document.addEventListener(
+        'DOMContentLoaded',
+        () => {
             guaranteeNativeSearch();
-            activeCover = null;
-            activeGameKey = '';
-            refreshMobileCardDecorations();
-        }, { passive: true });
-    });
+            refreshVerticalFeedDecorations();
+
+            requestAnimationFrame(
+                guaranteeNativeSearch
+            );
+
+            setTimeout(
+                guaranteeNativeSearch,
+                150
+            );
+
+            setTimeout(
+                guaranteeNativeSearch,
+                600
+            );
+
+            window.addEventListener(
+                'resize',
+                () => {
+                    guaranteeNativeSearch();
+                    refreshVerticalFeedDecorations();
+                },
+                { passive: true }
+            );
+
+            window.addEventListener(
+                'orientationchange',
+                () => {
+                    guaranteeNativeSearch();
+                    refreshVerticalFeedDecorations();
+                },
+                { passive: true }
+            );
+        }
+    );
 })();
 </script>
 
