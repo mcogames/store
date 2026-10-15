@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="mco-mobile-engine" content="vertical-feed-fixed-shell-refined-v5">
+    <meta name="mco-mobile-engine" content="vertical-feed-fixed-shell-vip-safe-v6">
     <title>MCO GAMES | Sua Loja Digital</title>
     
     <!-- Meta Tags para redes sociais e WhatsApp -->
@@ -4764,6 +4764,85 @@ async function copyShareText(text) {
   .mco-mobile-dynamic-card .card-img-container {
     height: min(calc(100vw - 16px), 31svh) !important;
     min-height: 140px !important;
+  }
+}
+</style>
+
+
+<style id="mco-mobile-vip-no-overlap-v3">
+@media (max-width: 800px) {
+  /*
+   * O Grupo VIP continua flutuante, mas agora possui
+   * uma faixa vertical reservada e transparente.
+   * Assim ele nunca cobre PS4 / PS5.
+   */
+
+  #igViewer.mco-vertical-feed {
+    --mco-vip-row-h: 34px;
+    --mco-shell-dock-h: 198px;
+  }
+
+  .mco-mobile-feed-dock {
+    padding-top:
+      calc(
+        var(--mco-vip-row-h)
+        + 4px
+      ) !important;
+  }
+
+  .mco-fixed-vip-row {
+    top: 3px !important;
+    right: 10px !important;
+
+    height:
+      var(--mco-vip-row-h) !important;
+
+    min-height:
+      var(--mco-vip-row-h) !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+  }
+
+  /*
+   * Plataforma começa abaixo da faixa reservada do VIP.
+   */
+  .mco-fixed-platform-zone {
+    margin-top: 0 !important;
+  }
+
+  .mco-fixed-platform-zone .platform-heading {
+    padding-right: 0 !important;
+  }
+
+  /*
+   * O fundo continua transparente.
+   */
+  .mco-mobile-feed-dock {
+    background: transparent !important;
+    border-top: 0 !important;
+    box-shadow: none !important;
+  }
+}
+
+@media (max-width: 800px) and (max-height: 690px) {
+  #igViewer.mco-vertical-feed {
+    --mco-vip-row-h: 30px;
+    --mco-shell-dock-h: 179px;
+  }
+
+  .mco-mobile-feed-dock {
+    padding-top:
+      calc(
+        var(--mco-vip-row-h)
+        + 3px
+      ) !important;
+  }
+
+  .mco-fixed-vip-row {
+    top: 2px !important;
+    right: 8px !important;
   }
 }
 </style>
