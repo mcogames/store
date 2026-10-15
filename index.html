@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="mco-mobile-engine" content="vertical-feed-optimized-v3">
+    <meta name="mco-mobile-engine" content="vertical-feed-fixed-shell-v4">
     <title>MCO GAMES | Sua Loja Digital</title>
     
     <!-- Meta Tags para redes sociais e WhatsApp -->
@@ -4225,6 +4225,402 @@ async function copyShareText(text) {
 }
 </style>
 
+
+<style id="mco-mobile-fixed-shell-v1">
+@media (max-width: 800px) {
+  /*
+   * NOVO MODELO
+   * -----------------------------------------------
+   * FIXO:
+   * - categoria/contador
+   * - Grupo VIP
+   * - Plataforma
+   * - Primária/Secundária
+   * - Comprar / Compartilhar / Categorias
+   *
+   * DESLIZA:
+   * - capa
+   * - nome
+   * - status
+   * - contador da oferta
+   * - preços/desconto
+   * - informações do combo
+   */
+
+  #igViewer.mco-vertical-feed {
+    --mco-shell-header-h: 34px;
+    --mco-shell-dock-h: 224px;
+
+    border: 1px solid #17466b;
+    border-radius: 16px;
+    background:
+      linear-gradient(
+        160deg,
+        #071725,
+        #080d14
+      );
+    box-shadow:
+      0 0 18px rgba(0,145,255,.13);
+
+    overflow: hidden !important;
+  }
+
+  .mco-mobile-feed-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 30;
+
+    height: var(--mco-shell-header-h);
+    min-height: var(--mco-shell-header-h);
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+
+    padding: 0 10px;
+
+    border-bottom:
+      1px solid
+      rgba(32, 190, 255, .25);
+
+    background:
+      rgba(0, 23, 41, .97);
+
+    pointer-events: none;
+  }
+
+  .mco-mobile-feed-header-category {
+    color: #20c8ff;
+    font-size: .86rem;
+    font-weight: 950;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .mco-mobile-feed-header-count {
+    color: #a8b7c5;
+    font-size: .72rem;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .mco-feed-stage {
+    position: absolute;
+    top: var(--mco-shell-header-h);
+    left: 0;
+    right: 0;
+    bottom: var(--mco-shell-dock-h);
+
+    overflow: hidden;
+    contain: layout paint;
+  }
+
+  .mco-feed-stage .mco-feed-track {
+    top: 0 !important;
+    left: 0 !important;
+
+    height:
+      calc(
+        (
+          var(--mco-feed-height)
+          - var(--mco-shell-header-h)
+          - var(--mco-shell-dock-h)
+        ) * 3
+      ) !important;
+  }
+
+  .mco-feed-stage .mco-feed-page {
+    height:
+      calc(
+        var(--mco-feed-height)
+        - var(--mco-shell-header-h)
+        - var(--mco-shell-dock-h)
+      ) !important;
+
+    min-height:
+      calc(
+        var(--mco-feed-height)
+        - var(--mco-shell-header-h)
+        - var(--mco-shell-dock-h)
+      ) !important;
+
+    max-height:
+      calc(
+        var(--mco-feed-height)
+        - var(--mco-shell-header-h)
+        - var(--mco-shell-dock-h)
+      ) !important;
+
+    padding: 0 !important;
+  }
+
+  .mco-feed-page .ig-topline {
+    display: none !important;
+  }
+
+  .mco-feed-page .ig-post {
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+  }
+
+  .mco-mobile-dynamic-card {
+    height: 100% !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+  }
+
+  /*
+   * Esses elementos agora moram no dock fixo.
+   */
+  .mco-mobile-dynamic-card .mobile-card-vip,
+  .mco-mobile-dynamic-card .platform-heading,
+  .mco-mobile-dynamic-card .platform-selector,
+  .mco-mobile-dynamic-card .platform-single,
+  .mco-mobile-dynamic-card .type-selector,
+  .mco-mobile-dynamic-card .card-actions-row {
+    display: none !important;
+  }
+
+  .mco-mobile-dynamic-card .price-vip-row {
+    display: block !important;
+    width: 100% !important;
+  }
+
+  .mco-mobile-dynamic-card .price-container {
+    width: 100% !important;
+  }
+
+  /*
+   * O relógio deixa a capa e passa a fazer parte da informação
+   * do produto.
+   */
+  .mco-mobile-dynamic-card .card-info > .timer-badge {
+    position: static !important;
+    inset: auto !important;
+
+    display: inline-flex;
+    align-self: flex-start;
+
+    width: auto !important;
+    max-width: 100% !important;
+
+    margin: 1px 0 2px !important;
+    padding: 4px 8px !important;
+
+    border:
+      1px solid
+      rgba(255, 190, 32, .44) !important;
+
+    border-radius: 8px !important;
+
+    background:
+      rgba(42, 31, 7, .72) !important;
+
+    color: #ffd04c !important;
+
+    font-size: .66rem !important;
+    font-weight: 900 !important;
+    line-height: 1.1 !important;
+
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  .mco-mobile-dynamic-card .card-info {
+    padding: 5px 9px 7px !important;
+  }
+
+  /*
+   * Dock permanente.
+   */
+  .mco-mobile-feed-dock {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 35;
+
+    height: var(--mco-shell-dock-h);
+    min-height: var(--mco-shell-dock-h);
+
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    padding: 7px 10px 8px;
+
+    border-top:
+      1px solid
+      rgba(32, 190, 255, .20);
+
+    background:
+      linear-gradient(
+        180deg,
+        rgba(3, 16, 27, .98),
+        rgba(5, 14, 23, .99)
+      );
+
+    overflow: hidden;
+  }
+
+  .mco-fixed-vip-row {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+
+    min-height: 34px;
+  }
+
+  .mco-fixed-vip-row .mobile-card-vip {
+    margin: 0 !important;
+  }
+
+  .mco-fixed-platform-zone {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+
+    min-height: 63px;
+  }
+
+  .mco-fixed-platform-zone .platform-heading {
+    margin: 0 !important;
+    min-height: 16px;
+
+    color: #d7e4ed;
+    font-size: .68rem !important;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .mco-fixed-platform-content {
+    min-height: 42px;
+  }
+
+  .mco-fixed-platform-content .platform-selector,
+  .mco-fixed-platform-content .platform-single {
+    margin: 0 !important;
+    min-height: 42px !important;
+  }
+
+  .mco-fixed-platform-content .platform-btn {
+    min-height: 42px !important;
+  }
+
+  .mco-fixed-type-zone {
+    min-height: 50px;
+  }
+
+  .mco-fixed-type-zone .type-selector {
+    margin: 0 !important;
+    min-height: 50px;
+  }
+
+  .mco-fixed-type-zone .type-btn {
+    min-height: 50px !important;
+  }
+
+  .mco-fixed-actions-row {
+    margin-top: auto;
+
+    display: grid !important;
+    grid-template-columns:
+      minmax(0, 1fr)
+      auto
+      minmax(0, 1fr);
+
+    align-items: center;
+    gap: 8px;
+
+    min-height: 44px;
+  }
+
+  .mco-fixed-actions-row .btn-buy-direct {
+    min-height: 44px !important;
+  }
+
+  .mco-fixed-actions-row .btn-share-circle {
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+  }
+
+  .mco-fixed-actions-row .mobile-card-categories {
+    min-height: 44px !important;
+  }
+
+  /*
+   * O dock é interface, não área de swipe.
+   */
+  .mco-mobile-feed-dock,
+  .mco-mobile-feed-dock button,
+  .mco-mobile-feed-dock a {
+    touch-action: manipulation !important;
+  }
+}
+
+/*
+ * Celulares mais baixos: dock um pouco mais compacto.
+ */
+@media (max-width: 800px) and (max-height: 690px) {
+  #igViewer.mco-vertical-feed {
+    --mco-shell-header-h: 31px;
+    --mco-shell-dock-h: 205px;
+  }
+
+  .mco-mobile-feed-dock {
+    gap: 4px;
+    padding-top: 5px;
+    padding-bottom: 6px;
+  }
+
+  .mco-fixed-vip-row {
+    min-height: 30px;
+  }
+
+  .mco-fixed-platform-zone {
+    min-height: 56px;
+  }
+
+  .mco-fixed-platform-content,
+  .mco-fixed-platform-content .platform-selector,
+  .mco-fixed-platform-content .platform-single {
+    min-height: 38px !important;
+  }
+
+  .mco-fixed-platform-content .platform-btn {
+    min-height: 38px !important;
+  }
+
+  .mco-fixed-type-zone,
+  .mco-fixed-type-zone .type-selector {
+    min-height: 46px;
+  }
+
+  .mco-fixed-type-zone .type-btn {
+    min-height: 46px !important;
+  }
+
+  .mco-fixed-actions-row,
+  .mco-fixed-actions-row .btn-buy-direct,
+  .mco-fixed-actions-row .mobile-card-categories {
+    min-height: 40px !important;
+  }
+
+  .mco-fixed-actions-row .btn-share-circle {
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+  }
+}
+</style>
+
 </head>
 <body>
 
@@ -6763,12 +7159,41 @@ async function copyShareText(text) {
             return mobileSharePreparedFiles.get(getMobileShareStateKey(game, cardEl)) || null;
         }
 
-        function setMobileShareButtonState(cardEl, ready) {
-            const button = cardEl && cardEl.querySelector('.btn-share-circle');
-            if (!button) return;
-            button.dataset.shareReady = ready ? '1' : '0';
-            button.setAttribute('aria-busy', ready ? 'false' : 'true');
-            button.title = ready ? 'Compartilhar oferta' : 'Preparando imagem para compartilhar…';
+        function setMobileShareButtonState(
+            cardEl,
+            ready
+        ) {
+            const button =
+                (
+                    cardEl &&
+                    cardEl.querySelector(
+                        '.btn-share-circle'
+                    )
+                ) ||
+                document.getElementById(
+                    'mcoFixedShareButton'
+                );
+
+            if (!button) {
+                return;
+            }
+
+            button.dataset.shareReady =
+                ready
+                    ? '1'
+                    : '0';
+
+            button.setAttribute(
+                'aria-busy',
+                ready
+                    ? 'false'
+                    : 'true'
+            );
+
+            button.title =
+                ready
+                    ? 'Compartilhar oferta'
+                    : 'Preparando imagem para compartilhar…';
         }
 
         async function buildPreparedMobileShareFile(game, cardEl) {
@@ -6862,8 +7287,27 @@ async function copyShareText(text) {
             const game = games.find(g => g.id === gameId);
             if (!game) return;
 
-            const cardEl = event.currentTarget.closest('.card');
-            if (!cardEl) return;
+            let cardEl =
+                event.currentTarget &&
+                event.currentTarget.closest
+                    ? event.currentTarget.closest(
+                        '.card'
+                      )
+                    : null;
+
+            if (
+                !cardEl &&
+                isMobileDevice()
+            ) {
+                cardEl =
+                    document.querySelector(
+                        '#igViewer .mco-feed-current .card'
+                    );
+            }
+
+            if (!cardEl) {
+                return;
+            }
 
             const moneyText = value => `R$ ${Number(value).toFixed(2).replace('.', ',')}`;
             const optionLines = [];
@@ -8390,16 +8834,24 @@ async function copyShareText(text) {
                 `translate3d(0, ${offsetPx}px, 0)`;
         }
 
-        function resetInstagramFeedTrack(viewer) {
+        function resetInstagramFeedTrack(
+            viewer
+        ) {
             const track =
-                getInstagramFeedTrack(viewer);
+                getInstagramFeedTrack(
+                    viewer
+                );
 
-            if (!viewer || !track) return;
+            if (
+                !viewer ||
+                !track
+            ) {
+                return;
+            }
 
             const height =
-                Math.max(
-                    1,
-                    viewer.clientHeight
+                getInstagramFeedStageHeight(
+                    viewer
                 );
 
             track.classList.remove(
@@ -8456,12 +8908,18 @@ async function copyShareText(text) {
             renderInstagramView();
         }
 
-        function animateInstagramFeedStep(direction) {
+        function animateInstagramFeedStep(
+            direction
+        ) {
             const viewer =
-                document.getElementById('igViewer');
+                document.getElementById(
+                    'igViewer'
+                );
 
             const track =
-                getInstagramFeedTrack(viewer);
+                getInstagramFeedTrack(
+                    viewer
+                );
 
             if (
                 !viewer ||
@@ -8473,15 +8931,16 @@ async function copyShareText(text) {
             }
 
             const height =
-                Math.max(
-                    1,
-                    viewer.clientHeight
+                getInstagramFeedStageHeight(
+                    viewer
                 );
 
-            instagramFeedAnimating = true;
+            instagramFeedAnimating =
+                true;
 
             const destination =
-                direction > 0
+                direction >
+                0
                     ? -height * 2
                     : 0;
 
@@ -8492,7 +8951,8 @@ async function copyShareText(text) {
                 );
 
                 completeInstagramFeedStep(
-                    direction > 0
+                    direction >
+                    0
                         ? 1
                         : -1
                 );
@@ -8501,7 +8961,9 @@ async function copyShareText(text) {
             track.addEventListener(
                 'transitionend',
                 finish,
-                { once: true }
+                {
+                    once: true
+                }
             );
 
             positionInstagramFeedTrack(
@@ -8510,16 +8972,17 @@ async function copyShareText(text) {
                 true
             );
 
-            /*
-             * Fallback para navegadores que eventualmente não
-             * disparem transitionend.
-             */
             setTimeout(
                 () => {
-                    if (!instagramFeedAnimating) return;
+                    if (
+                        !instagramFeedAnimating
+                    ) {
+                        return;
+                    }
 
                     completeInstagramFeedStep(
-                        direction > 0
+                        direction >
+                        0
                             ? 1
                             : -1
                     );
@@ -8528,16 +8991,25 @@ async function copyShareText(text) {
             );
         }
 
-        function cancelInstagramFeedDrag(viewer, animate = true) {
+        function cancelInstagramFeedDrag(
+            viewer,
+            animate = true
+        ) {
             const track =
-                getInstagramFeedTrack(viewer);
+                getInstagramFeedTrack(
+                    viewer
+                );
 
-            if (!viewer || !track) return;
+            if (
+                !viewer ||
+                !track
+            ) {
+                return;
+            }
 
             const height =
-                Math.max(
-                    1,
-                    viewer.clientHeight
+                getInstagramFeedStageHeight(
+                    viewer
                 );
 
             positionInstagramFeedTrack(
@@ -8550,7 +9022,8 @@ async function copyShareText(text) {
                 'mco-feed-dragging'
             );
 
-            instagramFeedTouchLocked = false;
+            instagramFeedTouchLocked =
+                false;
         }
 
         function bindInstagramFluidFeed(viewer) {
@@ -8583,7 +9056,7 @@ async function copyShareText(text) {
                         event.target &&
                         event.target.closest
                             ? event.target.closest(
-                                'input, select, textarea, .mobile-cover-nav, .mobile-cover-arrow'
+                                'input, select, textarea, button, a, .mco-mobile-feed-dock, .mobile-cover-nav, .mobile-cover-arrow'
                               )
                             : null;
 
@@ -8668,9 +9141,8 @@ async function copyShareText(text) {
                     if (!track) return;
 
                     const height =
-                        Math.max(
-                            1,
-                            viewer.clientHeight
+                        getInstagramFeedStageHeight(
+                            viewer
                         );
 
                     /*
@@ -8881,6 +9353,619 @@ async function copyShareText(text) {
         }
 
 
+        function createMobileDynamicCardElement(
+            game
+        ) {
+            const card =
+                createCardElement(
+                    game
+                );
+
+            card.classList.add(
+                'mco-mobile-dynamic-card'
+            );
+
+            [
+                '.mobile-card-vip',
+                '.platform-heading',
+                '.platform-selector',
+                '.platform-single',
+                '.type-selector',
+                '.card-actions-row'
+            ].forEach(
+                selector => {
+                    card
+                        .querySelectorAll(
+                            selector
+                        )
+                        .forEach(
+                            element =>
+                                element.remove()
+                        );
+                }
+            );
+
+            const timer =
+                card.querySelector(
+                    '.card-img-container > .timer-badge'
+                );
+
+            const availability =
+                card.querySelector(
+                    '.card-info > .availability-chip'
+                );
+
+            if (
+                timer &&
+                availability
+            ) {
+                availability.insertAdjacentElement(
+                    'afterend',
+                    timer
+                );
+            }
+
+            return card;
+        }
+
+
+        function getInstagramFeedStage(
+            viewer
+        ) {
+            return viewer
+                ? viewer.querySelector(
+                    '.mco-feed-stage'
+                  )
+                : null;
+        }
+
+
+        function getInstagramFeedStageHeight(
+            viewer
+        ) {
+            const stage =
+                getInstagramFeedStage(
+                    viewer
+                );
+
+            return Math.max(
+                1,
+                Number(
+                    stage &&
+                    stage.clientHeight
+                        ? stage.clientHeight
+                        : (
+                            viewer &&
+                            viewer.clientHeight
+                                ? viewer.clientHeight
+                                : 1
+                          )
+                )
+            );
+        }
+
+
+        function createMobileFeedShell(
+            viewer
+        ) {
+            const header =
+                document.createElement(
+                    'div'
+                );
+
+            header.id =
+                'mcoMobileFeedHeader';
+
+            header.className =
+                'mco-mobile-feed-header';
+
+            header.innerHTML = `
+                <span
+                    id="mcoMobileFeedCategory"
+                    class="mco-mobile-feed-header-category"
+                ></span>
+
+                <span
+                    id="mcoMobileFeedCount"
+                    class="mco-mobile-feed-header-count"
+                ></span>
+            `;
+
+            const stage =
+                document.createElement(
+                    'div'
+                );
+
+            stage.className =
+                'mco-feed-stage';
+
+            const dock =
+                document.createElement(
+                    'div'
+                );
+
+            dock.id =
+                'mcoMobileFeedDock';
+
+            dock.className =
+                'mco-mobile-feed-dock';
+
+            dock.innerHTML = `
+                <div class="mco-fixed-vip-row">
+                    <a
+                        href="https://chat.whatsapp.com/IREOzjw9jh55ekz95Nv3Pd"
+                        target="_blank"
+                        rel="noopener"
+                        class="mobile-card-vip"
+                        aria-label="Abrir Grupo VIP"
+                    >
+                        💬 Grupo VIP
+                    </a>
+                </div>
+
+                <div class="mco-fixed-platform-zone">
+                    <div class="platform-heading">
+                        Plataforma
+                    </div>
+
+                    <div
+                        id="mcoFixedPlatformContent"
+                        class="mco-fixed-platform-content"
+                    ></div>
+                </div>
+
+                <div
+                    id="mcoFixedTypeZone"
+                    class="mco-fixed-type-zone"
+                ></div>
+
+                <div
+                    class="card-actions-row mco-fixed-actions-row"
+                >
+                    <button
+                        id="mcoFixedBuyButton"
+                        type="button"
+                        class="btn-buy-direct"
+                        disabled
+                        aria-disabled="true"
+                    >
+                        🛒 Comprar
+                    </button>
+
+                    <button
+                        id="mcoFixedShareButton"
+                        type="button"
+                        class="btn-share-circle"
+                        data-share-ready="1"
+                        aria-busy="false"
+                        title="Compartilhar oferta"
+                        aria-label="Compartilhar oferta"
+                    >
+                        <svg
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="currentColor"
+                            aria-hidden="true"
+                        >
+                            <path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984 0 1.762.459 3.48 1.332 5.001l-1.416 5.17 5.291-1.387c1.467.8 3.123 1.22 4.78 1.22h.005c5.507 0 9.991-4.479 9.992-9.985 0-2.667-1.038-5.175-2.925-7.063C17.195 3.039 14.68 2 12.012 2z"/>
+                        </svg>
+                    </button>
+
+                    <button
+                        id="mcoFixedCategoriesButton"
+                        type="button"
+                        class="mobile-card-categories"
+                        aria-label="Abrir categorias"
+                    >
+                        ☰ Categorias
+                    </button>
+                </div>
+            `;
+
+            viewer.appendChild(
+                header
+            );
+
+            viewer.appendChild(
+                stage
+            );
+
+            viewer.appendChild(
+                dock
+            );
+
+            const categoriesButton =
+                dock.querySelector(
+                    '#mcoFixedCategoriesButton'
+                );
+
+            if (categoriesButton) {
+                categoriesButton.addEventListener(
+                    'click',
+                    event => {
+                        event.preventDefault();
+                        event.stopPropagation();
+
+                        toggleInstagramPopup(
+                            true
+                        );
+                    }
+                );
+            }
+
+            return {
+                header,
+                stage,
+                dock
+            };
+        }
+
+
+        function updateMobileFeedShell(
+            game,
+            realIndex
+        ) {
+            if (!game) {
+                return;
+            }
+
+            const categoryElement =
+                document.getElementById(
+                    'mcoMobileFeedCategory'
+                );
+
+            const countElement =
+                document.getElementById(
+                    'mcoMobileFeedCount'
+                );
+
+            const platformContent =
+                document.getElementById(
+                    'mcoFixedPlatformContent'
+                );
+
+            const typeZone =
+                document.getElementById(
+                    'mcoFixedTypeZone'
+                );
+
+            const buyButton =
+                document.getElementById(
+                    'mcoFixedBuyButton'
+                );
+
+            const shareButton =
+                document.getElementById(
+                    'mcoFixedShareButton'
+                );
+
+            const categoryLabel =
+                getFastFeedCategoryLabel(
+                    game
+                ) ||
+                'MCO Games';
+
+            /*
+             * Só troca o texto da categoria quando ela realmente
+             * mudou. A barra em si nunca se movimenta.
+             */
+            if (
+                categoryElement &&
+                categoryElement.textContent !==
+                categoryLabel
+            ) {
+                categoryElement.textContent =
+                    categoryLabel;
+            }
+
+            if (countElement) {
+                countElement.textContent =
+                    `${realIndex + 1} / ${instagramVisibleGames.length}`;
+            }
+
+            const selectedItem =
+                getSelectedItem(
+                    game.id
+                );
+
+            const selectedPlatform =
+                selectedItem
+                    ? selectedItem.platform
+                    : getDefaultPlatform(
+                        game
+                      );
+
+            const selectedType =
+                selectedItem
+                    ? selectedItem.type
+                    : '';
+
+            const platformList =
+                game.platforms ||
+                [];
+
+            if (platformContent) {
+                platformContent.innerHTML =
+                    '';
+
+                if (
+                    platformList.length >
+                    1
+                ) {
+                    const selector =
+                        document.createElement(
+                            'div'
+                        );
+
+                    selector.className =
+                        'platform-selector';
+
+                    selector.setAttribute(
+                        'aria-label',
+                        'Escolha a plataforma'
+                    );
+
+                    platformList.forEach(
+                        platform => {
+                            const button =
+                                document.createElement(
+                                    'button'
+                                );
+
+                            button.type =
+                                'button';
+
+                            button.className =
+                                'platform-btn' +
+                                (
+                                    selectedPlatform ===
+                                    platform
+                                        ? ' active'
+                                        : ''
+                                );
+
+                            button.setAttribute(
+                                'aria-pressed',
+                                selectedPlatform ===
+                                platform
+                                    ? 'true'
+                                    : 'false'
+                            );
+
+                            button.textContent =
+                                platform;
+
+                            button.addEventListener(
+                                'click',
+                                event => {
+                                    event.preventDefault();
+                                    event.stopPropagation();
+
+                                    selectPlatform(
+                                        game.id,
+                                        platform
+                                    );
+                                }
+                            );
+
+                            selector.appendChild(
+                                button
+                            );
+                        }
+                    );
+
+                    platformContent.appendChild(
+                        selector
+                    );
+
+                } else {
+                    const single =
+                        document.createElement(
+                            'div'
+                        );
+
+                    single.className =
+                        'platform-single';
+
+                    single.textContent =
+                        platformList.length
+                            ? platformList[0]
+                            : 'Não informada';
+
+                    platformContent.appendChild(
+                        single
+                    );
+                }
+            }
+
+            if (typeZone) {
+                typeZone.innerHTML =
+                    '';
+
+                const data =
+                    getPlatformData(
+                        game,
+                        selectedPlatform
+                    );
+
+                const primaryPriced =
+                    data.primary >
+                    0;
+
+                const secondaryPriced =
+                    data.secondary >
+                    0;
+
+                const primaryInStock =
+                    !game.hasStockInfo ||
+                    data.stockPrimary >
+                    0;
+
+                const secondaryInStock =
+                    !game.hasStockInfo ||
+                    data.stockSecondary >
+                    0;
+
+                if (
+                    primaryPriced ||
+                    secondaryPriced
+                ) {
+                    const selector =
+                        document.createElement(
+                            'div'
+                        );
+
+                    selector.className =
+                        'type-selector';
+
+                    const addTypeButton =
+                        (
+                            type,
+                            price,
+                            stock,
+                            inStock
+                        ) => {
+                            const button =
+                                document.createElement(
+                                    'button'
+                                );
+
+                            button.type =
+                                'button';
+
+                            button.disabled =
+                                !inStock;
+
+                            if (!inStock) {
+                                button.setAttribute(
+                                    'aria-disabled',
+                                    'true'
+                                );
+                            }
+
+                            button.className =
+                                'type-btn' +
+                                (
+                                    !inStock
+                                        ? ' sold-out'
+                                        : ''
+                                ) +
+                                (
+                                    selectedType ===
+                                    type
+                                        ? ' active'
+                                        : ''
+                                );
+
+                            const stockText =
+                                game.hasStockInfo
+                                    ? (
+                                        stock >
+                                        0
+                                            ? ` (${stock} Un)`
+                                            : ' • Esgotado'
+                                      )
+                                    : '';
+
+                            button.innerHTML =
+                                `<span class="media-label">` +
+                                `${type}${stockText}` +
+                                `</span><br>` +
+                                `<span class="media-price">` +
+                                `R$ ${Number(price).toFixed(2).replace('.', ',')}` +
+                                `</span>`;
+
+                            button.addEventListener(
+                                'click',
+                                event => {
+                                    event.preventDefault();
+                                    event.stopPropagation();
+
+                                    toggleSelectType(
+                                        game.id,
+                                        type
+                                    );
+                                }
+                            );
+
+                            selector.appendChild(
+                                button
+                            );
+                        };
+
+                    if (primaryPriced) {
+                        addTypeButton(
+                            'Primária',
+                            data.primary,
+                            data.stockPrimary,
+                            primaryInStock
+                        );
+                    }
+
+                    if (secondaryPriced) {
+                        addTypeButton(
+                            'Secundária',
+                            data.secondary,
+                            data.stockSecondary,
+                            secondaryInStock
+                        );
+                    }
+
+                    typeZone.appendChild(
+                        selector
+                    );
+                }
+            }
+
+            if (buyButton) {
+                buyButton.disabled =
+                    !selectedItem;
+
+                buyButton.setAttribute(
+                    'aria-disabled',
+                    selectedItem
+                        ? 'false'
+                        : 'true'
+                );
+
+                buyButton.title =
+                    selectedItem
+                        ? 'Comprar este jogo'
+                        : 'Selecione a plataforma e depois Primária ou Secundária';
+
+                buyButton.onclick =
+                    event => {
+                        buyGameDirect(
+                            event,
+                            game.id
+                        );
+                    };
+            }
+
+            if (shareButton) {
+                shareButton.dataset.shareReady =
+                    '1';
+
+                shareButton.setAttribute(
+                    'aria-busy',
+                    'false'
+                );
+
+                shareButton.title =
+                    'Compartilhar oferta';
+
+                shareButton.onclick =
+                    event => {
+                        shareGameOffer(
+                            event,
+                            game.id
+                        );
+                    };
+            }
+        }
+
+
         function getFastFeedCategoryLabel(
             game
         ) {
@@ -8952,28 +10037,8 @@ async function copyShareText(text) {
             post.className =
                 'ig-post';
 
-            const top =
-                document.createElement(
-                    'div'
-                );
-
-            top.className =
-                'ig-topline';
-
-            top.innerHTML =
-                `<span class="ig-category-label">` +
-                `${escapeHtml(getFastFeedCategoryLabel(game) || 'MCO Games')}` +
-                `</span>` +
-                `<span class="ig-count">` +
-                `${realIndex + 1} / ${instagramVisibleGames.length}` +
-                `</span>`;
-
             post.appendChild(
-                top
-            );
-
-            post.appendChild(
-                createCardElement(
+                createMobileDynamicCardElement(
                     game
                 )
             );
@@ -8995,36 +10060,17 @@ async function copyShareText(text) {
             updateTimers();
             preloadNearbyGameCovers();
 
-            const viewer =
-                document.getElementById(
-                    'igViewer'
-                );
-
-            const currentPage =
-                viewer &&
-                viewer.querySelector(
-                    '.mco-feed-current'
-                );
-
-            const currentCard =
-                currentPage &&
-                currentPage.querySelector(
-                    '.card'
-                );
-
-            if (currentCard) {
-                setMobileShareButtonState(
-                    currentCard,
-                    true
-                );
-            }
-
             const currentGame =
                 instagramVisibleGames[
                     instagramIndex
                 ];
 
             if (currentGame) {
+                updateMobileFeedShell(
+                    currentGame,
+                    instagramIndex
+                );
+
                 scheduleRememberViewedGame(
                     currentGame
                 );
@@ -9138,9 +10184,8 @@ async function copyShareText(text) {
             );
 
             const height =
-                Math.max(
-                    1,
-                    viewer.clientHeight
+                getInstagramFeedStageHeight(
+                    viewer
                 );
 
             positionInstagramFeedTrack(
@@ -9156,43 +10201,110 @@ async function copyShareText(text) {
 
 
         function renderInstagramView() {
-            const viewer = document.getElementById('igViewer');
-            const menu = document.getElementById('igCategoryMenu');
-            const mobile = document.getElementById('igMobileCategory');
-            const popupMenu = document.getElementById('igMobileCategoryMenu');
-            const searchInput = document.getElementById('searchInput');
+            const viewer =
+                document.getElementById(
+                    'igViewer'
+                );
 
-            if (!viewer || !menu || !mobile || !searchInput) return;
+            const menu =
+                document.getElementById(
+                    'igCategoryMenu'
+                );
 
-            const searchVal = normalizeCatalogSearch(searchInput.value);
-            const platformGames = getPlatformFilteredGames(games);
-            const allCategories = getInstagramCategories();
-            const catsOnly = allCategories.filter(c => c !== 'ALL');
+            const mobile =
+                document.getElementById(
+                    'igMobileCategory'
+                );
+
+            const popupMenu =
+                document.getElementById(
+                    'igMobileCategoryMenu'
+                );
+
+            const searchInput =
+                document.getElementById(
+                    'searchInput'
+                );
+
+            if (
+                !viewer ||
+                !menu ||
+                !mobile ||
+                !searchInput
+            ) {
+                return;
+            }
+
+            const searchVal =
+                normalizeCatalogSearch(
+                    searchInput.value
+                );
+
+            const platformGames =
+                getPlatformFilteredGames(
+                    games
+                );
+
+            const allCategories =
+                getInstagramCategories();
+
+            const catsOnly =
+                allCategories.filter(
+                    category =>
+                        category !==
+                        'ALL'
+                );
 
             if (
                 instagramCategory !== 'ALL' &&
                 instagramCategory !== '__RECENT__' &&
-                !catsOnly.some(category =>
-                    categoryKey(category) === categoryKey(instagramCategory)
+                !catsOnly.some(
+                    category =>
+                        categoryKey(
+                            category
+                        ) ===
+                        categoryKey(
+                            instagramCategory
+                        )
                 )
             ) {
-                instagramCategory = 'ALL';
+                instagramCategory =
+                    'ALL';
             }
 
             syncPlatformFilterUi();
 
-            menu.innerHTML = '';
-            if (popupMenu) popupMenu.innerHTML = '';
-            mobile.innerHTML = '<option value="ALL">🎮 Ver todos os jogos</option>';
+            menu.innerHTML =
+                '';
+
+            if (popupMenu) {
+                popupMenu.innerHTML =
+                    '';
+            }
+
+            mobile.innerHTML =
+                '<option value="ALL">🎮 Ver todos os jogos</option>';
 
             const recentGames =
                 getRecentlyViewedGames()
-                    .filter(game => gameMatchesPlatformFilter(game));
+                    .filter(
+                        game =>
+                            gameMatchesPlatformFilter(
+                                game
+                            )
+                    );
 
-            if (recentGames.length) {
-                const recentBtn = document.createElement('button');
+            if (
+                recentGames.length
+            ) {
+                const recentBtn =
+                    document.createElement(
+                        'button'
+                    );
 
-                recentBtn.type = 'button';
+                recentBtn.type =
+                    'button';
+
                 recentBtn.className =
                     'ig-cat-btn mco-recent-btn' +
                     (
@@ -9209,141 +10321,220 @@ async function copyShareText(text) {
 
                 recentBtn.addEventListener(
                     'click',
-                    () => selectInstagramCategory('__RECENT__')
+                    () =>
+                        selectInstagramCategory(
+                            '__RECENT__'
+                        )
                 );
 
-                menu.appendChild(recentBtn);
+                menu.appendChild(
+                    recentBtn
+                );
 
                 if (popupMenu) {
-                    const popupRecent = recentBtn.cloneNode(true);
+                    const popupRecent =
+                        recentBtn.cloneNode(
+                            true
+                        );
 
                     popupRecent.addEventListener(
                         'click',
-                        () => selectInstagramCategory('__RECENT__')
+                        () =>
+                            selectInstagramCategory(
+                                '__RECENT__'
+                            )
                     );
 
-                    popupMenu.appendChild(popupRecent);
+                    popupMenu.appendChild(
+                        popupRecent
+                    );
                 }
 
-                const recentOpt = document.createElement('option');
+                const recentOpt =
+                    document.createElement(
+                        'option'
+                    );
 
-                recentOpt.value = '__RECENT__';
+                recentOpt.value =
+                    '__RECENT__';
+
                 recentOpt.textContent =
                     `Vistos recentemente (${recentGames.length})`;
 
-                mobile.appendChild(recentOpt);
+                mobile.appendChild(
+                    recentOpt
+                );
             }
 
             const counts = {};
 
-            catsOnly.forEach(category => {
-                counts[category] =
-                    platformGames.filter(game =>
-                        categoryKey(game.category) === categoryKey(category)
-                    ).length;
-            });
+            catsOnly.forEach(
+                category => {
+                    counts[category] =
+                        platformGames.filter(
+                            game =>
+                                categoryKey(
+                                    game.category
+                                ) ===
+                                categoryKey(
+                                    category
+                                )
+                        ).length;
+                }
+            );
 
-            allCategories.forEach(category => {
-                const label =
-                    category === 'ALL'
-                        ? 'Ver todos'
-                        : category;
-
-                const count =
-                    category === 'ALL'
-                        ? platformGames.length
-                        : counts[category] || 0;
-
-                const btn =
-                    document.createElement('button');
-
-                btn.type = 'button';
-
-                const activeCategory =
-                    (
-                        searchVal ||
-                        selectedSearchGameId
-                    )
-                        ? 'ALL'
-                        : instagramCategory;
-
-                btn.className =
-                    'ig-cat-btn' +
-                    (
-                        activeCategory === category
-                            ? ' active'
-                            : ''
-                    );
-
-                btn.innerHTML =
-                    `<span>${
+            allCategories.forEach(
+                category => {
+                    const label =
                         category === 'ALL'
-                            ? '🎮'
-                            : categoryKey(category) === categoryKey('Pré Venda')
-                                ? '🚀'
-                                : categoryKey(category) === categoryKey('Lançamento em Oferta')
-                                    ? '✨'
-                                    : categoryKey(category) === categoryKey('Promoção')
-                                        ? '🔥'
-                                        : '🕹️'
-                    } ${escapeHtml(label)}</span>` +
-                    `<span class="ig-cat-count">${count}</span>`;
+                            ? 'Ver todos'
+                            : category;
 
-                btn.addEventListener(
-                    'click',
-                    () => selectInstagramCategory(category)
-                );
+                    const count =
+                        category === 'ALL'
+                            ? platformGames.length
+                            : (
+                                counts[
+                                    category
+                                ] ||
+                                0
+                              );
 
-                menu.appendChild(btn);
+                    const button =
+                        document.createElement(
+                            'button'
+                        );
 
-                if (popupMenu) {
-                    const popupBtn =
-                        btn.cloneNode(true);
+                    button.type =
+                        'button';
 
-                    popupBtn.addEventListener(
+                    const activeCategory =
+                        (
+                            searchVal ||
+                            selectedSearchGameId
+                        )
+                            ? 'ALL'
+                            : instagramCategory;
+
+                    button.className =
+                        'ig-cat-btn' +
+                        (
+                            activeCategory ===
+                            category
+                                ? ' active'
+                                : ''
+                        );
+
+                    button.innerHTML =
+                        `<span>${
+                            category === 'ALL'
+                                ? '🎮'
+                                : categoryKey(category) === categoryKey('Pré Venda')
+                                    ? '🚀'
+                                    : categoryKey(category) === categoryKey('Lançamento em Oferta')
+                                        ? '✨'
+                                        : categoryKey(category) === categoryKey('Promoção')
+                                            ? '🔥'
+                                            : '🕹️'
+                        } ${escapeHtml(label)}</span>` +
+                        `<span class="ig-cat-count">${count}</span>`;
+
+                    button.addEventListener(
                         'click',
-                        () => selectInstagramCategory(category)
+                        () =>
+                            selectInstagramCategory(
+                                category
+                            )
                     );
 
-                    popupMenu.appendChild(popupBtn);
+                    menu.appendChild(
+                        button
+                    );
+
+                    if (popupMenu) {
+                        const popupButton =
+                            button.cloneNode(
+                                true
+                            );
+
+                        popupButton.addEventListener(
+                            'click',
+                            () =>
+                                selectInstagramCategory(
+                                    category
+                                )
+                        );
+
+                        popupMenu.appendChild(
+                            popupButton
+                        );
+                    }
+
+                    if (
+                        category !==
+                        'ALL'
+                    ) {
+                        const option =
+                            document.createElement(
+                                'option'
+                            );
+
+                        option.value =
+                            category;
+
+                        option.textContent =
+                            `${label} (${count})`;
+
+                        mobile.appendChild(
+                            option
+                        );
+                    }
                 }
+            );
 
-                if (category !== 'ALL') {
-                    const opt =
-                        document.createElement('option');
-
-                    opt.value = category;
-                    opt.textContent =
-                        `${label} (${count})`;
-
-                    mobile.appendChild(opt);
-                }
-            });
-
-            mobile.value = instagramCategory;
+            mobile.value =
+                instagramCategory;
 
             const selectedSearchGame =
                 selectedSearchGameId
-                    ? games.find(game => game.id === selectedSearchGameId)
+                    ? games.find(
+                        game =>
+                            game.id ===
+                            selectedSearchGameId
+                      )
                     : null;
 
             instagramVisibleGames =
                 selectedSearchGame
-                    ? [selectedSearchGame]
+                    ? [
+                        selectedSearchGame
+                      ]
                     : (
                         searchVal
-                            ? getGlobalCatalogSearchResults(searchVal)
+                            ? getGlobalCatalogSearchResults(
+                                searchVal
+                              )
                             : (
-                                instagramCategory === '__RECENT__'
+                                instagramCategory ===
+                                '__RECENT__'
                                     ? recentGames
-                                    : platformGames.filter(game =>
-                                        instagramCategory === 'ALL' ||
-                                        categoryKey(game.category) === categoryKey(instagramCategory)
+                                    : platformGames.filter(
+                                        game =>
+                                            instagramCategory ===
+                                            'ALL' ||
+                                            categoryKey(
+                                                game.category
+                                            ) ===
+                                            categoryKey(
+                                                instagramCategory
+                                            )
                                       )
                               )
                       );
 
-            if (!selectedSearchGame) {
+            if (
+                !selectedSearchGame
+            ) {
                 instagramVisibleGames =
                     sortGamesForCurrentView(
                         instagramVisibleGames,
@@ -9352,21 +10543,35 @@ async function copyShareText(text) {
             }
 
             if (
-                instagramIndex >= instagramVisibleGames.length
+                instagramIndex >=
+                instagramVisibleGames.length
             ) {
                 instagramIndex =
                     Math.max(
                         0,
-                        instagramVisibleGames.length - 1
+                        instagramVisibleGames.length -
+                        1
                     );
             }
 
-            viewer.innerHTML = '';
-            viewer.classList.add('mco-vertical-feed');
-            viewer.setAttribute('tabindex', '0');
+            viewer.innerHTML =
+                '';
 
-            if (!instagramVisibleGames.length) {
-                viewer.classList.remove('mco-vertical-feed');
+            viewer.classList.add(
+                'mco-vertical-feed'
+            );
+
+            viewer.setAttribute(
+                'tabindex',
+                '0'
+            );
+
+            if (
+                !instagramVisibleGames.length
+            ) {
+                viewer.classList.remove(
+                    'mco-vertical-feed'
+                );
 
                 viewer.innerHTML =
                     '<div class="ig-empty">🔎<br>' +
@@ -9376,109 +10581,55 @@ async function copyShareText(text) {
                 return;
             }
 
-            const createFeedPage = (
-                game,
-                realIndex,
-                isCurrent
-            ) => {
-                const categoryLabel =
-                    (
-                        searchVal ||
-                        selectedSearchGameId
-                    )
-                        ? game.category
-                        : (
-                            instagramCategory === '__RECENT__'
-                                ? 'Vistos recentemente'
-                                : (
-                                    instagramCategory === 'ALL'
-                                        ? game.category
-                                        : instagramCategory
-                                  )
-                          );
-
-                const page =
-                    document.createElement('section');
-
-                page.className =
-                    'mco-feed-page' +
-                    (
-                        isCurrent
-                            ? ' mco-feed-current'
-                            : ''
-                    );
-
-                page.dataset.realIndex =
-                    String(realIndex);
-
-                const post =
-                    document.createElement('div');
-
-                post.className =
-                    'ig-post';
-
-                const top =
-                    document.createElement('div');
-
-                top.className =
-                    'ig-topline';
-
-                top.innerHTML =
-                    `<span class="ig-category-label">` +
-                    `${escapeHtml(categoryLabel || 'MCO Games')}` +
-                    `</span>` +
-                    `<span class="ig-count">` +
-                    `${realIndex + 1} / ${instagramVisibleGames.length}` +
-                    `</span>`;
-
-                post.appendChild(top);
-                post.appendChild(
-                    createCardElement(game)
+            const shell =
+                createMobileFeedShell(
+                    viewer
                 );
 
-                page.appendChild(post);
-
-                return {
-                    page,
-                    post,
-                    game
-                };
-            };
+            const createPage =
+                (
+                    game,
+                    realIndex,
+                    isCurrent
+                ) =>
+                    createFastFeedPage(
+                        game,
+                        realIndex,
+                        isCurrent
+                    );
 
             /*
-             * Busca direta / produto único.
+             * Produto único continua usando a mesma interface fixa.
              */
             if (
-                instagramVisibleGames.length === 1
+                instagramVisibleGames.length ===
+                1
             ) {
                 const game =
-                    instagramVisibleGames[0];
+                    instagramVisibleGames[
+                        0
+                    ];
 
                 const only =
-                    createFeedPage(
+                    createPage(
                         game,
                         0,
                         true
                     );
 
-                viewer.appendChild(
+                shell.stage.appendChild(
                     only.page
+                );
+
+                updateMobileFeedShell(
+                    game,
+                    0
                 );
 
                 updateTimers();
 
-                const onlyCard =
-                    only.post.querySelector('.card');
-
-                if (onlyCard) {
-                    scheduleMobileSharePreparation(
-                        only.game,
-                        onlyCard
-                    );
-                }
-
-                rememberViewedGame(
-                    only.game
+                scheduleRememberViewedGame(
+                    game
                 );
 
                 if (
@@ -9493,7 +10644,8 @@ async function copyShareText(text) {
 
             const previousIndex =
                 moduloFeedIndex(
-                    instagramIndex - 1,
+                    instagramIndex -
+                    1,
                     instagramVisibleGames.length
                 );
 
@@ -9505,33 +10657,42 @@ async function copyShareText(text) {
 
             const nextIndex =
                 moduloFeedIndex(
-                    instagramIndex + 1,
+                    instagramIndex +
+                    1,
                     instagramVisibleGames.length
                 );
 
             const track =
-                document.createElement('div');
+                document.createElement(
+                    'div'
+                );
 
             track.className =
                 'mco-feed-track';
 
             const previous =
-                createFeedPage(
-                    instagramVisibleGames[previousIndex],
+                createPage(
+                    instagramVisibleGames[
+                        previousIndex
+                    ],
                     previousIndex,
                     false
                 );
 
             const current =
-                createFeedPage(
-                    instagramVisibleGames[currentIndex],
+                createPage(
+                    instagramVisibleGames[
+                        currentIndex
+                    ],
                     currentIndex,
                     true
                 );
 
             const next =
-                createFeedPage(
-                    instagramVisibleGames[nextIndex],
+                createPage(
+                    instagramVisibleGames[
+                        nextIndex
+                    ],
                     nextIndex,
                     false
                 );
@@ -9548,8 +10709,13 @@ async function copyShareText(text) {
                 next.page
             );
 
-            viewer.appendChild(
+            shell.stage.appendChild(
                 track
+            );
+
+            updateMobileFeedShell(
+                current.game,
+                currentIndex
             );
 
             bindInstagramFluidFeed(
@@ -9567,17 +10733,7 @@ async function copyShareText(text) {
             updateTimers();
             preloadNearbyGameCovers();
 
-            const currentCard =
-                current.post.querySelector('.card');
-
-            if (currentCard) {
-                scheduleMobileSharePreparation(
-                    current.game,
-                    currentCard
-                );
-            }
-
-            rememberViewedGame(
+            scheduleRememberViewedGame(
                 current.game
             );
 
@@ -10223,8 +11379,27 @@ async function buildCurrentMobileScreenShare(cardEl, game = null) {
         stage.style.display = 'block';
         stage.style.overflow = 'hidden';
 
-        const headerClone = header.cloneNode(true);
-        const postClone = currentMobilePost.cloneNode(true);
+        const headerClone =
+            header.cloneNode(
+                true
+            );
+
+        const postClone =
+            currentMobilePost.cloneNode(
+                true
+            );
+
+        const feedHeader =
+            document.getElementById(
+                'mcoMobileFeedHeader'
+            );
+
+        const feedHeaderClone =
+            feedHeader
+                ? feedHeader.cloneNode(
+                    true
+                  )
+                : null;
 
         // A imagem compartilhada nunca leva as setas de navegação.
         postClone.querySelectorAll('.mobile-cover-nav, .ig-navigation').forEach(el => el.remove());
@@ -10262,9 +11437,35 @@ async function buildCurrentMobileScreenShare(cardEl, game = null) {
             if (safeLogo) clonedLogo.src = safeLogo;
         }
 
-        stage.appendChild(headerClone);
-        stage.appendChild(postClone);
-        document.body.appendChild(stage);
+        stage.appendChild(
+            headerClone
+        );
+
+        if (feedHeaderClone) {
+            feedHeaderClone.style.position =
+                'relative';
+
+            feedHeaderClone.style.inset =
+                'auto';
+
+            feedHeaderClone.style.width =
+                '100%';
+
+            feedHeaderClone.style.pointerEvents =
+                'none';
+
+            stage.appendChild(
+                feedHeaderClone
+            );
+        }
+
+        stage.appendChild(
+            postClone
+        );
+
+        document.body.appendChild(
+            stage
+        );
 
         try {
             return await html2canvas(stage, {
@@ -10560,14 +11761,6 @@ async function buildCurrentMobileScreenShare(cardEl, game = null) {
 
 <script id="mco-search-arrow-final-fix-script">
 (() => {
-    /*
-     * Feed vertical ativo:
-     * as antigas setas esquerda/direita foram desativadas de vez.
-     * Mantemos somente:
-     * 1) colocar o relógio sobre a capa;
-     * 2) garantir que a busca continue editável.
-     */
-
     function removeLegacyMobileArrows() {
         document
             .querySelectorAll(
@@ -10575,54 +11768,6 @@ async function buildCurrentMobileScreenShare(cardEl, game = null) {
             )
             .forEach(
                 element => element.remove()
-            );
-    }
-
-    function moveTimersToCovers() {
-        if (
-            !window.matchMedia(
-                '(max-width: 800px)'
-            ).matches
-        ) {
-            return;
-        }
-
-        const viewer =
-            document.getElementById(
-                'igViewer'
-            );
-
-        if (!viewer) {
-            return;
-        }
-
-        removeLegacyMobileArrows();
-
-        viewer
-            .querySelectorAll(
-                '.ig-post .card'
-            )
-            .forEach(
-                card => {
-                    const cover =
-                        card.querySelector(
-                            '.card-img-container'
-                        );
-
-                    const timer =
-                        card.querySelector(
-                            '.card-info .timer-badge'
-                        );
-
-                    if (
-                        cover &&
-                        timer
-                    ) {
-                        cover.appendChild(
-                            timer
-                        );
-                    }
-                }
             );
     }
 
@@ -10667,15 +11812,11 @@ async function buildCurrentMobileScreenShare(cardEl, game = null) {
         requestAnimationFrame(
             () => {
                 refreshQueued = false;
-                moveTimersToCovers();
+                removeLegacyMobileArrows();
             }
         );
     }
 
-    /*
-     * O motor principal chama isto depois de renderizar.
-     * Não acompanhamos cada mutação do DOM.
-     */
     window.mcoRefreshVerticalFeedDecorations =
         refreshVerticalFeedDecorations;
 
