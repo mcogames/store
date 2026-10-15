@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="mco-mobile-engine" content="vertical-feed-combo-share-mosaic-v7">
+    <meta name="mco-mobile-engine" content="vertical-feed-personalized-home-search-v8">
     <title>MCO GAMES | Sua Loja Digital</title>
     
     <!-- Meta Tags para redes sociais e WhatsApp -->
@@ -5040,6 +5040,93 @@ async function copyShareText(text) {
 }
 </style>
 
+
+<style id="mco-home-search-personalization-v1">
+#mcoHomeLogoLink {
+  cursor: pointer;
+  border-radius: 10px;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+#mcoHomeLogoLink:focus-visible { box-shadow: 0 0 0 2px rgba(32,198,255,.55); }
+@media (max-width: 800px) {
+  header.mco-search-in-header { gap: 8px !important; }
+  header.mco-search-in-header .brand {
+    flex: 1 1 auto !important;
+    max-width: calc(100% - 52px) !important;
+    transition: max-width .20s ease, opacity .20s ease;
+  }
+  header.mco-search-in-header > .search-box {
+    flex: 0 0 44px !important;
+    width: 44px !important;
+    min-width: 44px !important;
+    max-width: 44px !important;
+    height: 44px !important;
+    border-radius: 999px !important;
+    overflow: visible !important;
+    transition: width .20s ease, max-width .20s ease, flex-basis .20s ease, border-color .20s ease, box-shadow .20s ease !important;
+    cursor: pointer;
+  }
+  header.mco-search-in-header > .search-box.mco-search-expanded {
+    flex: 0 1 min(66vw, 310px) !important;
+    width: min(66vw, 310px) !important;
+    min-width: min(58vw, 220px) !important;
+    max-width: min(66vw, 310px) !important;
+    cursor: text;
+  }
+  header.mco-search-in-header:has(> .search-box.mco-search-expanded) .brand { max-width: 35% !important; }
+  header.mco-search-in-header > .search-box .search-input {
+    height: 42px !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    transition: opacity .14s ease !important;
+  }
+  header.mco-search-in-header > .search-box.mco-search-collapsed .search-input {
+    opacity: 0 !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    padding: 0 !important;
+    pointer-events: none !important;
+    caret-color: transparent !important;
+  }
+  header.mco-search-in-header > .search-box.mco-search-expanded .search-input {
+    opacity: 1 !important;
+    width: 100% !important;
+    padding: 0 38px !important;
+    pointer-events: auto !important;
+  }
+  header.mco-search-in-header > .search-box.mco-search-collapsed .search-icon {
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    font-size: 1.12rem !important;
+  }
+  header.mco-search-in-header > .search-box.mco-search-expanded .search-icon {
+    left: 13px !important;
+    transform: translateY(-50%) !important;
+  }
+  header.mco-search-in-header > .search-box.mco-search-collapsed .search-clear-btn { display: none !important; }
+  header.mco-search-in-header > .search-box.mco-search-expanded .mco-search-suggestions { min-width: min(82vw, 330px); }
+}
+.ig-cat-btn.mco-for-you-btn {
+  border-color: rgba(255,202,73,.28);
+  background: linear-gradient(135deg,rgba(255,190,49,.10),rgba(32,198,255,.07));
+  color: #ffe09a;
+}
+.ig-cat-btn.mco-for-you-btn.active {
+  border-color: rgba(255,207,88,.66);
+  background: linear-gradient(135deg,rgba(255,190,49,.19),rgba(32,198,255,.11));
+  box-shadow: inset 0 0 14px rgba(255,198,64,.05);
+}
+.mco-reset-personalization {
+  width: 100%; min-height: 38px; margin: 7px 0 9px; padding: 8px 10px;
+  border: 1px solid rgba(255,255,255,.10); border-radius: 10px;
+  background: rgba(255,255,255,.035); color: #94a7b7;
+  font-size: .69rem; font-weight: 800; cursor: pointer;
+}
+.mco-reset-personalization:hover { border-color: rgba(32,198,255,.28); color: #d9edf8; }
+</style>
+
 </head>
 <body>
 
@@ -5092,7 +5179,13 @@ async function copyShareText(text) {
     <div id="shareStatusToast" role="status" aria-live="polite"></div>
 
     <header>
-        <div class="brand">
+        <div
+            class="brand"
+            id="mcoHomeLogoLink"
+            role="link"
+            tabindex="0"
+            aria-label="Voltar para a página inicial"
+        >
             <img id="siteLogoImage" class="brand-asset-logo" src="https://super-jade-qqe5zlpy.edgeone.dev/file.png" alt="MCO Games — Sua Loja Digital" style="display:block" onerror="this.style.display='none';var f=document.getElementById('siteLogoFallback');if(f)f.style.display='flex';">
             <div id="siteLogoFallback" class="brand-fallback" style="display:none">
                 <div class="brand-logo-mark" aria-label="MCO">MCO</div>
@@ -5231,6 +5324,16 @@ async function copyShareText(text) {
                             <option value="NAME_ASC">Nome A–Z</option>
                         </select>
                     </div>
+
+                    <button
+                        type="button"
+                        id="mcoResetPersonalizationBtn"
+                        class="mco-reset-personalization"
+                        onclick="resetLocalPersonalization()"
+                        hidden
+                    >
+                        ✨ Limpar preferências deste aparelho
+                    </button>
 
                     <div id="igMobileCategoryMenu" class="ig-category-menu"></div>
                 </div>
@@ -5562,6 +5665,295 @@ async function copyShareText(text) {
         const RECENT_STORAGE_KEY = 'mco:recent-games-v1';
         const RECENT_LIMIT = 8;
 
+        /* =====================================================
+           PERSONALIZAÇÃO LOCAL — somente neste navegador
+           ===================================================== */
+        const MCO_INTEREST_PROFILE_KEY = 'mco:interest-profile-v1';
+        const MCO_INTEREST_VERSION = 1;
+
+        let mcoInterestSaveTimer = null;
+        let mcoInterestViewTimer = null;
+        let mcoInterestDwellTimer = null;
+        const mcoInterestSessionSignals = new Set();
+
+        function createEmptyInterestProfile() {
+            return {
+                version: MCO_INTEREST_VERSION,
+                visits: 0,
+                points: 0,
+                strongSignals: 0,
+                lastVisitAt: 0,
+                updatedAt: Date.now(),
+                seed: Math.floor(Math.random() * 2147483647),
+                games: {},
+                tokens: {},
+                categories: {},
+                platforms: {},
+                priceBuckets: {},
+                seen: {}
+            };
+        }
+
+        function cleanInterestScoreMap(value) {
+            if (!value || typeof value !== 'object') return {};
+            const result = {};
+            Object.entries(value).forEach(([key, score]) => {
+                const n = Number(score || 0);
+                if (key && Number.isFinite(n) && n > .02) result[key] = Math.min(100, n);
+            });
+            return result;
+        }
+
+        function loadInterestProfile() {
+            try {
+                const parsed = JSON.parse(localStorage.getItem(MCO_INTEREST_PROFILE_KEY) || 'null');
+                if (!parsed || parsed.version !== MCO_INTEREST_VERSION) return createEmptyInterestProfile();
+                return {
+                    ...createEmptyInterestProfile(),
+                    ...parsed,
+                    games: cleanInterestScoreMap(parsed.games),
+                    tokens: cleanInterestScoreMap(parsed.tokens),
+                    categories: cleanInterestScoreMap(parsed.categories),
+                    platforms: cleanInterestScoreMap(parsed.platforms),
+                    priceBuckets: cleanInterestScoreMap(parsed.priceBuckets),
+                    seen: parsed.seen && typeof parsed.seen === 'object' ? parsed.seen : {}
+                };
+            } catch (_) {
+                return createEmptyInterestProfile();
+            }
+        }
+
+        let mcoInterestProfile = loadInterestProfile();
+
+        function pruneInterestMap(map, limit) {
+            return Object.fromEntries(
+                Object.entries(map || {})
+                    .filter(([key, score]) => key && Number(score || 0) > .02)
+                    .sort((a, b) => Number(b[1] || 0) - Number(a[1] || 0))
+                    .slice(0, limit)
+            );
+        }
+
+        function saveInterestProfile(immediate = false) {
+            if (mcoInterestSaveTimer) {
+                clearTimeout(mcoInterestSaveTimer);
+                mcoInterestSaveTimer = null;
+            }
+
+            const save = () => {
+                try {
+                    mcoInterestProfile.games = pruneInterestMap(mcoInterestProfile.games, 120);
+                    mcoInterestProfile.tokens = pruneInterestMap(mcoInterestProfile.tokens, 90);
+                    mcoInterestProfile.categories = pruneInterestMap(mcoInterestProfile.categories, 12);
+                    mcoInterestProfile.platforms = pruneInterestMap(mcoInterestProfile.platforms, 8);
+                    mcoInterestProfile.priceBuckets = pruneInterestMap(mcoInterestProfile.priceBuckets, 8);
+                    mcoInterestProfile.seen = Object.fromEntries(
+                        Object.entries(mcoInterestProfile.seen || {})
+                            .sort((a, b) => Number(b[1]?.last || 0) - Number(a[1]?.last || 0))
+                            .slice(0, 160)
+                    );
+                    mcoInterestProfile.updatedAt = Date.now();
+                    localStorage.setItem(MCO_INTEREST_PROFILE_KEY, JSON.stringify(mcoInterestProfile));
+                } catch (_) {}
+            };
+
+            if (immediate) save();
+            else mcoInterestSaveTimer = setTimeout(save, 350);
+        }
+
+        function decayInterestProfile() {
+            const ageDays = Math.max(0, (Date.now() - Number(mcoInterestProfile.updatedAt || Date.now())) / 86400000);
+            if (ageDays < 1) return;
+            const factor = Math.pow(.988, ageDays);
+            ['games','tokens','categories','platforms','priceBuckets'].forEach(key => {
+                Object.keys(mcoInterestProfile[key] || {}).forEach(item => {
+                    mcoInterestProfile[key][item] *= factor;
+                });
+            });
+        }
+
+        function registerPersonalizationVisit() {
+            decayInterestProfile();
+            const now = Date.now();
+            const previous = Number(mcoInterestProfile.lastVisitAt || 0);
+            if (!previous || now - previous > 30 * 60 * 1000) {
+                mcoInterestProfile.visits = Number(mcoInterestProfile.visits || 0) + 1;
+                mcoInterestProfile.lastVisitAt = now;
+                saveInterestProfile(true);
+            }
+            updatePersonalizationControls();
+        }
+
+        function isPersonalizationReady() {
+            return Number(mcoInterestProfile.points || 0) >= 6 || Number(mcoInterestProfile.strongSignals || 0) >= 2;
+        }
+
+        function isReturningPersonalizedVisitor() {
+            return Number(mcoInterestProfile.visits || 0) >= 2 && isPersonalizationReady();
+        }
+
+        function updatePersonalizationControls() {
+            const resetButton = document.getElementById('mcoResetPersonalizationBtn');
+            if (resetButton) resetButton.hidden = !isPersonalizationReady();
+        }
+
+        function normalizeInterestTokens(value) {
+            const stop = new Set([
+                'a','o','os','as','de','da','do','das','dos','e','em','para','com',
+                'the','of','and','edition','standard','deluxe','ultimate','complete',
+                'collection','bundle','pack','game','jogo','combo','ps4','ps5','remastered','remake'
+            ]);
+            return normalizeCatalogSearch(value)
+                .replace(/[^a-z0-9]+/g, ' ')
+                .split(' ')
+                .map(token => token.trim())
+                .filter(token => token.length >= 3 && !stop.has(token))
+                .slice(0, 16);
+        }
+
+        function addInterestScore(map, key, value) {
+            if (!map || !key || !Number.isFinite(Number(value))) return;
+            map[key] = Math.min(100, Number(map[key] || 0) + Number(value));
+        }
+
+        function getInterestPriceBucket(game) {
+            const price = Number(getGameMainPriceForCurrentFilter(game) || 0);
+            if (price <= 0) return 'sem-preco';
+            if (price < 50) return 'ate-50';
+            if (price < 100) return '50-100';
+            if (price < 150) return '100-150';
+            if (price < 200) return '150-200';
+            return '200+';
+        }
+
+        function recordGameInterest(game, weight, signal, extraText = '') {
+            if (!game || !weight) return;
+            const ref = getGameStableRef(game) || game.id;
+            if (!ref) return;
+
+            const sessionKey = `${signal}::${ref}`;
+            if (mcoInterestSessionSignals.has(sessionKey)) return;
+            mcoInterestSessionSignals.add(sessionKey);
+
+            const w = Math.max(.1, Number(weight) || .1);
+            addInterestScore(mcoInterestProfile.games, ref, w);
+
+            const tokenText = [
+                game.name || '',
+                Array.isArray(game.comboNames) ? game.comboNames.join(' ') : '',
+                extraText || ''
+            ].join(' ');
+
+            normalizeInterestTokens(tokenText).forEach(token => {
+                addInterestScore(mcoInterestProfile.tokens, token, w * .58);
+            });
+
+            const cat = categoryKey(game.category);
+            if (cat) addInterestScore(mcoInterestProfile.categories, cat, w * .32);
+
+            (Array.isArray(game.platforms) ? game.platforms : []).forEach(platform => {
+                addInterestScore(mcoInterestProfile.platforms, String(platform).toUpperCase(), w * .20);
+            });
+
+            addInterestScore(mcoInterestProfile.priceBuckets, getInterestPriceBucket(game), w * .24);
+
+            mcoInterestProfile.points = Number(mcoInterestProfile.points || 0) + w;
+            if (['search','type','share','buy'].includes(signal)) {
+                mcoInterestProfile.strongSignals = Number(mcoInterestProfile.strongSignals || 0) + 1;
+            }
+
+            const seen = mcoInterestProfile.seen[ref] || { count: 0, last: 0 };
+            if (signal === 'view') seen.count = Number(seen.count || 0) + 1;
+            seen.last = Date.now();
+            mcoInterestProfile.seen[ref] = seen;
+
+            saveInterestProfile(w >= 4);
+            updatePersonalizationControls();
+        }
+
+        function schedulePersonalizationSignals(game) {
+            if (mcoInterestViewTimer) clearTimeout(mcoInterestViewTimer);
+            if (mcoInterestDwellTimer) clearTimeout(mcoInterestDwellTimer);
+            if (!game) return;
+
+            const ref = getGameStableRef(game) || game.id;
+            const stillCurrent = () => {
+                if (selectedSearchGameId) return (getGameStableRef(game) || game.id) === ref;
+                const current = instagramVisibleGames[instagramIndex];
+                return !!(current && (getGameStableRef(current) || current.id) === ref);
+            };
+
+            mcoInterestViewTimer = setTimeout(() => {
+                if (stillCurrent()) recordGameInterest(game, .55, 'view');
+            }, 900);
+
+            mcoInterestDwellTimer = setTimeout(() => {
+                if (stillCurrent()) recordGameInterest(game, 2, 'dwell');
+            }, 4200);
+        }
+
+        function stablePersonalizationRandom(game) {
+            const day = Math.floor(Date.now() / 86400000);
+            const text = [getGameStableRef(game) || game.id || game.name, mcoInterestProfile.seed, day].join('::');
+            let hash = 2166136261;
+            for (let i = 0; i < text.length; i++) {
+                hash ^= text.charCodeAt(i);
+                hash = Math.imul(hash, 16777619);
+            }
+            return (hash >>> 0) / 4294967295;
+        }
+
+        function getPersonalizationScore(game) {
+            const ref = getGameStableRef(game) || game.id;
+            let raw = Number(mcoInterestProfile.games[ref] || 0) * 1.18;
+
+            normalizeInterestTokens([
+                game.name || '',
+                Array.isArray(game.comboNames) ? game.comboNames.join(' ') : ''
+            ].join(' ')).slice(0, 10).forEach(token => {
+                raw += Math.min(16, Number(mcoInterestProfile.tokens[token] || 0)) * .18;
+            });
+
+            raw += Number(mcoInterestProfile.categories[categoryKey(game.category)] || 0) * .26;
+            raw += (Array.isArray(game.platforms) ? game.platforms : []).reduce((sum, platform) => {
+                return sum + Number(mcoInterestProfile.platforms[String(platform).toUpperCase()] || 0);
+            }, 0) * .16;
+            raw += Number(mcoInterestProfile.priceBuckets[getInterestPriceBucket(game)] || 0) * .18;
+
+            const affinity = 1 - Math.exp(-Math.max(0, raw) / 6.2);
+            const seenCount = Number(mcoInterestProfile.seen[ref]?.count || 0);
+            const random = stablePersonalizationRandom(game);
+            const discovery = seenCount > 0 ? (.16 + random * .38) : (.60 + random * .40);
+            const repeatPenalty = Math.min(.10, seenCount * .012);
+
+            return affinity * .70 + discovery * .30 - repeatPenalty;
+        }
+
+        function getPersonalizedGames(list) {
+            const source = Array.isArray(list) ? [...list] : [];
+            if (!isPersonalizationReady()) return source;
+            return source.sort((a, b) => {
+                const diff = getPersonalizationScore(b) - getPersonalizationScore(a);
+                if (Math.abs(diff) > .0001) return diff;
+                return String(a.name || '').localeCompare(String(b.name || ''), 'pt-BR');
+            });
+        }
+
+        function resetLocalPersonalization() {
+            if (!confirm('Limpar as preferências aprendidas neste aparelho?\n\nO catálogo volta ao comportamento padrão e começa a aprender novamente.')) return;
+            try { localStorage.removeItem(MCO_INTEREST_PROFILE_KEY); } catch (_) {}
+            mcoInterestProfile = createEmptyInterestProfile();
+            mcoInterestSessionSignals.clear();
+            if (instagramCategory === '__FOR_YOU__') instagramCategory = 'ALL';
+            const categorySelect = document.getElementById('categorySelect');
+            if (categorySelect && categorySelect.value === '__FOR_YOU__') categorySelect.value = 'ALL';
+            updatePersonalizationControls();
+            populateCategories();
+            instagramIndex = 0;
+            renderGames();
+            showShareStatus('Preferências deste aparelho foram limpas.');
+        }
+
         let selectedCart = [];
         // Guarda a plataforma escolhida mesmo antes de o cliente selecionar Primária/Secundária.
         // Isso evita que o card volte automaticamente para PS4 após clicar em PS5.
@@ -5852,6 +6244,7 @@ async function copyShareText(text) {
         function sortGamesForCurrentView(list, searchTerm = '') {
             const source = Array.isArray(list) ? [...list] : [];
             const mode = String(selectedSortMode || 'RELEVANCE');
+
             if (mode === 'PRICE_ASC') {
                 return source.sort((a, b) => {
                     const ap = getGameMainPriceForCurrentFilter(a) || Number.POSITIVE_INFINITY;
@@ -5859,6 +6252,7 @@ async function copyShareText(text) {
                     return ap - bp || a.name.localeCompare(b.name, 'pt-BR');
                 });
             }
+
             if (mode === 'DISCOUNT_DESC') {
                 return source.sort((a, b) => {
                     const ad = getDiscountPercent(a, getGameMainPriceForCurrentFilter(a));
@@ -5866,9 +6260,15 @@ async function copyShareText(text) {
                     return bd - ad || getGameMainPriceForCurrentFilter(a) - getGameMainPriceForCurrentFilter(b);
                 });
             }
+
             if (mode === 'NAME_ASC') {
                 return source.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
             }
+
+            if (!searchTerm && instagramCategory !== '__RECENT__' && isPersonalizationReady()) {
+                return getPersonalizedGames(source);
+            }
+
             return source;
         }
 
@@ -6670,6 +7070,8 @@ async function copyShareText(text) {
                     syncPlatformFilterUi();
                 }
 
+                registerPersonalizationVisit();
+
                 populateCategories();
                 syncSortUi();
                 renderLaunchCarousel();
@@ -6724,6 +7126,13 @@ async function copyShareText(text) {
 
             const previousValue = select.value || 'ALL';
             select.innerHTML = '<option value="ALL">Todas as Categorias</option>';
+
+            if (isPersonalizationReady()) {
+                const personalizedOption = document.createElement('option');
+                personalizedOption.value = '__FOR_YOU__';
+                personalizedOption.innerText = '✨ Para você';
+                select.appendChild(personalizedOption);
+            }
 
             const platformGames = getPlatformFilteredGames(games);
             const categories = getOrderedCategories(platformGames.map(g => g.category));
@@ -6829,6 +7238,13 @@ async function copyShareText(text) {
             ] =
                 platform;
 
+            recordGameInterest(
+                game,
+                2.5,
+                'platform',
+                platform
+            );
+
             selectedCart =
                 selectedCart.filter(
                     item =>
@@ -6884,6 +7300,13 @@ async function copyShareText(text) {
                     price,
                     stock
                 });
+
+                recordGameInterest(
+                    game,
+                    3,
+                    'type',
+                    `${platform} ${type}`
+                );
             }
 
             if (
@@ -6912,6 +7335,13 @@ async function copyShareText(text) {
 
             const cartItem = selectedCart.find(i => i.gameId === gameId);
             if (!cartItem) return;
+
+            recordGameInterest(
+                game,
+                10,
+                'buy',
+                `${cartItem.platform} ${cartItem.type}`
+            );
 
             pendingPurchaseGameId = gameId;
 
@@ -7447,6 +7877,15 @@ async function copyShareText(text) {
                 searchBeforeProductMode = search ? search.value.trim() : '';
             }
 
+            if (updateUrl && search && search.value.trim()) {
+                recordGameInterest(
+                    game,
+                    4,
+                    'search',
+                    search.value.trim()
+                );
+            }
+
             selectedSearchGameId = game.id;
             rememberViewedGame(game);
 
@@ -7474,6 +7913,14 @@ async function copyShareText(text) {
             }
 
             updateSeoForGame(game);
+
+            if (
+                window.matchMedia('(max-width: 800px)').matches &&
+                typeof closeCompactMobileSearch === 'function'
+            ) {
+                closeCompactMobileSearch(true);
+            }
+
             return true;
         }
 
@@ -7705,6 +8152,12 @@ async function copyShareText(text) {
 
             const game = games.find(g => g.id === gameId);
             if (!game) return;
+
+            recordGameInterest(
+                game,
+                6,
+                'share'
+            );
 
             let cardEl =
                 event.currentTarget &&
@@ -8846,6 +9299,54 @@ async function copyShareText(text) {
             clearBtn.style.display = input.value.trim() ? 'flex' : 'none';
         }
 
+        function goToStoreHome(event) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+
+            selectedSearchGameId = null;
+            searchBeforeProductMode = '';
+
+            const input = document.getElementById('searchInput');
+            if (input) input.value = '';
+
+            const categorySelect = document.getElementById('categorySelect');
+            if (categorySelect) categorySelect.value = 'ALL';
+
+            selectedSortMode = 'RELEVANCE';
+            syncSortUi();
+
+            instagramCategory = isReturningPersonalizedVisitor() ? '__FOR_YOU__' : 'ALL';
+            instagramIndex = 0;
+            instagramTransitionDirection = 0;
+
+            if (window.history && window.history.replaceState) {
+                window.history.replaceState({}, '', getStoreBaseUrl());
+            }
+
+            hideSearchSuggestions();
+            updateSearchClearButton();
+            toggleInstagramPopup(false);
+            document.title = 'MCO GAMES — Sua Loja Digital';
+            renderGames();
+
+            if (typeof closeCompactMobileSearch === 'function') closeCompactMobileSearch(true);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            return false;
+        }
+
+        function setupHomeLogoLink() {
+            const brand = document.getElementById('mcoHomeLogoLink');
+            if (!brand || brand.dataset.homeReady === '1') return;
+            brand.dataset.homeReady = '1';
+            brand.addEventListener('click', goToStoreHome);
+            brand.addEventListener('keydown', event => {
+                if (event.key === 'Enter' || event.key === ' ') goToStoreHome(event);
+            });
+        }
+
+
         function clearCatalogSearch() {
             const input = document.getElementById('searchInput');
 
@@ -8862,7 +9363,14 @@ async function copyShareText(text) {
             renderGames();
             hideSearchSuggestions();
 
-            if (input) input.focus();
+            if (
+                window.matchMedia('(max-width: 800px)').matches &&
+                typeof closeCompactMobileSearch === 'function'
+            ) {
+                closeCompactMobileSearch(true);
+            } else if (input) {
+                input.focus();
+            }
         }
 
         function setFeatureSectionsVisible(visible) {
@@ -8912,7 +9420,11 @@ async function copyShareText(text) {
 
             let label = searchVal
                 ? `Resultados para "${escapeHtml(searchVal)}"`
-                : (catVal !== 'ALL' ? `Jogos de ${escapeHtml(catVal)}` : 'Resultados');
+                : (
+                    catVal === '__FOR_YOU__'
+                        ? '✨ Para você'
+                        : (catVal !== 'ALL' ? `Jogos de ${escapeHtml(catVal)}` : 'Resultados')
+                  );
 
             if (platformVal !== 'ALL') label += ` • ${escapeHtml(platformVal)}`;
 
@@ -8967,18 +9479,20 @@ async function copyShareText(text) {
 
         function randomizeInitialInstagramGame() {
             if (instagramInitialRandomized || !games.length) return;
-
             instagramInitialRandomized = true;
 
-            // Respeita links antigos/específicos, caso alguém ainda os tenha salvo.
             const params = new URLSearchParams(window.location.search);
             if (params.has('jogo') || params.has('categoria')) return;
 
-            instagramCategory = 'ALL';
+            if (window.matchMedia('(max-width: 800px)').matches && isReturningPersonalizedVisitor()) {
+                instagramCategory = '__FOR_YOU__';
+                instagramIndex = 0;
+                return;
+            }
 
+            instagramCategory = 'ALL';
             let candidates = games.map((game, index) => ({ game, index }));
 
-            // Evita, quando possível, abrir exatamente no mesmo jogo da última visita/refresh.
             try {
                 const previousGameId = localStorage.getItem('mco:last-initial-game');
                 if (previousGameId && candidates.length > 1) {
@@ -8989,12 +9503,8 @@ async function copyShareText(text) {
 
             const chosen = candidates[secureRandomIndex(candidates.length)];
             if (!chosen) return;
-
             instagramIndex = chosen.index;
-
-            try {
-                localStorage.setItem('mco:last-initial-game', chosen.game.id);
-            } catch (_) {}
+            try { localStorage.setItem('mco:last-initial-game', chosen.game.id); } catch (_) {}
         }
 
         function getInstagramCategories() {
@@ -10416,6 +10926,13 @@ async function copyShareText(text) {
 
             if (
                 instagramCategory ===
+                '__FOR_YOU__'
+            ) {
+                return 'Para você';
+            }
+
+            if (
+                instagramCategory ===
                 'ALL'
             ) {
                 return game.category;
@@ -10491,6 +11008,10 @@ async function copyShareText(text) {
                 );
 
                 scheduleRememberViewedGame(
+                    currentGame
+                );
+
+                schedulePersonalizationSignals(
                     currentGame
                 );
             }
@@ -10677,6 +11198,7 @@ async function copyShareText(text) {
             if (
                 instagramCategory !== 'ALL' &&
                 instagramCategory !== '__RECENT__' &&
+                instagramCategory !== '__FOR_YOU__' &&
                 !catsOnly.some(
                     category =>
                         categoryKey(
@@ -10703,6 +11225,29 @@ async function copyShareText(text) {
 
             mobile.innerHTML =
                 '<option value="ALL">🎮 Ver todos os jogos</option>';
+
+            if (isPersonalizationReady()) {
+                const forYouButton = document.createElement('button');
+                forYouButton.type = 'button';
+                forYouButton.className =
+                    'ig-cat-btn mco-for-you-btn' +
+                    (instagramCategory === '__FOR_YOU__' && !searchVal && !selectedSearchGameId ? ' active' : '');
+                forYouButton.innerHTML =
+                    `<span>✨ Para você</span><span class="ig-cat-count">${platformGames.length}</span>`;
+                forYouButton.addEventListener('click', () => selectInstagramCategory('__FOR_YOU__'));
+                menu.appendChild(forYouButton);
+
+                if (popupMenu) {
+                    const popupForYou = forYouButton.cloneNode(true);
+                    popupForYou.addEventListener('click', () => selectInstagramCategory('__FOR_YOU__'));
+                    popupMenu.appendChild(popupForYou);
+                }
+
+                const forYouOption = document.createElement('option');
+                forYouOption.value = '__FOR_YOU__';
+                forYouOption.textContent = `✨ Para você (${platformGames.length})`;
+                mobile.appendChild(forYouOption);
+            }
 
             const recentGames =
                 getRecentlyViewedGames()
@@ -10937,16 +11482,23 @@ async function copyShareText(text) {
                                 instagramCategory ===
                                 '__RECENT__'
                                     ? recentGames
-                                    : platformGames.filter(
-                                        game =>
-                                            instagramCategory ===
-                                            'ALL' ||
-                                            categoryKey(
-                                                game.category
-                                            ) ===
-                                            categoryKey(
-                                                instagramCategory
-                                            )
+                                    : (
+                                        instagramCategory ===
+                                        '__FOR_YOU__'
+                                            ? getPersonalizedGames(
+                                                platformGames
+                                              )
+                                            : platformGames.filter(
+                                                game =>
+                                                    instagramCategory ===
+                                                    'ALL' ||
+                                                    categoryKey(
+                                                        game.category
+                                                    ) ===
+                                                    categoryKey(
+                                                        instagramCategory
+                                                    )
+                                              )
                                       )
                               )
                       );
@@ -11048,6 +11600,10 @@ async function copyShareText(text) {
                 updateTimers();
 
                 scheduleRememberViewedGame(
+                    game
+                );
+
+                schedulePersonalizationSignals(
                     game
                 );
 
@@ -11156,6 +11712,10 @@ async function copyShareText(text) {
                 current.game
             );
 
+            schedulePersonalizationSignals(
+                current.game
+            );
+
             maybeAddFeedSwipeHint(
                 current.page
             );
@@ -11196,10 +11756,14 @@ async function copyShareText(text) {
                     : (
                         searchVal
                             ? getGlobalCatalogSearchResults(searchVal)
-                            : platformGames.filter(game =>
-                                catVal === 'ALL' ||
-                                categoryKey(game.category) === categoryKey(catVal)
-                            )
+                            : (
+                                catVal === '__FOR_YOU__'
+                                    ? getPersonalizedGames(platformGames)
+                                    : platformGames.filter(game =>
+                                        catVal === 'ALL' ||
+                                        categoryKey(game.category) === categoryKey(catVal)
+                                      )
+                              )
                     );
 
                 if (!selectedSearchGame) {
@@ -11589,122 +12153,111 @@ async function copyShareText(text) {
 </style>
 <script id="mco-mobile-header-search">
 (() => {
-  const media =
-    window.matchMedia(
-      '(max-width: 800px)'
-    );
+  const media = window.matchMedia('(max-width: 800px)');
+
+  window.openCompactMobileSearch = function(event) {
+    if (!media.matches) return;
+    if (event) { event.preventDefault(); event.stopPropagation(); }
+    const input = document.getElementById('searchInput');
+    const box = input && input.closest('.search-box');
+    if (!input || !box) return;
+    box.classList.remove('mco-search-collapsed');
+    box.classList.add('mco-search-expanded');
+    requestAnimationFrame(() => {
+      input.focus();
+      if (input.value) input.setSelectionRange(input.value.length, input.value.length);
+    });
+  };
+
+  window.closeCompactMobileSearch = function(force = false) {
+    if (!media.matches) return;
+    const input = document.getElementById('searchInput');
+    const box = input && input.closest('.search-box');
+    if (!input || !box) return;
+    if (!force && input.value.trim()) return;
+    box.classList.remove('mco-search-expanded');
+    box.classList.add('mco-search-collapsed');
+    input.blur();
+  };
+
+  function syncCompactSearchState() {
+    const input = document.getElementById('searchInput');
+    const box = input && input.closest('.search-box');
+    if (!input || !box) return;
+    if (!media.matches) {
+      box.classList.remove('mco-search-expanded','mco-search-collapsed');
+      return;
+    }
+    if (document.activeElement === input) {
+      box.classList.add('mco-search-expanded');
+      box.classList.remove('mco-search-collapsed');
+    } else {
+      box.classList.add('mco-search-collapsed');
+      box.classList.remove('mco-search-expanded');
+    }
+  }
+
+  function setupCompactSearchEvents() {
+    const input = document.getElementById('searchInput');
+    const box = input && input.closest('.search-box');
+    if (!input || !box || box.dataset.compactSearchReady === '1') return;
+    box.dataset.compactSearchReady = '1';
+
+    box.addEventListener('click', event => {
+      if (!media.matches || box.classList.contains('mco-search-expanded')) return;
+      window.openCompactMobileSearch(event);
+    });
+
+    input.addEventListener('focus', () => {
+      if (!media.matches) return;
+      box.classList.remove('mco-search-collapsed');
+      box.classList.add('mco-search-expanded');
+    });
+
+    input.addEventListener('keydown', event => {
+      if (event.key !== 'Escape') return;
+      if (!input.value.trim()) window.closeCompactMobileSearch(true);
+      else if (typeof clearCatalogSearch === 'function') clearCatalogSearch();
+    });
+
+    input.addEventListener('blur', () => {
+      setTimeout(() => {
+        const panel = document.querySelector('.mco-search-suggestions.open');
+        if (!panel && !input.value.trim()) window.closeCompactMobileSearch(true);
+      }, 120);
+    });
+
+    syncCompactSearchState();
+  }
 
   function placeSearch() {
-    const header =
-      document.querySelector(
-        'header'
-      );
-
-    const controls =
-      document.querySelector(
-        '.controls'
-      );
-
-    const brand =
-      header &&
-      header.querySelector(
-        '.brand'
-      );
-
-    const search =
-      controls &&
-      controls.querySelector(
-        '.search-box'
-      );
-
-    /*
-     * Quando a busca já foi movida para o header,
-     * ela deixa de estar dentro de .controls.
-     */
-    const currentSearch =
-      (
-        header &&
-        header.querySelector(
-          ':scope > .search-box'
-        )
-      ) ||
-      search;
-
-    if (
-      !header ||
-      !controls ||
-      !brand ||
-      !currentSearch
-    ) {
-      return;
-    }
+    const header = document.querySelector('header');
+    const controls = document.querySelector('.controls');
+    const brand = header && header.querySelector('.brand');
+    const search = controls && controls.querySelector('.search-box');
+    const currentSearch = (header && header.querySelector(':scope > .search-box')) || search;
+    if (!header || !controls || !brand || !currentSearch) return;
 
     if (media.matches) {
-      if (
-        currentSearch.parentElement !==
-        header
-      ) {
-        header.insertBefore(
-          currentSearch,
-          header.querySelector(
-            '.header-actions'
-          )
-        );
+      if (currentSearch.parentElement !== header) {
+        header.insertBefore(currentSearch, header.querySelector('.header-actions'));
       }
-
-      header.classList.add(
-        'mco-search-in-header'
-      );
-
-      controls.classList.add(
-        'mco-search-moved'
-      );
-
+      header.classList.add('mco-search-in-header');
+      controls.classList.add('mco-search-moved');
+      setupCompactSearchEvents();
+      syncCompactSearchState();
       return;
     }
 
-    if (
-      currentSearch.parentElement !==
-      controls
-    ) {
-      controls.insertBefore(
-        currentSearch,
-        controls.firstChild
-      );
-    }
-
-    header.classList.remove(
-      'mco-search-in-header'
-    );
-
-    controls.classList.remove(
-      'mco-search-moved'
-    );
+    if (currentSearch.parentElement !== controls) controls.insertBefore(currentSearch, controls.firstChild);
+    currentSearch.classList.remove('mco-search-expanded','mco-search-collapsed');
+    header.classList.remove('mco-search-in-header');
+    controls.classList.remove('mco-search-moved');
   }
 
-  document.addEventListener(
-    'DOMContentLoaded',
-    placeSearch,
-    { once: true }
-  );
-
-  if (
-    typeof media.addEventListener ===
-    'function'
-  ) {
-    media.addEventListener(
-      'change',
-      placeSearch
-    );
-  } else if (
-    typeof media.addListener ===
-    'function'
-  ) {
-    media.addListener(
-      placeSearch
-    );
-  }
-
+  document.addEventListener('DOMContentLoaded', placeSearch, { once: true });
+  if (typeof media.addEventListener === 'function') media.addEventListener('change', placeSearch);
+  else if (typeof media.addListener === 'function') media.addListener(placeSearch);
   placeSearch();
 })();
 </script>
@@ -12674,6 +13227,13 @@ async function buildCurrentMobileScreenShare(cardEl, game = null) {
         }
     });
 })();
+</script>
+
+<script id="mco-home-logo-runtime">
+document.addEventListener('DOMContentLoaded', () => {
+  if (typeof setupHomeLogoLink === 'function') setupHomeLogoLink();
+  if (typeof updatePersonalizationControls === 'function') updatePersonalizationControls();
+}, { once: true });
 </script>
 
 </body>
