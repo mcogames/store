@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="mco-mobile-engine" content="vertical-feed-fixed-shell-vip-safe-v6">
+    <meta name="mco-mobile-engine" content="vertical-feed-combo-share-mosaic-v7">
     <title>MCO GAMES | Sua Loja Digital</title>
     
     <!-- Meta Tags para redes sociais e WhatsApp -->
@@ -4843,6 +4843,199 @@ async function copyShareText(text) {
   .mco-fixed-vip-row {
     top: 2px !important;
     right: 8px !important;
+  }
+}
+</style>
+
+
+<style id="mco-combo-share-mosaic-v1">
+/* ==========================================================
+   COMPARTILHAMENTO DE COMBO — MOSAICO ADAPTATIVO
+   Afeta somente a imagem gerada para compartilhar.
+   ========================================================== */
+
+.mobile-share-stage .mco-combo-share-mosaic,
+.mco-share-mobile-stage .mco-combo-share-mosaic {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 1 !important;
+
+  display: grid !important;
+  gap: 3px !important;
+
+  width: 100% !important;
+  height: 100% !important;
+
+  padding: 3px !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      #07131f,
+      #02070c
+    ) !important;
+
+  overflow: hidden !important;
+}
+
+.mobile-share-stage .mco-combo-share-tile,
+.mco-share-mobile-stage .mco-combo-share-tile {
+  position: relative !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+
+  overflow: hidden !important;
+
+  background: #05090d !important;
+  border-radius: 5px !important;
+}
+
+.mobile-share-stage .mco-combo-share-tile img,
+.mco-share-mobile-stage .mco-combo-share-tile img {
+  display: block !important;
+
+  width: 100% !important;
+  height: 100% !important;
+
+  object-fit: cover !important;
+  object-position: center !important;
+}
+
+/* 2 jogos: 50 / 50 */
+.mobile-share-stage .mco-combo-share-mosaic.mosaic-2,
+.mco-share-mobile-stage .mco-combo-share-mosaic.mosaic-2 {
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr)) !important;
+  grid-template-rows:
+    minmax(0, 1fr) !important;
+}
+
+/* 3 jogos: destaque à esquerda + 2 à direita */
+.mobile-share-stage .mco-combo-share-mosaic.mosaic-3,
+.mco-share-mobile-stage .mco-combo-share-mosaic.mosaic-3 {
+  grid-template-columns:
+    1.18fr .82fr !important;
+  grid-template-rows:
+    repeat(2, minmax(0, 1fr)) !important;
+}
+
+.mobile-share-stage .mco-combo-share-mosaic.mosaic-3
+.mco-combo-share-tile:first-child,
+.mco-share-mobile-stage .mco-combo-share-mosaic.mosaic-3
+.mco-combo-share-tile:first-child {
+  grid-row:
+    1 / 3 !important;
+}
+
+/* 4 jogos: 2 × 2 */
+.mobile-share-stage .mco-combo-share-mosaic.mosaic-4,
+.mco-share-mobile-stage .mco-combo-share-mosaic.mosaic-4 {
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr)) !important;
+  grid-template-rows:
+    repeat(2, minmax(0, 1fr)) !important;
+}
+
+/* 5 jogos: 2 maiores em cima + 3 embaixo */
+.mobile-share-stage .mco-combo-share-mosaic.mosaic-5,
+.mco-share-mobile-stage .mco-combo-share-mosaic.mosaic-5 {
+  grid-template-columns:
+    repeat(6, minmax(0, 1fr)) !important;
+  grid-template-rows:
+    repeat(2, minmax(0, 1fr)) !important;
+}
+
+.mobile-share-stage .mco-combo-share-mosaic.mosaic-5
+.mco-combo-share-tile:nth-child(1),
+.mco-share-mobile-stage .mco-combo-share-mosaic.mosaic-5
+.mco-combo-share-tile:nth-child(1) {
+  grid-column:
+    1 / 4 !important;
+}
+
+.mobile-share-stage .mco-combo-share-mosaic.mosaic-5
+.mco-combo-share-tile:nth-child(2),
+.mco-share-mobile-stage .mco-combo-share-mosaic.mosaic-5
+.mco-combo-share-tile:nth-child(2) {
+  grid-column:
+    4 / 7 !important;
+}
+
+.mobile-share-stage .mco-combo-share-mosaic.mosaic-5
+.mco-combo-share-tile:nth-child(3),
+.mco-share-mobile-stage .mco-combo-share-mosaic.mosaic-5
+.mco-combo-share-tile:nth-child(3) {
+  grid-column:
+    1 / 3 !important;
+}
+
+.mobile-share-stage .mco-combo-share-mosaic.mosaic-5
+.mco-combo-share-tile:nth-child(4),
+.mco-share-mobile-stage .mco-combo-share-mosaic.mosaic-5
+.mco-combo-share-tile:nth-child(4) {
+  grid-column:
+    3 / 5 !important;
+}
+
+.mobile-share-stage .mco-combo-share-mosaic.mosaic-5
+.mco-combo-share-tile:nth-child(5),
+.mco-share-mobile-stage .mco-combo-share-mosaic.mosaic-5
+.mco-combo-share-tile:nth-child(5) {
+  grid-column:
+    5 / 7 !important;
+}
+
+/* 6 jogos: 3 × 2 */
+.mobile-share-stage .mco-combo-share-mosaic.mosaic-6,
+.mco-share-mobile-stage .mco-combo-share-mosaic.mosaic-6 {
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr)) !important;
+  grid-template-rows:
+    repeat(2, minmax(0, 1fr)) !important;
+}
+
+/*
+ * Os badges existentes continuam por cima do mosaico.
+ */
+.mobile-share-stage .mco-share-has-combo-mosaic
+.platform-tag,
+.mobile-share-stage .mco-share-has-combo-mosaic
+.preorder-label,
+.mobile-share-stage .mco-share-has-combo-mosaic
+.combo-badge,
+.mobile-share-stage .mco-share-has-combo-mosaic
+.stock-badge,
+.mco-share-mobile-stage .mco-share-has-combo-mosaic
+.platform-tag,
+.mco-share-mobile-stage .mco-share-has-combo-mosaic
+.preorder-label,
+.mco-share-mobile-stage .mco-share-has-combo-mosaic
+.combo-badge,
+.mco-share-mobile-stage .mco-share-has-combo-mosaic
+.stock-badge {
+  z-index: 8 !important;
+}
+
+/*
+ * Na imagem compartilhada o mosaico ocupa a área completa da capa.
+ */
+.mobile-share-stage .mco-share-has-combo-mosaic,
+.mco-share-mobile-stage .mco-share-has-combo-mosaic {
+  position: relative !important;
+  overflow: hidden !important;
+}
+</style>
+
+
+<style id="mco-combo-share-mobile-stage-fix">
+@media (max-width: 800px) {
+  .mobile-share-stage
+  .mco-share-has-combo-mosaic {
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 1 / 1 !important;
+    min-height: 0 !important;
+    max-height: none !important;
   }
 }
 </style>
@@ -11568,6 +11761,236 @@ async function ensureHtml2CanvasLoaded() {
 }
 
 
+function getComboShareCoverUrls(
+    game
+) {
+    if (
+        !game ||
+        !game.isCombo
+    ) {
+        return [];
+    }
+
+    const source =
+        Array.isArray(
+            game.comboCovers
+        )
+            ? game.comboCovers
+            : [];
+
+    const unique =
+        [];
+
+    const seen =
+        new Set();
+
+    source.forEach(
+        url => {
+            const value =
+                String(
+                    url || ''
+                ).trim();
+
+            if (
+                !/^https?:\/\//i.test(
+                    value
+                ) ||
+                seen.has(
+                    value
+                )
+            ) {
+                return;
+            }
+
+            seen.add(
+                value
+            );
+
+            unique.push(
+                value
+            );
+        }
+    );
+
+    if (
+        !unique.length &&
+        game.img
+    ) {
+        unique.push(
+            game.img
+        );
+    }
+
+    /*
+     * O cadastro do combo permite de 2 a 6 jogos.
+     * Se algum dado antigo possuir mais capas, usamos as 6 primeiras.
+     */
+    return unique.slice(
+        0,
+        6
+    );
+}
+
+
+async function createComboShareMosaic(
+    game
+) {
+    const urls =
+        getComboShareCoverUrls(
+            game
+        );
+
+    if (!urls.length) {
+        return null;
+    }
+
+    const safeUrls =
+        await Promise.all(
+            urls.map(
+                async url => {
+                    try {
+                        const safe =
+                            await getImageDataUrlForCanvas(
+                                url
+                            );
+
+                        return (
+                            safe ||
+                            url
+                        );
+
+                    } catch (_) {
+                        return url;
+                    }
+                }
+            )
+        );
+
+    const mosaic =
+        document.createElement(
+            'div'
+        );
+
+    const count =
+        Math.max(
+            1,
+            Math.min(
+                6,
+                safeUrls.length
+            )
+        );
+
+    mosaic.className =
+        'mco-combo-share-mosaic ' +
+        `mosaic-${count}`;
+
+    safeUrls
+        .slice(
+            0,
+            6
+        )
+        .forEach(
+            (
+                url,
+                index
+            ) => {
+                const tile =
+                    document.createElement(
+                        'div'
+                    );
+
+                tile.className =
+                    'mco-combo-share-tile';
+
+                const image =
+                    document.createElement(
+                        'img'
+                    );
+
+                image.src =
+                    url;
+
+                image.alt =
+                    (
+                        Array.isArray(
+                            game.comboNames
+                        ) &&
+                        game.comboNames[
+                            index
+                        ]
+                    ) ||
+                    (
+                        `${game.name} - jogo ${index + 1}`
+                    );
+
+                image.crossOrigin =
+                    'anonymous';
+
+                tile.appendChild(
+                    image
+                );
+
+                mosaic.appendChild(
+                    tile
+                );
+            }
+        );
+
+    return mosaic;
+}
+
+
+async function applyComboShareMosaic(
+    cardClone,
+    game
+) {
+    if (
+        !cardClone ||
+        !game ||
+        !game.isCombo
+    ) {
+        return false;
+    }
+
+    const cover =
+        cardClone.querySelector(
+            '.card-img-container'
+        );
+
+    if (!cover) {
+        return false;
+    }
+
+    const mosaic =
+        await createComboShareMosaic(
+            game
+        );
+
+    if (!mosaic) {
+        return false;
+    }
+
+    cover
+        .querySelectorAll(
+            '.combo-cover-carousel, .card-img, .combo-cover-dots'
+        )
+        .forEach(
+            element =>
+                element.remove()
+        );
+
+    cover.classList.add(
+        'mco-share-has-combo-mosaic'
+    );
+
+    cover.appendChild(
+        mosaic
+    );
+
+    return true;
+}
+
+
 async function buildCurrentMobileScreenShare(cardEl, game = null) {
     await ensureHtml2CanvasLoaded();
 
@@ -11630,6 +12053,22 @@ async function buildCurrentMobileScreenShare(cardEl, game = null) {
         // A imagem compartilhada nunca leva as setas de navegação.
         postClone.querySelectorAll('.mobile-cover-nav, .ig-navigation').forEach(el => el.remove());
 
+        const mobileCardClone =
+            postClone.querySelector(
+                '.card'
+            );
+
+        if (
+            game &&
+            game.isCombo &&
+            mobileCardClone
+        ) {
+            await applyComboShareMosaic(
+                mobileCardClone,
+                game
+            );
+        }
+
         headerClone.style.margin = '0';
         headerClone.style.width = '100%';
 
@@ -11639,7 +12078,11 @@ async function buildCurrentMobileScreenShare(cardEl, game = null) {
         const originalImg = cardEl.querySelector('.card-img');
         const cloneImg = postClone.querySelector('.card-img');
 
-        if (originalImg && cloneImg) {
+        if (
+            !game?.isCombo &&
+            originalImg &&
+            cloneImg
+        ) {
             const safeImage = await loadImageForCanvas(originalImg);
             cloneImg.src = safeImage.src || originalImg.src;
             cloneImg.crossOrigin = 'anonymous';
@@ -11935,6 +12378,16 @@ async function buildCurrentMobileScreenShare(cardEl, game = null) {
     const cardClone = cardEl.cloneNode(true);
     cardClone.querySelectorAll('.mobile-cover-nav, .ig-navigation').forEach(el => el.remove());
 
+    if (
+        game &&
+        game.isCombo
+    ) {
+        await applyComboShareMosaic(
+            cardClone,
+            game
+        );
+    }
+
     // Coloca relógio sobre a capa como no celular.
     const clonedCover = cardClone.querySelector('.card-img-container');
     const clonedTimer = cardClone.querySelector('.card-info .timer-badge');
@@ -11945,7 +12398,11 @@ async function buildCurrentMobileScreenShare(cardEl, game = null) {
     const originalImg = cardEl.querySelector('.card-img');
     const cloneImg = cardClone.querySelector('.card-img');
 
-    if (originalImg && cloneImg) {
+    if (
+        !game?.isCombo &&
+        originalImg &&
+        cloneImg
+    ) {
         const safeImage = await loadImageForCanvas(originalImg);
         cloneImg.src = safeImage.src || originalImg.src;
         cloneImg.crossOrigin = 'anonymous';
