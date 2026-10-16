@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="mco-mobile-engine" content="vertical-feed-personalized-home-search-v8">
+    <meta name="mco-mobile-engine" content="vertical-feed-share-poster-v9">
     <title>MCO GAMES | Sua Loja Digital</title>
     
     <!-- Meta Tags para redes sociais e WhatsApp -->
@@ -8006,12 +8006,13 @@ async function copyShareText(text) {
         let mobileSharePrepareTimer = null;
 
         function getMobileShareStateKey(game, cardEl) {
+            const sharePosterVersion = 'poster-v2';
             const selected = getSelectedItem(game.id);
             const countText = document.querySelector('#igViewer .ig-count')?.textContent || '';
             const categoryText = document.querySelector('#igViewer .ig-category-label')?.textContent || '';
             const searchText = document.getElementById('searchInput')?.value || '';
 
-            return [
+            return [sharePosterVersion,
                 game.id,
                 selected?.platform || getDefaultPlatform(game) || '',
                 selected?.type || '',
@@ -12544,454 +12545,1655 @@ async function applyComboShareMosaic(
 }
 
 
-async function buildCurrentMobileScreenShare(cardEl, game = null) {
-    await ensureHtml2CanvasLoaded();
 
-    if (
-        typeof html2canvas ===
-        'undefined'
-    ) {
-        throw new Error(
-            'html2canvas não foi carregado.'
-        );
+async function loadSharePosterImageFromUrl(
+    sourceUrl
+) {
+    const value =
+        String(
+            sourceUrl || ''
+        ).trim();
+
+    if (!value) {
+        return null;
     }
 
-    const currentMobilePost = cardEl ? cardEl.closest('.ig-post') : null;
-
-    /* ==========================================================
-       CELULAR
-       Mantém exatamente a captura que já estava funcionando.
-       ========================================================== */
-    if (currentMobilePost) {
-        const header = document.querySelector('header');
-        if (!header) {
-            throw new Error('Não encontrei o cabeçalho atual para compartilhar.');
-        }
-
-        const stage = document.createElement('div');
-        stage.className = 'mobile-share-stage';
-        stage.style.position = 'fixed';
-        stage.style.left = '-100000px';
-        stage.style.top = '0';
-        stage.style.zIndex = '-1';
-        stage.style.width = `${Math.max(document.documentElement.clientWidth || 390, 320)}px`;
-        stage.style.background = '#070a0f';
-        stage.style.padding = '0';
-        stage.style.margin = '0';
-        stage.style.display = 'block';
-        stage.style.overflow = 'hidden';
-
-        const headerClone =
-            header.cloneNode(
-                true
-            );
-
-        const postClone =
-            currentMobilePost.cloneNode(
-                true
-            );
-
-        const feedHeader =
-            document.getElementById(
-                'mcoMobileFeedHeader'
-            );
-
-        const feedHeaderClone =
-            feedHeader
-                ? feedHeader.cloneNode(
-                    true
-                  )
-                : null;
-
-        // A imagem compartilhada nunca leva as setas de navegação.
-        postClone.querySelectorAll('.mobile-cover-nav, .ig-navigation').forEach(el => el.remove());
-
-        const mobileCardClone =
-            postClone.querySelector(
-                '.card'
-            );
-
-        if (
-            game &&
-            game.isCombo &&
-            mobileCardClone
-        ) {
-            await applyComboShareMosaic(
-                mobileCardClone,
-                game
-            );
-        }
-
-        headerClone.style.margin = '0';
-        headerClone.style.width = '100%';
-
-        postClone.style.margin = '0 8px 0';
-        postClone.style.width = 'calc(100% - 16px)';
-
-        const originalImg = cardEl.querySelector('.card-img');
-        const cloneImg = postClone.querySelector('.card-img');
-
-        if (
-            !game?.isCombo &&
-            originalImg &&
-            cloneImg
-        ) {
-            const safeImage = await loadImageForCanvas(originalImg);
-            cloneImg.src = safeImage.src || originalImg.src;
-            cloneImg.crossOrigin = 'anonymous';
-
-            await new Promise((resolve, reject) => {
-                if (cloneImg.complete && cloneImg.naturalWidth > 0) {
-                    resolve();
-                    return;
-                }
-                cloneImg.onload = resolve;
-                cloneImg.onerror = () => reject(
-                    new Error('A capa não pôde ser inserida na imagem de compartilhamento.')
-                );
-            });
-        }
-
-        const liveLogo = document.getElementById('siteLogoImage');
-        const clonedLogo = headerClone.querySelector('#siteLogoImage');
-        if (liveLogo && clonedLogo && liveLogo.src) {
-            const safeLogo = await getImageDataUrlForCanvas(liveLogo.currentSrc || liveLogo.src);
-            if (safeLogo) clonedLogo.src = safeLogo;
-        }
-
-        stage.appendChild(
-            headerClone
-        );
-
-        if (feedHeaderClone) {
-            feedHeaderClone.style.position =
-                'relative';
-
-            feedHeaderClone.style.inset =
-                'auto';
-
-            feedHeaderClone.style.width =
-                '100%';
-
-            feedHeaderClone.style.pointerEvents =
-                'none';
-
-            stage.appendChild(
-                feedHeaderClone
-            );
-        }
-
-        stage.appendChild(
-            postClone
-        );
-
-        document.body.appendChild(
-            stage
-        );
-
-        try {
-            return await html2canvas(stage, {
-                backgroundColor: '#070a0f',
-                useCORS: true,
-                allowTaint: false,
-                imageTimeout: 12000,
-                scale: Math.min((window.devicePixelRatio || 1) * 1.6, 3),
-                logging: false
-            });
-        } finally {
-            stage.remove();
-        }
-    }
-
-    /* ==========================================================
-       PC
-       O card desktop não fica dentro de .ig-post.
-       Monta temporariamente uma versão mobile para o print.
-       ========================================================== */
-    if (!cardEl || !game) {
-        throw new Error('Não encontrei o jogo atual para montar a imagem.');
-    }
-
-    const stage = document.createElement('div');
-    stage.className = 'mco-share-mobile-stage';
-    stage.style.position = 'fixed';
-    stage.style.left = '-100000px';
-    stage.style.top = '0';
-    stage.style.zIndex = '-1';
-    stage.style.width = '390px';
-    stage.style.background = '#070a0f';
-    stage.style.padding = '0 0 12px';
-    stage.style.margin = '0';
-    stage.style.overflow = 'hidden';
-    stage.style.color = '#fff';
-    stage.style.fontFamily = "'Inter', Arial, sans-serif";
-
-    const scopedStyle = document.createElement('style');
-    scopedStyle.textContent = `
-        .mco-share-mobile-stage *{box-sizing:border-box}
-        .mco-share-mobile-stage .share-head{
-            height:92px;padding:10px 14px;background:#0d1117;
-            border-bottom:1px solid #202b36;display:flex;
-            align-items:center;justify-content:space-between;gap:10px
-        }
-        .mco-share-mobile-stage .share-head-logo{
-            width:52%;height:72px;display:flex;align-items:center
-        }
-        .mco-share-mobile-stage .share-head-logo img{
-            width:100%;max-height:72px;object-fit:contain;object-position:left center
-        }
-        .mco-share-mobile-stage .share-search{
-            width:44%;height:72px;border:1px solid #245273;border-radius:32px;
-            background:#101821;display:flex;align-items:center;padding:0 13px;
-            color:#8291a2;font-size:14px;overflow:hidden;
-            box-shadow:inset 0 0 0 2px rgba(0,160,255,.07),0 0 14px rgba(0,151,255,.14)
-        }
-        .mco-share-mobile-stage .share-search span{white-space:nowrap}
-        .mco-share-mobile-stage .share-post{
-            margin:0 8px;border:1px solid #0d527d;border-radius:0 0 22px 22px;
-            overflow:hidden;background:linear-gradient(180deg,#02121e 0%,#06111c 100%);
-            box-shadow:0 0 18px rgba(0,145,255,.10)
-        }
-        .mco-share-mobile-stage .share-topline{
-            height:52px;padding:0 14px;background:#001729;
-            border-bottom:1px solid rgba(22,185,255,.22);
-            display:flex;align-items:center;justify-content:space-between
-        }
-        .mco-share-mobile-stage .share-cat{
-            color:#20c8ff;font-size:17px;font-weight:950;text-transform:uppercase
-        }
-        .mco-share-mobile-stage .share-count{color:#a8b7c5;font-size:15px}
-        .mco-share-mobile-stage .card{
-            width:100%!important;max-width:none!important;margin:0!important;
-            border:0!important;border-radius:0!important;background:transparent!important;
-            box-shadow:none!important;overflow:hidden!important;display:flex!important;
-            flex-direction:column!important
-        }
-        .mco-share-mobile-stage .card-img-container{
-            width:100%!important;height:auto!important;aspect-ratio:1/1!important;
-            position:relative!important;overflow:hidden!important;background:#050a10!important
-        }
-        .mco-share-mobile-stage .card-img{
-            display:block!important;width:100%!important;height:100%!important;
-            object-fit:cover!important;object-position:center!important
-        }
-        .mco-share-mobile-stage .platform-tag{
-            position:absolute!important;top:12px!important;left:20px!important;z-index:5!important;
-            padding:10px 14px!important;border-radius:7px!important;background:rgba(0,0,0,.85)!important;
-            color:#fff!important;font-size:15px!important;font-weight:950!important
-        }
-        .mco-share-mobile-stage .preorder-label{
-            position:absolute!important;top:12px!important;right:12px!important;left:auto!important;z-index:6!important;
-            padding:8px 12px!important;border-radius:7px!important
-        }
-        .mco-share-mobile-stage .timer-badge{
-            position:absolute!important;top:auto!important;right:12px!important;bottom:12px!important;left:auto!important;
-            z-index:8!important;margin:0!important;padding:6px 9px!important;border-radius:8px!important;
-            background:rgba(15,14,6,.78)!important;border:1px solid rgba(255,190,32,.55)!important;
-            color:#ffd04c!important;font-size:12px!important;font-weight:900!important;
-            backdrop-filter:blur(4px)
-        }
-        .mco-share-mobile-stage .timer-badge + .stock-badge{
-            right:auto!important;left:12px!important;bottom:12px!important
-        }
-        .mco-share-mobile-stage .mobile-cover-nav{
-            position:absolute;left:0;right:0;bottom:14px;z-index:9;
-            display:flex;justify-content:space-between;padding:0 12px
-        }
-        .mco-share-mobile-stage .mobile-cover-arrow{
-            width:42px;height:42px;border-radius:50%;border:1px solid rgba(45,199,255,.82);
-            background:linear-gradient(135deg,rgba(0,164,255,.56),rgba(0,86,210,.42));
-            color:#fff;font-size:25px;display:flex;align-items:center;justify-content:center;
-            box-shadow:0 0 8px rgba(0,190,255,.48),0 0 18px rgba(0,130,255,.30)
-        }
-        .mco-share-mobile-stage .card-info{
-            padding:12px 16px 14px!important;gap:8px!important;background:#03101b!important;
-            display:flex!important;flex-direction:column!important
-        }
-        .mco-share-mobile-stage .card-title{
-            min-height:0!important;margin:0!important;color:#fff!important;
-            font-size:17px!important;font-weight:800!important;line-height:1.1!important
-        }
-        .mco-share-mobile-stage .price-vip-row{
-            display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;
-            align-items:center!important;gap:10px!important;width:100%!important
-        }
-        .mco-share-mobile-stage .old-price{font-size:12px!important}
-        .mco-share-mobile-stage .current-price-row{
-            display:flex!important;flex-wrap:nowrap!important;gap:7px!important;align-items:center!important
-        }
-        .mco-share-mobile-stage .current-price{
-            color:#18b8ff!important;font-size:17px!important;font-weight:800!important;white-space:nowrap!important
-        }
-        .mco-share-mobile-stage .discount-inline{
-            padding:5px 8px!important;border-radius:7px!important;font-size:12px!important
-        }
-        .mco-share-mobile-stage .mobile-card-vip{
-            display:inline-flex!important;align-items:center!important;justify-content:center!important;
-            min-height:38px!important;padding:0 13px!important;border-radius:999px!important;
-            background:#25d366!important;color:#06130a!important;font-size:12px!important;
-            font-weight:950!important;text-decoration:none!important;white-space:nowrap!important
-        }
-        .mco-share-mobile-stage .platform-heading{
-            margin:2px 0 0!important;font-size:12px!important;color:#9da8b6!important;
-            font-weight:900!important;text-transform:uppercase!important
-        }
-        .mco-share-mobile-stage .platform-selector{
-            display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
-            gap:8px!important;margin:0!important
-        }
-        .mco-share-mobile-stage .platform-btn,
-        .mco-share-mobile-stage .platform-single{
-            height:40px!important;min-height:40px!important;border-radius:13px!important;
-            display:flex!important;align-items:center!important;justify-content:center!important;
-            padding:5px 8px!important;font-size:14px!important;font-weight:900!important;
-            border:1px solid #303946!important;background:#1b222c!important;color:#dbe2ea!important
-        }
-        .mco-share-mobile-stage .platform-btn.active,
-        .mco-share-mobile-stage .platform-single{
-            background:rgba(0,230,118,.10)!important;border-color:rgba(0,230,118,.70)!important;
-            color:#18b8ff!important
-        }
-        .mco-share-mobile-stage .type-selector{
-            display:flex!important;gap:8px!important;margin:0!important
-        }
-        .mco-share-mobile-stage .type-btn{
-            flex:1!important;min-height:44px!important;padding:8px 6px!important;
-            border-radius:10px!important;background:#1a202c!important;border:1px solid #202630!important;
-            color:#fff!important;font-size:12px!important;line-height:1.05!important
-        }
-        .mco-share-mobile-stage .type-btn.active{
-            background:#18b8ff!important;color:#00111a!important
-        }
-        .mco-share-mobile-stage .media-label{font-size:12px!important}
-        .mco-share-mobile-stage .media-price{font-size:13px!important;font-weight:900!important}
-        .mco-share-mobile-stage .card-actions-row{
-            display:grid!important;grid-template-columns:minmax(0,1fr) 44px minmax(125px,.9fr)!important;
-            align-items:center!important;gap:7px!important;margin:0!important;width:100%!important
-        }
-        .mco-share-mobile-stage .btn-buy-direct{
-            height:44px!important;min-height:44px!important;border-radius:10px!important;
-            font-size:12px!important
-        }
-        .mco-share-mobile-stage .btn-share-circle{
-            display:flex!important;width:44px!important;height:44px!important;min-width:44px!important;
-            align-items:center!important;justify-content:center!important;border-radius:50%!important;
-            background:#25d366!important;color:#000!important
-        }
-        .mco-share-mobile-stage .mobile-card-categories{
-            display:flex!important;align-items:center!important;justify-content:center!important;
-            height:44px!important;min-height:44px!important;border-radius:999px!important;
-            border:1px solid #39c7ff!important;background:linear-gradient(135deg,#049cef,#0870d7)!important;
-            color:#fff!important;font-size:12px!important;font-weight:950!important
-        }
-    `;
-    stage.appendChild(scopedStyle);
-
-    const shareHead = document.createElement('div');
-    shareHead.className = 'share-head';
-
-    const logoWrap = document.createElement('div');
-    logoWrap.className = 'share-head-logo';
-
-    const logo = document.createElement('img');
-    const liveLogo = document.getElementById('siteLogoImage');
-    const logoSource = liveLogo?.currentSrc || liveLogo?.src || '';
-    const safeLogo = logoSource ? await getImageDataUrlForCanvas(logoSource) : null;
-    logo.src = safeLogo || logoSource;
-    logo.alt = 'MCO Games';
-    logoWrap.appendChild(logo);
-
-    const search = document.createElement('div');
-    search.className = 'share-search';
-    const currentQuery = document.getElementById('searchInput')?.value?.trim();
-    search.innerHTML = `<span>🔎 ${escapeHtml(currentQuery || 'Pesquisar por nome do jogo...')}</span>`;
-
-    shareHead.appendChild(logoWrap);
-    shareHead.appendChild(search);
-
-    const sharePost = document.createElement('div');
-    sharePost.className = 'share-post';
-
-    const top = document.createElement('div');
-    top.className = 'share-topline';
-
-    const categoryGames = games.filter(g =>
-        categoryKey(g.category) === categoryKey(game.category)
-    );
-    const categoryIndex = Math.max(
-        0,
-        categoryGames.findIndex(g => g.id === game.id)
-    );
-
-    top.innerHTML = `
-        <span class="share-cat">${escapeHtml(game.category || 'MCO Games')}</span>
-        <span class="share-count">${categoryIndex + 1} / ${Math.max(categoryGames.length, 1)}</span>
-    `;
-
-    const cardClone = cardEl.cloneNode(true);
-    cardClone.querySelectorAll('.mobile-cover-nav, .ig-navigation').forEach(el => el.remove());
-
-    if (
-        game &&
-        game.isCombo
-    ) {
-        await applyComboShareMosaic(
-            cardClone,
-            game
-        );
-    }
-
-    // Coloca relógio sobre a capa como no celular.
-    const clonedCover = cardClone.querySelector('.card-img-container');
-    const clonedTimer = cardClone.querySelector('.card-info .timer-badge');
-    if (clonedCover && clonedTimer) clonedCover.appendChild(clonedTimer);
-    // Setas omitidas de propósito na imagem compartilhada.
-
-    // Prepara a capa para canvas.
-    const originalImg = cardEl.querySelector('.card-img');
-    const cloneImg = cardClone.querySelector('.card-img');
-
-    if (
-        !game?.isCombo &&
-        originalImg &&
-        cloneImg
-    ) {
-        const safeImage = await loadImageForCanvas(originalImg);
-        cloneImg.src = safeImage.src || originalImg.src;
-        cloneImg.crossOrigin = 'anonymous';
-
-        await new Promise((resolve, reject) => {
-            if (cloneImg.complete && cloneImg.naturalWidth > 0) {
-                resolve();
-                return;
-            }
-            cloneImg.onload = resolve;
-            cloneImg.onerror = () => reject(
-                new Error('A capa não pôde ser inserida na imagem de compartilhamento.')
-            );
-        });
-    }
-
-    sharePost.appendChild(top);
-    sharePost.appendChild(cardClone);
-
-    stage.appendChild(shareHead);
-    stage.appendChild(sharePost);
-    document.body.appendChild(stage);
+    let safeSource =
+        value;
 
     try {
-        return await html2canvas(stage, {
-            backgroundColor: '#070a0f',
-            useCORS: true,
-            allowTaint: false,
-            imageTimeout: 12000,
-            scale: 2.4,
-            logging: false,
-            width: 390
-        });
-    } finally {
-        stage.remove();
+        const dataUrl =
+            await getImageDataUrlForCanvas(
+                value
+            );
+
+        if (dataUrl) {
+            safeSource =
+                dataUrl;
+        }
+    } catch (_) {
     }
+
+    return await new Promise(
+        resolve => {
+            const image =
+                new Image();
+
+            image.decoding =
+                'async';
+
+            image.onload =
+                () => resolve(
+                    image
+                );
+
+            image.onerror =
+                () => resolve(
+                    null
+                );
+
+            image.src =
+                safeSource;
+        }
+    );
+}
+
+
+function drawSharePosterRoundedRect(
+    ctx,
+    x,
+    y,
+    width,
+    height,
+    radius,
+    fill,
+    stroke = '',
+    lineWidth = 1
+) {
+    ctx.save();
+
+    ctx.beginPath();
+    ctx.roundRect(
+        x,
+        y,
+        width,
+        height,
+        radius
+    );
+
+    if (fill) {
+        ctx.fillStyle =
+            fill;
+        ctx.fill();
+    }
+
+    if (stroke) {
+        ctx.strokeStyle =
+            stroke;
+        ctx.lineWidth =
+            lineWidth;
+        ctx.stroke();
+    }
+
+    ctx.restore();
+}
+
+
+function drawSharePosterImageContain(
+    ctx,
+    image,
+    x,
+    y,
+    width,
+    height
+) {
+    if (
+        !image ||
+        !image.naturalWidth ||
+        !image.naturalHeight
+    ) {
+        return;
+    }
+
+    const scale =
+        Math.min(
+            width /
+            image.naturalWidth,
+            height /
+            image.naturalHeight
+        );
+
+    const drawWidth =
+        image.naturalWidth *
+        scale;
+
+    const drawHeight =
+        image.naturalHeight *
+        scale;
+
+    ctx.drawImage(
+        image,
+        x +
+        (
+            width -
+            drawWidth
+        ) /
+        2,
+        y +
+        (
+            height -
+            drawHeight
+        ) /
+        2,
+        drawWidth,
+        drawHeight
+    );
+}
+
+
+function drawSharePosterImageCover(
+    ctx,
+    image,
+    x,
+    y,
+    width,
+    height
+) {
+    if (
+        !image ||
+        !image.naturalWidth ||
+        !image.naturalHeight
+    ) {
+        return;
+    }
+
+    const scale =
+        Math.max(
+            width /
+            image.naturalWidth,
+            height /
+            image.naturalHeight
+        );
+
+    const sourceWidth =
+        width /
+        scale;
+
+    const sourceHeight =
+        height /
+        scale;
+
+    const sourceX =
+        Math.max(
+            0,
+            (
+                image.naturalWidth -
+                sourceWidth
+            ) /
+            2
+        );
+
+    const sourceY =
+        Math.max(
+            0,
+            (
+                image.naturalHeight -
+                sourceHeight
+            ) /
+            2
+        );
+
+    ctx.drawImage(
+        image,
+        sourceX,
+        sourceY,
+        Math.min(
+            sourceWidth,
+            image.naturalWidth
+        ),
+        Math.min(
+            sourceHeight,
+            image.naturalHeight
+        ),
+        x,
+        y,
+        width,
+        height
+    );
+}
+
+
+function drawSharePosterWrappedText(
+    ctx,
+    text,
+    x,
+    y,
+    maxWidth,
+    lineHeight,
+    maxLines = 2
+) {
+    const words =
+        String(
+            text || ''
+        )
+            .split(
+                /\s+/
+            )
+            .filter(
+                Boolean
+            );
+
+    const lines =
+        [];
+
+    let current =
+        '';
+
+    words.forEach(
+        word => {
+            const candidate =
+                current
+                    ? `${current} ${word}`
+                    : word;
+
+            if (
+                ctx.measureText(
+                    candidate
+                ).width <=
+                maxWidth ||
+                !current
+            ) {
+                current =
+                    candidate;
+                return;
+            }
+
+            lines.push(
+                current
+            );
+
+            current =
+                word;
+        }
+    );
+
+    if (current) {
+        lines.push(
+            current
+        );
+    }
+
+    const visible =
+        lines.slice(
+            0,
+            maxLines
+        );
+
+    if (
+        lines.length >
+        maxLines &&
+        visible.length
+    ) {
+        let last =
+            visible[
+                visible.length -
+                1
+            ];
+
+        while (
+            last.length >
+            1 &&
+            ctx.measureText(
+                `${last}…`
+            ).width >
+            maxWidth
+        ) {
+            last =
+                last.slice(
+                    0,
+                    -1
+                );
+        }
+
+        visible[
+            visible.length -
+            1
+        ] =
+            `${last}…`;
+    }
+
+    visible.forEach(
+        (
+            line,
+            index
+        ) => {
+            ctx.fillText(
+                line,
+                x,
+                y +
+                index *
+                lineHeight,
+                maxWidth
+            );
+        }
+    );
+
+    return (
+        y +
+        visible.length *
+        lineHeight
+    );
+}
+
+
+async function getSharePosterLogoImage() {
+    const liveLogo =
+        document.getElementById(
+            'siteLogoImage'
+        );
+
+    const candidates =
+        [
+            liveLogo &&
+            (
+                liveLogo.currentSrc ||
+                liveLogo.src
+            ),
+            typeof brandAssets !==
+            'undefined'
+                ? brandAssets.logo
+                : '',
+            'https://super-jade-qqe5zlpy.edgeone.dev/file.png'
+        ]
+            .filter(
+                Boolean
+            );
+
+    for (
+        const source of
+        candidates
+    ) {
+        const image =
+            await loadSharePosterImageFromUrl(
+                source
+            );
+
+        if (image) {
+            return image;
+        }
+    }
+
+    return null;
+}
+
+
+function drawSharePosterLogoFallback(
+    ctx,
+    x,
+    y
+) {
+    drawSharePosterRoundedRect(
+        ctx,
+        x,
+        y,
+        196,
+        76,
+        24,
+        '#18bfff'
+    );
+
+    ctx.fillStyle =
+        '#07111b';
+
+    ctx.textAlign =
+        'center';
+
+    ctx.font =
+        '900 52px Arial, sans-serif';
+
+    ctx.fillText(
+        'MCO',
+        x + 98,
+        y + 55
+    );
+
+    ctx.textAlign =
+        'left';
+
+    ctx.fillStyle =
+        '#ffffff';
+
+    ctx.font =
+        '900 54px Arial, sans-serif';
+
+    ctx.fillText(
+        'GAMES',
+        x + 218,
+        y + 57
+    );
+}
+
+
+async function getSharePosterGameImage(
+    game,
+    cardEl
+) {
+    const cardImage =
+        cardEl &&
+        cardEl.querySelector(
+            '.card-img'
+        );
+
+    if (cardImage) {
+        try {
+            return await loadImageForCanvas(
+                cardImage
+            );
+        } catch (_) {
+        }
+    }
+
+    return await loadSharePosterImageFromUrl(
+        game &&
+        game.img
+    );
+}
+
+
+async function getSharePosterComboImages(
+    game
+) {
+    const urls =
+        getComboShareCoverUrls(
+            game
+        );
+
+    const images =
+        await Promise.all(
+            urls.map(
+                url =>
+                    loadSharePosterImageFromUrl(
+                        url
+                    )
+            )
+        );
+
+    return images.filter(
+        Boolean
+    );
+}
+
+
+function drawSharePosterComboMosaic(
+    ctx,
+    images,
+    x,
+    y,
+    width,
+    height
+) {
+    const list =
+        (
+            images ||
+            []
+        ).slice(
+            0,
+            6
+        );
+
+    if (!list.length) {
+        return;
+    }
+
+    const gap =
+        8;
+
+    const tile =
+        (
+            image,
+            tx,
+            ty,
+            tw,
+            th
+        ) => {
+            ctx.save();
+
+            ctx.beginPath();
+            ctx.roundRect(
+                tx,
+                ty,
+                tw,
+                th,
+                12
+            );
+            ctx.clip();
+
+            drawSharePosterImageCover(
+                ctx,
+                image,
+                tx,
+                ty,
+                tw,
+                th
+            );
+
+            ctx.restore();
+        };
+
+    if (
+        list.length ===
+        1
+    ) {
+        tile(
+            list[0],
+            x,
+            y,
+            width,
+            height
+        );
+        return;
+    }
+
+    if (
+        list.length ===
+        2
+    ) {
+        const w =
+            (
+                width -
+                gap
+            ) /
+            2;
+
+        tile(
+            list[0],
+            x,
+            y,
+            w,
+            height
+        );
+
+        tile(
+            list[1],
+            x + w + gap,
+            y,
+            w,
+            height
+        );
+        return;
+    }
+
+    if (
+        list.length ===
+        3
+    ) {
+        const leftW =
+            Math.round(
+                (
+                    width -
+                    gap
+                ) *
+                .58
+            );
+
+        const rightW =
+            width -
+            leftW -
+            gap;
+
+        const halfH =
+            (
+                height -
+                gap
+            ) /
+            2;
+
+        tile(
+            list[0],
+            x,
+            y,
+            leftW,
+            height
+        );
+
+        tile(
+            list[1],
+            x + leftW + gap,
+            y,
+            rightW,
+            halfH
+        );
+
+        tile(
+            list[2],
+            x + leftW + gap,
+            y + halfH + gap,
+            rightW,
+            halfH
+        );
+        return;
+    }
+
+    if (
+        list.length ===
+        4
+    ) {
+        const w =
+            (
+                width -
+                gap
+            ) /
+            2;
+
+        const h =
+            (
+                height -
+                gap
+            ) /
+            2;
+
+        list.forEach(
+            (
+                image,
+                index
+            ) => {
+                tile(
+                    image,
+                    x +
+                    (
+                        index %
+                        2
+                    ) *
+                    (
+                        w +
+                        gap
+                    ),
+                    y +
+                    Math.floor(
+                        index /
+                        2
+                    ) *
+                    (
+                        h +
+                        gap
+                    ),
+                    w,
+                    h
+                );
+            }
+        );
+        return;
+    }
+
+    if (
+        list.length ===
+        5
+    ) {
+        const topW =
+            (
+                width -
+                gap
+            ) /
+            2;
+
+        const topH =
+            Math.round(
+                (
+                    height -
+                    gap
+                ) *
+                .56
+            );
+
+        const bottomH =
+            height -
+            topH -
+            gap;
+
+        const bottomW =
+            (
+                width -
+                gap *
+                2
+            ) /
+            3;
+
+        tile(
+            list[0],
+            x,
+            y,
+            topW,
+            topH
+        );
+
+        tile(
+            list[1],
+            x + topW + gap,
+            y,
+            topW,
+            topH
+        );
+
+        [
+            2,
+            3,
+            4
+        ].forEach(
+            (
+                index,
+                offset
+            ) => {
+                tile(
+                    list[index],
+                    x +
+                    offset *
+                    (
+                        bottomW +
+                        gap
+                    ),
+                    y +
+                    topH +
+                    gap,
+                    bottomW,
+                    bottomH
+                );
+            }
+        );
+        return;
+    }
+
+    const w =
+        (
+            width -
+            gap *
+            2
+        ) /
+        3;
+
+    const h =
+        (
+            height -
+            gap
+        ) /
+        2;
+
+    list.forEach(
+        (
+            image,
+            index
+        ) => {
+            tile(
+                image,
+                x +
+                (
+                    index %
+                    3
+                ) *
+                (
+                    w +
+                    gap
+                ),
+                y +
+                Math.floor(
+                    index /
+                    3
+                ) *
+                (
+                    h +
+                    gap
+                ),
+                w,
+                h
+            );
+        }
+    );
+}
+
+
+async function buildMcoSharePoster(
+    game,
+    cardEl
+) {
+    if (!game) {
+        throw new Error(
+            'Não encontrei o jogo para compartilhar.'
+        );
+    }
+
+    /*
+     * 4:5 funciona melhor tanto no WhatsApp quanto nas redes,
+     * sem a grande área vazia que existia no print da tela.
+     */
+    const W =
+        1080;
+
+    const H =
+        1350;
+
+    const canvas =
+        document.createElement(
+            'canvas'
+        );
+
+    canvas.width =
+        W;
+
+    canvas.height =
+        H;
+
+    const ctx =
+        canvas.getContext(
+            '2d'
+        );
+
+    if (!ctx) {
+        throw new Error(
+            'Canvas não disponível.'
+        );
+    }
+
+    const background =
+        ctx.createLinearGradient(
+            0,
+            0,
+            W,
+            H
+        );
+
+    background.addColorStop(
+        0,
+        '#07111b'
+    );
+
+    background.addColorStop(
+        .58,
+        '#03111d'
+    );
+
+    background.addColorStop(
+        1,
+        '#02070c'
+    );
+
+    ctx.fillStyle =
+        background;
+
+    ctx.fillRect(
+        0,
+        0,
+        W,
+        H
+    );
+
+    drawSharePosterRoundedRect(
+        ctx,
+        24,
+        24,
+        W - 48,
+        H - 48,
+        32,
+        '',
+        '#0e76ab',
+        3
+    );
+
+    /* ---------- CABEÇALHO / LOGO ---------- */
+    const logo =
+        await getSharePosterLogoImage();
+
+    if (logo) {
+        const maxW =
+            520;
+
+        const maxH =
+            105;
+
+        const scale =
+            Math.min(
+                maxW /
+                logo.naturalWidth,
+                maxH /
+                logo.naturalHeight
+            );
+
+        const logoW =
+            logo.naturalWidth *
+            scale;
+
+        const logoH =
+            logo.naturalHeight *
+            scale;
+
+        ctx.drawImage(
+            logo,
+            54,
+            42 +
+            (
+                105 -
+                logoH
+            ) /
+            2,
+            logoW,
+            logoH
+        );
+
+    } else {
+        drawSharePosterLogoFallback(
+            ctx,
+            54,
+            55
+        );
+    }
+
+    ctx.textAlign =
+        'right';
+
+    ctx.fillStyle =
+        '#75cfff';
+
+    ctx.font =
+        '800 23px Arial, sans-serif';
+
+    ctx.fillText(
+        'SUA LOJA DIGITAL',
+        W - 54,
+        82
+    );
+
+    ctx.fillStyle =
+        '#718493';
+
+    ctx.font =
+        '600 20px Arial, sans-serif';
+
+    ctx.fillText(
+        'mcogames.github.io/store',
+        W - 54,
+        112
+    );
+
+    ctx.textAlign =
+        'left';
+
+    /* ---------- CAPA / MOSAICO ---------- */
+    const coverX =
+        50;
+
+    const coverY =
+        165;
+
+    const coverW =
+        980;
+
+    const coverH =
+        650;
+
+    drawSharePosterRoundedRect(
+        ctx,
+        coverX,
+        coverY,
+        coverW,
+        coverH,
+        26,
+        '#050b11',
+        '#153e57',
+        2
+    );
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.roundRect(
+        coverX + 3,
+        coverY + 3,
+        coverW - 6,
+        coverH - 6,
+        23
+    );
+    ctx.clip();
+
+    if (game.isCombo) {
+        const comboImages =
+            await getSharePosterComboImages(
+                game
+            );
+
+        if (comboImages.length) {
+            drawSharePosterComboMosaic(
+                ctx,
+                comboImages,
+                coverX + 6,
+                coverY + 6,
+                coverW - 12,
+                coverH - 12
+            );
+
+        } else {
+            const image =
+                await getSharePosterGameImage(
+                    game,
+                    cardEl
+                );
+
+            if (image) {
+                drawSharePosterImageContain(
+                    ctx,
+                    image,
+                    coverX + 16,
+                    coverY + 16,
+                    coverW - 32,
+                    coverH - 32
+                );
+            }
+        }
+
+    } else {
+        const image =
+            await getSharePosterGameImage(
+                game,
+                cardEl
+            );
+
+        if (image) {
+            drawSharePosterImageContain(
+                ctx,
+                image,
+                coverX + 16,
+                coverY + 16,
+                coverW - 32,
+                coverH - 32
+            );
+        }
+    }
+
+    ctx.restore();
+
+    const platformList =
+        Array.isArray(
+            game.platforms
+        )
+            ? game.platforms
+            : [];
+
+    const platformLabel =
+        platformList.length
+            ? platformList.join(
+                ' / '
+              )
+            : (
+                game.platform ||
+                'PLAYSTATION'
+              );
+
+    ctx.font =
+        '900 28px Arial, sans-serif';
+
+    const platformW =
+        Math.min(
+            360,
+            ctx.measureText(
+                platformLabel
+            ).width +
+            50
+        );
+
+    drawSharePosterRoundedRect(
+        ctx,
+        coverX + 20,
+        coverY + 20,
+        platformW,
+        58,
+        14,
+        'rgba(0,0,0,.82)',
+        'rgba(255,255,255,.16)',
+        2
+    );
+
+    ctx.fillStyle =
+        '#ffffff';
+
+    ctx.fillText(
+        platformLabel,
+        coverX + 45,
+        coverY + 59
+    );
+
+    const preorder =
+        isCategory(
+            game,
+            'Pré Venda'
+        );
+
+    const promotion =
+        isCategory(
+            game,
+            'Promoção'
+        );
+
+    let categoryLabel =
+        'CATÁLOGO';
+
+    let categoryColor =
+        '#087fff';
+
+    if (preorder) {
+        categoryLabel =
+            'PRÉ-VENDA';
+
+        categoryColor =
+            '#7b42ff';
+
+    } else if (promotion) {
+        categoryLabel =
+            'PROMOÇÃO';
+
+        categoryColor =
+            '#f01262';
+
+    } else if (
+        isCategory(
+            game,
+            'Lançamento em Oferta'
+        )
+    ) {
+        categoryLabel =
+            'LANÇAMENTO';
+
+        categoryColor =
+            '#18a8ff';
+    }
+
+    ctx.font =
+        '900 28px Arial, sans-serif';
+
+    const categoryW =
+        Math.min(
+            360,
+            ctx.measureText(
+                categoryLabel
+            ).width +
+            54
+        );
+
+    drawSharePosterRoundedRect(
+        ctx,
+        coverX +
+        coverW -
+        categoryW -
+        20,
+        coverY + 20,
+        categoryW,
+        58,
+        14,
+        categoryColor
+    );
+
+    ctx.fillStyle =
+        '#ffffff';
+
+    ctx.textAlign =
+        'center';
+
+    ctx.fillText(
+        categoryLabel,
+        coverX +
+        coverW -
+        categoryW /
+        2 -
+        20,
+        coverY + 59
+    );
+
+    ctx.textAlign =
+        'left';
+
+    if (game.isCombo) {
+        const count =
+            Number(
+                game.comboCount ||
+                (
+                    Array.isArray(
+                        game.comboNames
+                    )
+                        ? game.comboNames.length
+                        : 0
+                )
+            );
+
+        const comboText =
+            count >
+            0
+                ? `COMBO • ${count} JOGOS`
+                : 'COMBO';
+
+        ctx.font =
+            '900 25px Arial, sans-serif';
+
+        const comboW =
+            Math.min(
+                340,
+                ctx.measureText(
+                    comboText
+                ).width +
+                50
+            );
+
+        drawSharePosterRoundedRect(
+            ctx,
+            coverX + 20,
+            coverY +
+            coverH -
+            76,
+            comboW,
+            54,
+            14,
+            'rgba(31,20,4,.90)',
+            '#e3bb55',
+            2
+        );
+
+        ctx.fillStyle =
+            '#ffd978';
+
+        ctx.fillText(
+            comboText,
+            coverX + 45,
+            coverY +
+            coverH -
+            40
+        );
+    }
+
+    /* ---------- INFORMAÇÕES ---------- */
+    let infoY =
+        875;
+
+    ctx.fillStyle =
+        '#ffffff';
+
+    let titleSize =
+        52;
+
+    const title =
+        String(
+            game.name ||
+            'Jogo'
+        );
+
+    ctx.font =
+        `900 ${titleSize}px Arial, sans-serif`;
+
+    if (
+        ctx.measureText(
+            title
+        ).width >
+        960
+    ) {
+        titleSize =
+            46;
+
+        ctx.font =
+            `900 ${titleSize}px Arial, sans-serif`;
+    }
+
+    infoY =
+        drawSharePosterWrappedText(
+            ctx,
+            title,
+            56,
+            infoY,
+            968,
+            titleSize + 8,
+            2
+        ) +
+        8;
+
+    const availability =
+        getAvailabilityState(
+            game
+        );
+
+    const statusText =
+        String(
+            availability.label ||
+            'Disponível'
+        );
+
+    ctx.font =
+        '800 24px Arial, sans-serif';
+
+    const statusW =
+        Math.min(
+            360,
+            ctx.measureText(
+                statusText
+            ).width +
+            44
+        );
+
+    drawSharePosterRoundedRect(
+        ctx,
+        56,
+        infoY,
+        statusW,
+        46,
+        23,
+        'rgba(6,63,43,.46)',
+        '#159c68',
+        2
+    );
+
+    ctx.fillStyle =
+        '#74eab1';
+
+    ctx.fillText(
+        statusText,
+        78,
+        infoY + 31
+    );
+
+    let chipX =
+        56 +
+        statusW +
+        12;
+
+    const countdown =
+        game.targetDate
+            ? getCountdownString(
+                game.targetDate
+              )
+            : null;
+
+    if (
+        countdown &&
+        countdown !==
+        'Encerrado / Lançado'
+    ) {
+        const timerText =
+            `⏳ ${countdown}`;
+
+        ctx.font =
+            '900 23px Arial, sans-serif';
+
+        const timerW =
+            Math.min(
+                W -
+                chipX -
+                56,
+                ctx.measureText(
+                    timerText
+                ).width +
+                42
+            );
+
+        if (
+            timerW >
+            120
+        ) {
+            drawSharePosterRoundedRect(
+                ctx,
+                chipX,
+                infoY,
+                timerW,
+                46,
+                23,
+                'rgba(48,36,7,.70)',
+                '#8d6817',
+                2
+            );
+
+            ctx.fillStyle =
+                '#ffd36a';
+
+            ctx.fillText(
+                timerText,
+                chipX + 20,
+                infoY + 31,
+                timerW - 40
+            );
+        }
+    }
+
+    infoY +=
+        72;
+
+    const currentPrice =
+        Number(
+            getGameMainPriceForCurrentFilter(
+                game
+            ) ||
+            0
+        );
+
+    const oldPrice =
+        Number(
+            game.oldPrice ||
+            0
+        );
+
+    const discount =
+        getDiscountPercent(
+            game,
+            currentPrice
+        );
+
+    const money =
+        value =>
+            `R$ ${Number(value).toFixed(2).replace('.', ',')}`;
+
+    if (
+        oldPrice >
+        currentPrice &&
+        currentPrice >
+        0
+    ) {
+        ctx.fillStyle =
+            '#8996a2';
+
+        ctx.font =
+            '500 28px Arial, sans-serif';
+
+        ctx.fillText(
+            money(
+                oldPrice
+            ),
+            56,
+            infoY
+        );
+
+        ctx.strokeStyle =
+            '#8996a2';
+
+        ctx.lineWidth =
+            2;
+
+        const oldWidth =
+            ctx.measureText(
+                money(
+                    oldPrice
+                )
+            ).width;
+
+        ctx.beginPath();
+        ctx.moveTo(
+            54,
+            infoY - 10
+        );
+        ctx.lineTo(
+            58 +
+            oldWidth,
+            infoY - 10
+        );
+        ctx.stroke();
+
+        infoY +=
+            20;
+    }
+
+    ctx.fillStyle =
+        '#18bfff';
+
+    ctx.font =
+        '900 52px Arial, sans-serif';
+
+    const priceText =
+        currentPrice >
+        0
+            ? `A partir de ${money(currentPrice)}`
+            : 'Consulte disponibilidade';
+
+    ctx.fillText(
+        priceText,
+        56,
+        infoY + 50,
+        discount >
+        0
+            ? 760
+            : 960
+    );
+
+    if (
+        discount >
+        0
+    ) {
+        const discountText =
+            `-${discount}%`;
+
+        ctx.font =
+            '900 30px Arial, sans-serif';
+
+        const discountW =
+            ctx.measureText(
+                discountText
+            ).width +
+            42;
+
+        drawSharePosterRoundedRect(
+            ctx,
+            W -
+            56 -
+            discountW,
+            infoY + 5,
+            discountW,
+            58,
+            18,
+            '#ff0064'
+        );
+
+        ctx.fillStyle =
+            '#ffffff';
+
+        ctx.textAlign =
+            'center';
+
+        ctx.fillText(
+            discountText,
+            W -
+            56 -
+            discountW /
+            2,
+            infoY + 44
+        );
+
+        ctx.textAlign =
+            'left';
+    }
+
+    infoY +=
+        92;
+
+    if (
+        game.isCombo &&
+        Array.isArray(
+            game.comboNames
+        ) &&
+        game.comboNames.length
+    ) {
+        const comboNames =
+            game.comboNames
+                .slice(
+                    0,
+                    3
+                )
+                .join(
+                    ' • '
+                ) +
+            (
+                game.comboNames.length >
+                3
+                    ? ` • +${game.comboNames.length - 3}`
+                    : ''
+            );
+
+        ctx.fillStyle =
+            '#a9bac8';
+
+        ctx.font =
+            '600 23px Arial, sans-serif';
+
+        drawSharePosterWrappedText(
+            ctx,
+            `Inclui: ${comboNames}`,
+            56,
+            infoY,
+            968,
+            31,
+            2
+        );
+    }
+
+    /* ---------- RODAPÉ ---------- */
+    ctx.strokeStyle =
+        'rgba(24,191,255,.28)';
+
+    ctx.lineWidth =
+        2;
+
+    ctx.beginPath();
+    ctx.moveTo(
+        56,
+        H - 94
+    );
+    ctx.lineTo(
+        W - 56,
+        H - 94
+    );
+    ctx.stroke();
+
+    ctx.fillStyle =
+        '#8ea4b5';
+
+    ctx.font =
+        '700 22px Arial, sans-serif';
+
+    ctx.fillText(
+        'Confira esta e outras ofertas na MCO GAMES',
+        56,
+        H - 54
+    );
+
+    return canvas;
+}
+
+
+async function buildCurrentMobileScreenShare(
+    cardEl,
+    game = null
+) {
+    if (!game) {
+        throw new Error(
+            'Não encontrei o jogo atual para compartilhar.'
+        );
+    }
+
+    /*
+     * Não fazemos mais um print da interface do site.
+     * A arte de compartilhamento agora é um poster próprio,
+     * o que evita área vazia, lupa solta e logo ausente.
+     */
+    return await buildMcoSharePoster(
+        game,
+        cardEl
+    );
 }</script>
 
 
