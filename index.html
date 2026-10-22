@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="mco-mobile-engine" content="vertical-feed-share-poster-v9">
+    <meta name="mco-mobile-engine" content="vertical-feed-normal-psn-discount-v9">
     <title>MCO GAMES | Sua Loja Digital</title>
     
     <!-- Meta Tags para redes sociais e WhatsApp -->
@@ -5127,6 +5127,20 @@ async function copyShareText(text) {
 .mco-reset-personalization:hover { border-color: rgba(32,198,255,.28); color: #d9edf8; }
 </style>
 
+
+<style id="mco-discount-normal-psn-v1">
+  .discount-inline,
+  .discount-badge,
+  .ig-post .discount-inline {
+    background: #050505 !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255,255,255,.14) !important;
+    border-radius: 4px !important;
+    box-shadow: none !important;
+    font-weight: 900 !important;
+  }
+</style>
+
 </head>
 <body>
 
@@ -6568,8 +6582,31 @@ async function copyShareText(text) {
                 ? Number(game?.mainPrice || 0)
                 : Number(currentPrice || 0);
 
-            if (!game || !(game.oldPrice > price) || price <= 0) return 0;
-            return Math.round(((game.oldPrice - price) / game.oldPrice) * 100);
+            const referencePrice =
+                Number(
+                    game?.normalPsnPrice ||
+                    game?.oldPrice ||
+                    0
+                );
+
+            if (
+                !game ||
+                !(referencePrice > price) ||
+                price <= 0
+            ) {
+                return 0;
+            }
+
+            return Math.round(
+                (
+                    (
+                        referencePrice -
+                        price
+                    ) /
+                    referencePrice
+                ) *
+                100
+            );
         }
 
         function escapeHtml(value) {
@@ -6751,7 +6788,8 @@ async function copyShareText(text) {
                 itemType: col(13, 'Tipo', 'Tipo Produto'),
                 comboCodes: col(14, 'Códigos Combo', 'Codigos Combo'),
                 comboNames: col(15, 'Jogos do Combo', 'Nomes Combo'),
-                comboCovers: col(16, 'Capas do Combo', 'Capas Combo')
+                comboCovers: col(16, 'Capas do Combo', 'Capas Combo'),
+                normalPsn: col(17, 'Preço Normal PSN', 'Preco Normal PSN', 'PSN Normal')
             };
 
             const money = value => {
@@ -6832,7 +6870,27 @@ async function copyShareText(text) {
                 ].filter(v => v > 0);
 
                 const mainPrice = platformPrices.length ? Math.min(...platformPrices) : 0;
-                const oldPrice = money(row[C.psn]);
+
+                const psnCurrentPrice =
+                    money(
+                        row[C.psn]
+                    );
+
+                const normalPsnPrice =
+                    money(
+                        row[C.normalPsn]
+                    );
+
+                /*
+                 * Percentual do cliente:
+                 * PREÇO NORMAL DA PSN → MENOR PREÇO MCO.
+                 *
+                 * Registro antigo sem a coluna R usa C como fallback.
+                 */
+                const oldPrice =
+                    normalPsnPrice > 0
+                        ? normalPsnPrice
+                        : psnCurrentPrice;
 
                 const platforms = [];
                 if (ps4Primary > 0 || ps4Secondary > 0) platforms.push('PS4');
@@ -6866,6 +6924,8 @@ async function copyShareText(text) {
                     comboCount: comboNames.length || comboCodes.length,
 
                     oldPrice,
+                    psnCurrentPrice,
+                    normalPsnPrice,
                     ps4Primary,
                     ps4Secondary,
                     ps5Primary,
@@ -7684,7 +7744,7 @@ async function copyShareText(text) {
                 ctx.fillStyle = '#19bfff';
                 ctx.font = '900 78px Arial, sans-serif';
                 ctx.fillText(`A partir de ${moneyText(currentPrice)}`, W / 2, footerY + 92, W - 200);
-                ctx.fillStyle = '#f01262';
+                ctx.fillStyle = '#050505';
                 ctx.font = '900 46px Arial, sans-serif';
                 ctx.fillText(`-${discount}%`, W / 2, footerY + 162);
                 footerY += 190;
@@ -14076,7 +14136,7 @@ async function buildMcoSharePoster(
             discountW,
             58,
             18,
-            '#ff0064'
+            '#050505'
         );
 
         ctx.fillStyle =
