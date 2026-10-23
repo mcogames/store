@@ -5141,6 +5141,55 @@ async function copyShareText(text) {
   }
 </style>
 
+
+<style id="mco-share-platform-picker-v1">
+.mco-share-platform-backdrop{
+  position:fixed;inset:0;z-index:1000000;display:flex;align-items:center;justify-content:center;
+  padding:18px;background:rgba(1,7,12,.84);backdrop-filter:blur(6px)
+}
+.mco-share-platform-modal{
+  width:min(460px,100%);border:1px solid #2b5874;border-radius:18px;padding:18px;
+  background:linear-gradient(180deg,#0d1822,#09131b);box-shadow:0 24px 80px rgba(0,0,0,.55);color:#eef8ff
+}
+.mco-share-platform-modal h3{margin:0 0 5px;font-size:18px}
+.mco-share-platform-help{margin:0 0 14px;color:#88a8bc;font-size:11px;line-height:1.5}
+.mco-share-platform-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.mco-share-platform-choice{
+  display:flex;align-items:center;gap:10px;min-height:62px;padding:11px 12px;border:1px solid #29465b;
+  border-radius:12px;background:#0b141c;cursor:pointer;transition:.16s ease
+}
+.mco-share-platform-choice:has(input:checked){
+  border-color:#19bfff;background:rgba(18,140,196,.10);box-shadow:0 0 0 1px rgba(25,191,255,.10)
+}
+.mco-share-platform-choice input{width:19px;height:19px;accent-color:#19bfff;flex:0 0 auto}
+.mco-share-platform-choice strong{display:block;font-size:13px}
+.mco-share-platform-choice span{display:block;margin-top:2px;color:#7893a7;font-size:9px}
+.mco-share-platform-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+.mco-share-platform-actions button{
+  min-height:40px;padding:0 14px;border-radius:10px;font-weight:900;cursor:pointer
+}
+.mco-share-platform-cancel{border:1px solid #314b5e;background:#111e28;color:#aec3d1}
+.mco-share-platform-confirm{border:0;background:linear-gradient(135deg,#18baff,#0b72e5);color:#fff}
+.mco-share-platform-confirm:disabled{opacity:.42;cursor:not-allowed}
+@media(max-width:520px){
+  .mco-share-platform-backdrop{align-items:flex-end;padding:10px}
+  .mco-share-platform-modal{width:100%;border-radius:18px 18px 12px 12px;padding:16px}
+  .mco-share-platform-list{grid-template-columns:1fr 1fr}
+  .mco-share-platform-actions{display:grid;grid-template-columns:1fr 1.3fr}
+  .mco-share-platform-actions button{width:100%}
+}
+</style>
+
+
+<style id="mco-oferta-especial-site-v1">
+  .mco-special-offer-badge{position:absolute;left:10px;bottom:10px;z-index:12;display:inline-flex;align-items:center;gap:5px;max-width:calc(100% - 20px);padding:6px 9px;border:1px solid rgba(255,190,46,.58);border-radius:999px;background:rgba(29,18,2,.92);color:#ffd56f;font-size:.64rem;font-weight:950;letter-spacing:.02em;box-shadow:0 5px 18px rgba(0,0,0,.35)}
+  .type-btn .mco-special-mini{display:block;margin-top:3px;color:#ffd36a;font-size:.62rem;font-weight:950;line-height:1.15}
+  .type-btn .mco-special-old{display:inline-block;margin-right:6px;color:#7f8d9a;font-size:.66rem;text-decoration:line-through;text-decoration-thickness:1px}
+  .type-btn .media-price.mco-special-price{color:#ffd36a;text-shadow:0 0 12px rgba(255,198,72,.18)}
+  .mco-special-main-note{display:inline-flex;align-items:center;margin-top:5px;padding:4px 7px;border:1px solid rgba(255,190,46,.32);border-radius:999px;background:rgba(255,180,35,.07);color:#ffd36a;font-size:.64rem;font-weight:900}
+  @media(max-width:800px){.mco-special-offer-badge{font-size:.58rem;padding:5px 7px;bottom:7px;left:7px}.type-btn .mco-special-mini{font-size:.56rem}.type-btn .mco-special-old{font-size:.58rem}.mco-special-main-note{font-size:.58rem}}
+</style>
+
 </head>
 <body>
 
@@ -6732,6 +6781,138 @@ async function copyShareText(text) {
             return `${SHEET_CSV_BASE}${encodeURIComponent(tab.gid)}&cb=${cacheBust}`;
         }
 
+
+        function parseSpecialOfferLocalDate(value) {
+            const text = String(value || '').trim();
+            if (!text) return null;
+            const match = text.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+            if (!match) return null;
+            const date = new Date(
+                Number(match[1]), Number(match[2]) - 1, Number(match[3]),
+                Number(match[4]), Number(match[5]), 0, 0
+            );
+            return Number.isNaN(date.getTime()) ? null : date;
+        }
+
+        function specialOfferExpired(value) {
+            const date = parseSpecialOfferLocalDate(value);
+            return !!(date && date.getTime() <= Date.now());
+        }
+
+        function buildSpecialOfferState({ offerUntil = '', offerConfig = {}, normal = {}, stock = {} } = {}) {
+            const expired = specialOfferExpired(offerUntil);
+            const state = {};
+            ['ps5Primaria','ps5Secundaria','ps4Primaria','ps4Secundaria'].forEach(key => {
+                const cfg = offerConfig[key] || {};
+                const normalPrice = Number(normal[key] || 0);
+                const currentStock = Math.max(0, Number(stock[key] || 0));
+                const configuredQty = Math.max(0, Number(cfg.qty || 0));
+                const baseStock = Math.max(0, Number(cfg.baseStock || 0));
+                const consumed = cfg.stockFilled ? Math.max(0, baseStock - currentStock) : 0;
+                let remaining = Math.max(0, configuredQty - consumed);
+                if (cfg.stockFilled) remaining = Math.min(remaining, currentStock);
+                const offerPrice = Number(cfg.price || 0);
+                const active = !expired && normalPrice > 0 && offerPrice > 0 && offerPrice < normalPrice && remaining > 0;
+                state[key] = {
+                    active,
+                    price: active ? offerPrice : normalPrice,
+                    offerPrice,
+                    normalPrice,
+                    remaining,
+                    configuredQty,
+                    baseStock,
+                    currentStock,
+                    stockFilled: !!cfg.stockFilled,
+                    offerUntil,
+                    expired
+                };
+            });
+            return state;
+        }
+
+        function getSpecialOfferSlot(game, platform, type) {
+            if (!game || !game.specialOfferState) return null;
+            const p = String(platform || '').toUpperCase();
+            const t = String(type || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+            const key = p === 'PS5'
+                ? (t.startsWith('sec') ? 'ps5Secundaria' : 'ps5Primaria')
+                : (p === 'PS4' ? (t.startsWith('sec') ? 'ps4Secundaria' : 'ps4Primaria') : '');
+            return key ? game.specialOfferState[key] || null : null;
+        }
+
+        function getSpecialOfferSummary(game, platform = '') {
+            if (!game?.specialOfferState) return null;
+            const p = String(platform || '').toUpperCase();
+            const keys = p === 'PS5'
+                ? ['ps5Primaria','ps5Secundaria']
+                : (p === 'PS4' ? ['ps4Primaria','ps4Secundaria'] : ['ps5Primaria','ps5Secundaria','ps4Primaria','ps4Secundaria']);
+            const active = keys.map(key => game.specialOfferState[key]).filter(slot => slot?.active);
+            if (!active.length) return null;
+            const remaining = active.reduce((sum, slot) => sum + Number(slot.remaining || 0), 0);
+            const until = parseSpecialOfferLocalDate(game.offerUntil);
+            const now = new Date();
+            const sameDay = !!(until && until.getFullYear() === now.getFullYear() && until.getMonth() === now.getMonth() && until.getDate() === now.getDate());
+            return {
+                active: true,
+                remaining,
+                label: `${sameDay ? '🔥 SÓ HOJE' : '⚡ OFERTA ESPECIAL'}${remaining > 0 ? ` • ${remaining} UN.` : ''}`,
+                until: game.offerUntil || ''
+            };
+        }
+
+        function refreshSpecialOfferValues() {
+            let changed = false;
+            const all = Array.isArray(sourceGames) ? sourceGames : [];
+            all.forEach(game => {
+                if (!game?.offerConfig) return;
+                const next = buildSpecialOfferState({
+                    offerUntil: game.offerUntil,
+                    offerConfig: game.offerConfig,
+                    normal: {
+                        ps5Primaria: game.normalPs5Primary,
+                        ps5Secundaria: game.normalPs5Secondary,
+                        ps4Primaria: game.normalPs4Primary,
+                        ps4Secundaria: game.normalPs4Secondary
+                    },
+                    stock: {
+                        ps5Primaria: game.stockPs5Primary,
+                        ps5Secundaria: game.stockPs5Secondary,
+                        ps4Primaria: game.stockPs4Primary,
+                        ps4Secundaria: game.stockPs4Secondary
+                    }
+                });
+                const before = JSON.stringify(game.specialOfferState || {});
+                const after = JSON.stringify(next);
+                game.specialOfferState = next;
+                game.ps5Primary = next.ps5Primaria.active ? next.ps5Primaria.price : Number(game.normalPs5Primary || 0);
+                game.ps5Secondary = next.ps5Secundaria.active ? next.ps5Secundaria.price : Number(game.normalPs5Secondary || 0);
+                game.ps4Primary = next.ps4Primaria.active ? next.ps4Primaria.price : Number(game.normalPs4Primary || 0);
+                game.ps4Secondary = next.ps4Secundaria.active ? next.ps4Secundaria.price : Number(game.normalPs4Secondary || 0);
+                const prices = [game.ps5Primary, game.ps5Secondary, game.ps4Primary, game.ps4Secondary].filter(v => Number(v) > 0);
+                game.mainPrice = prices.length ? Math.min(...prices) : 0;
+                if (before !== after) changed = true;
+            });
+            if (changed && Array.isArray(games) && games.length) {
+                games = applyStoreVisibilityRules(sourceGames);
+                selectedCart = selectedCart.map(item => {
+                    const game = games.find(g => g.id === item.gameId);
+                    if (!game) return null;
+                    const data = getPlatformData(game, item.platform);
+                    const primary = item.type === 'Primária';
+                    const price = Number(primary ? data.primary : data.secondary);
+                    const stockValue = Number(primary ? data.stockPrimary : data.stockSecondary);
+                    if (!(price > 0)) return null;
+                    if (game.hasStockInfo && stockValue <= 0) return null;
+                    return { ...item, price, stock: stockValue };
+                }).filter(Boolean);
+                renderLaunchCarousel();
+                renderPreorderCarousel();
+                renderPromotionCarousel();
+                renderGames();
+                updateBottomBar();
+            }
+        }
+
         function parseSheetCsv(sheetName, category, rows) {
             if (!rows || rows.length < 2) return [];
 
@@ -6789,7 +6970,20 @@ async function copyShareText(text) {
                 comboCodes: col(14, 'Códigos Combo', 'Codigos Combo'),
                 comboNames: col(15, 'Jogos do Combo', 'Nomes Combo'),
                 comboCovers: col(16, 'Capas do Combo', 'Capas Combo'),
-                normalPsn: col(17, 'Preço Normal PSN', 'Preco Normal PSN', 'PSN Normal')
+                normalPsn: col(17, 'Preço Normal PSN', 'Preco Normal PSN', 'PSN Normal'),
+                offerPs5PrimaryPrice: col(18, 'Oferta PS5 Primária - Preço', 'Oferta PS5 Primaria - Preco'),
+                offerPs5PrimaryQty: col(19, 'Oferta PS5 Primária - Qtd', 'Oferta PS5 Primaria - Qtd'),
+                offerPs5PrimaryBase: col(20, 'Oferta PS5 Primária - Estoque Base', 'Oferta PS5 Primaria - Estoque Base'),
+                offerPs5SecondaryPrice: col(21, 'Oferta PS5 Secundária - Preço', 'Oferta PS5 Secundaria - Preco'),
+                offerPs5SecondaryQty: col(22, 'Oferta PS5 Secundária - Qtd', 'Oferta PS5 Secundaria - Qtd'),
+                offerPs5SecondaryBase: col(23, 'Oferta PS5 Secundária - Estoque Base', 'Oferta PS5 Secundaria - Estoque Base'),
+                offerPs4PrimaryPrice: col(24, 'Oferta PS4 Primária - Preço', 'Oferta PS4 Primaria - Preco'),
+                offerPs4PrimaryQty: col(25, 'Oferta PS4 Primária - Qtd', 'Oferta PS4 Primaria - Qtd'),
+                offerPs4PrimaryBase: col(26, 'Oferta PS4 Primária - Estoque Base', 'Oferta PS4 Primaria - Estoque Base'),
+                offerPs4SecondaryPrice: col(27, 'Oferta PS4 Secundária - Preço', 'Oferta PS4 Secundaria - Preco'),
+                offerPs4SecondaryQty: col(28, 'Oferta PS4 Secundária - Qtd', 'Oferta PS4 Secundaria - Qtd'),
+                offerPs4SecondaryBase: col(29, 'Oferta PS4 Secundária - Estoque Base', 'Oferta PS4 Secundaria - Estoque Base'),
+                offerUntil: col(30, 'Oferta Especial - Válida Até', 'Oferta Especial - Valida Ate')
             };
 
             const money = value => {
@@ -6846,15 +7040,43 @@ async function copyShareText(text) {
                 const comboNames = isCombo ? arrayField(row[C.comboNames]) : [];
                 const comboCovers = isCombo ? arrayField(row[C.comboCovers]) : [];
 
-                const ps4Primary = money(row[C.ps4Primary]);
-                const ps4Secondary = money(row[C.ps4Secondary]);
-                const ps5Primary = money(row[C.ps5Primary]);
-                const ps5Secondary = money(row[C.ps5Secondary]);
+                let ps4Primary = money(row[C.ps4Primary]);
+                let ps4Secondary = money(row[C.ps4Secondary]);
+                let ps5Primary = money(row[C.ps5Primary]);
+                let ps5Secondary = money(row[C.ps5Secondary]);
 
                 const stockPs4Primary = stock(row[C.stockPs4Primary]);
                 const stockPs4Secondary = stock(row[C.stockPs4Secondary]);
                 const stockPs5Primary = stock(row[C.stockPs5Primary]);
                 const stockPs5Secondary = stock(row[C.stockPs5Secondary]);
+
+                const offerUntil = text(row[C.offerUntil]);
+                const offerConfig = {
+                    ps5Primaria: {
+                        price: money(row[C.offerPs5PrimaryPrice]),
+                        qty: stock(row[C.offerPs5PrimaryQty]),
+                        baseStock: stock(row[C.offerPs5PrimaryBase]),
+                        stockFilled: String(row[C.stockPs5Primary] ?? '').trim() !== ''
+                    },
+                    ps5Secundaria: {
+                        price: money(row[C.offerPs5SecondaryPrice]),
+                        qty: stock(row[C.offerPs5SecondaryQty]),
+                        baseStock: stock(row[C.offerPs5SecondaryBase]),
+                        stockFilled: String(row[C.stockPs5Secondary] ?? '').trim() !== ''
+                    },
+                    ps4Primaria: {
+                        price: money(row[C.offerPs4PrimaryPrice]),
+                        qty: stock(row[C.offerPs4PrimaryQty]),
+                        baseStock: stock(row[C.offerPs4PrimaryBase]),
+                        stockFilled: String(row[C.stockPs4Primary] ?? '').trim() !== ''
+                    },
+                    ps4Secundaria: {
+                        price: money(row[C.offerPs4SecondaryPrice]),
+                        qty: stock(row[C.offerPs4SecondaryQty]),
+                        baseStock: stock(row[C.offerPs4SecondaryBase]),
+                        stockFilled: String(row[C.stockPs4Secondary] ?? '').trim() !== ''
+                    }
+                };
 
                 // Só usa status de estoque quando a planilha realmente possui
                 // algum valor preenchido nas colunas de estoque deste jogo.
@@ -6864,6 +7086,33 @@ async function copyShareText(text) {
                     row[C.stockPs5Primary],
                     row[C.stockPs5Secondary]
                 ].some(value => String(value ?? '').trim() !== '');
+
+                const normalPs4Primary = ps4Primary;
+                const normalPs4Secondary = ps4Secondary;
+                const normalPs5Primary = ps5Primary;
+                const normalPs5Secondary = ps5Secondary;
+
+                const specialOfferState = buildSpecialOfferState({
+                    offerUntil,
+                    offerConfig,
+                    normal: {
+                        ps5Primaria: normalPs5Primary,
+                        ps5Secundaria: normalPs5Secondary,
+                        ps4Primaria: normalPs4Primary,
+                        ps4Secundaria: normalPs4Secondary
+                    },
+                    stock: {
+                        ps5Primaria: stockPs5Primary,
+                        ps5Secundaria: stockPs5Secondary,
+                        ps4Primaria: stockPs4Primary,
+                        ps4Secundaria: stockPs4Secondary
+                    }
+                });
+
+                if (specialOfferState.ps5Primaria.active) ps5Primary = specialOfferState.ps5Primaria.price;
+                if (specialOfferState.ps5Secundaria.active) ps5Secondary = specialOfferState.ps5Secundaria.price;
+                if (specialOfferState.ps4Primaria.active) ps4Primary = specialOfferState.ps4Primaria.price;
+                if (specialOfferState.ps4Secundaria.active) ps4Secondary = specialOfferState.ps4Secundaria.price;
 
                 const platformPrices = [
                     ps4Primary, ps4Secondary, ps5Primary, ps5Secondary
@@ -6926,6 +7175,13 @@ async function copyShareText(text) {
                     oldPrice,
                     psnCurrentPrice,
                     normalPsnPrice,
+                    normalPs4Primary,
+                    normalPs4Secondary,
+                    normalPs5Primary,
+                    normalPs5Secondary,
+                    offerUntil,
+                    offerConfig,
+                    specialOfferState,
                     ps4Primary,
                     ps4Secondary,
                     ps5Primary,
@@ -7167,6 +7423,7 @@ async function copyShareText(text) {
 
                 updateTimers();
                 setInterval(updateTimers, 1000);
+                setInterval(refreshSpecialOfferValues, 30000);
 
             } catch (err) {
                 console.error('Erro ao carregar as abas da planilha:', err);
@@ -7220,7 +7477,9 @@ async function copyShareText(text) {
                     primary: game.ps4Primary,
                     secondary: game.ps4Secondary,
                     stockPrimary: game.stockPs4Primary,
-                    stockSecondary: game.stockPs4Secondary
+                    stockSecondary: game.stockPs4Secondary,
+                    offerPrimary: getSpecialOfferSlot(game, 'PS4', 'Primária'),
+                    offerSecondary: getSpecialOfferSlot(game, 'PS4', 'Secundária')
                 };
             }
 
@@ -7229,11 +7488,13 @@ async function copyShareText(text) {
                     primary: game.ps5Primary,
                     secondary: game.ps5Secondary,
                     stockPrimary: game.stockPs5Primary,
-                    stockSecondary: game.stockPs5Secondary
+                    stockSecondary: game.stockPs5Secondary,
+                    offerPrimary: getSpecialOfferSlot(game, 'PS5', 'Primária'),
+                    offerSecondary: getSpecialOfferSlot(game, 'PS5', 'Secundária')
                 };
             }
 
-            return { primary: 0, secondary: 0, stockPrimary: 0, stockSecondary: 0 };
+            return { primary: 0, secondary: 0, stockPrimary: 0, stockSecondary: 0, offerPrimary: null, offerSecondary: null };
         }
 
         function getDefaultPlatform(game) {
@@ -7390,11 +7651,29 @@ async function copyShareText(text) {
         function buyGameDirect(event, gameId) {
             event.stopPropagation();
 
+            // Revalida a Oferta Especial no clique de compra para nunca manter
+            // no carrinho um preço que acabou de expirar.
+            refreshSpecialOfferValues();
+
             const game = games.find(g => g.id === gameId);
             if (!game) return;
 
             const cartItem = selectedCart.find(i => i.gameId === gameId);
             if (!cartItem) return;
+
+            const currentData = getPlatformData(game, cartItem.platform);
+            const isPrimary = cartItem.type === 'Primária';
+            const currentPrice = Number(isPrimary ? currentData.primary : currentData.secondary);
+            const currentStock = Number(isPrimary ? currentData.stockPrimary : currentData.stockSecondary);
+            if (!(currentPrice > 0) || (game.hasStockInfo && currentStock <= 0)) {
+                selectedCart = selectedCart.filter(item => item.gameId !== gameId);
+                renderGames();
+                updateBottomBar();
+                showShareStatus('Esta opção não está mais disponível.');
+                return;
+            }
+            cartItem.price = currentPrice;
+            cartItem.stock = currentStock;
 
             recordGameInterest(
                 game,
@@ -8065,15 +8344,211 @@ async function copyShareText(text) {
         const mobileSharePreparing = new Map();
         let mobileSharePrepareTimer = null;
 
-        function getMobileShareStateKey(game, cardEl) {
-            const sharePosterVersion = 'poster-v2';
+        function getAvailableSharePlatforms(game) {
+            const available = [];
+            if (Number(game?.ps5Primary || 0) > 0 || Number(game?.ps5Secondary || 0) > 0) {
+                available.push('PS5');
+            }
+            if (Number(game?.ps4Primary || 0) > 0 || Number(game?.ps4Secondary || 0) > 0) {
+                available.push('PS4');
+            }
+            return available;
+        }
+
+        function normalizeSharePlatforms(game, platforms) {
+            const available = getAvailableSharePlatforms(game);
+            if (!available.length) {
+                return Array.isArray(game?.platforms)
+                    ? game.platforms.filter(p => ['PS5','PS4'].includes(String(p).toUpperCase()))
+                    : [];
+            }
+
+            const requested = Array.isArray(platforms)
+                ? platforms.map(p => String(p || '').toUpperCase())
+                : [];
+
+            const selected = available.filter(platform => requested.includes(platform));
+            return selected.length ? selected : available;
+        }
+
+        function getSharePlatformPrice(game, platforms) {
+            const selected = normalizeSharePlatforms(game, platforms);
+            const regularPrices = [];
+            const specialPrices = [];
+
+            selected.forEach(platform => {
+                const data = getPlatformData(game, platform);
+                [data.primary, data.secondary].forEach(value => {
+                    const price = Number(value || 0);
+                    if (price > 0) regularPrices.push(price);
+                });
+                [data.offerPrimary, data.offerSecondary].forEach(offer => {
+                    if (offer?.active && Number(offer.offerPrice || 0) > 0) {
+                        specialPrices.push(Number(offer.offerPrice));
+                    }
+                });
+            });
+
+            // Ao compartilhar uma Oferta Especial, a arte destaca o valor da oferta
+            // em vez de esconder o destaque atrás de outra opção normal mais barata.
+            if (specialPrices.length) return Math.min(...specialPrices);
+
+            return regularPrices.length
+                ? Math.min(...regularPrices)
+                : Number(game?.mainPrice || 0);
+        }
+
+        function buildSharePlatformOptionLines(game, platforms) {
+            const selected = normalizeSharePlatforms(game, platforms);
+            const moneyText = value => `R$ ${Number(value).toFixed(2).replace('.', ',')}`;
+            const lines = [];
+            const lineFor = (label, value, offer) => {
+                if (offer?.active) {
+                    return `• ${label}: ~${moneyText(offer.normalPrice)}~ → *${moneyText(value)}* 🔥 (${offer.remaining} un. oferta)`;
+                }
+                return `• ${label}: ${moneyText(value)}`;
+            };
+
+            if (selected.includes('PS5')) {
+                const data = getPlatformData(game, 'PS5');
+                if (Number(data.primary || 0) > 0 || Number(data.secondary || 0) > 0) {
+                    lines.push(`🟪 *PS5*`);
+                    if (Number(data.primary || 0) > 0) lines.push(lineFor('Primária', data.primary, data.offerPrimary));
+                    if (Number(data.secondary || 0) > 0) lines.push(lineFor('Secundária', data.secondary, data.offerSecondary));
+                }
+            }
+
+            if (selected.includes('PS4')) {
+                const data = getPlatformData(game, 'PS4');
+                if (Number(data.primary || 0) > 0 || Number(data.secondary || 0) > 0) {
+                    lines.push(`🟦 *PS4*`);
+                    if (Number(data.primary || 0) > 0) lines.push(lineFor('Primária', data.primary, data.offerPrimary));
+                    if (Number(data.secondary || 0) > 0) lines.push(lineFor('Secundária', data.secondary, data.offerSecondary));
+                }
+            }
+
+            return lines;
+        }
+
+        function chooseSharePlatforms(game) {
+            const available = getAvailableSharePlatforms(game);
+
+            // Com uma única plataforma disponível não há escolha útil a fazer.
+            if (available.length <= 1) {
+                return Promise.resolve(available);
+            }
+
+            return new Promise(resolve => {
+                document.querySelector('.mco-share-platform-backdrop')?.remove();
+
+                const overlay = document.createElement('div');
+                overlay.className = 'mco-share-platform-backdrop';
+
+                const modal = document.createElement('div');
+                modal.className = 'mco-share-platform-modal';
+                modal.setAttribute('role', 'dialog');
+                modal.setAttribute('aria-modal', 'true');
+                modal.setAttribute('aria-labelledby', 'mcoSharePlatformTitle');
+
+                const title = document.createElement('h3');
+                title.id = 'mcoSharePlatformTitle';
+                title.textContent = 'Qual plataforma você quer compartilhar?';
+
+                const help = document.createElement('p');
+                help.className = 'mco-share-platform-help';
+                help.textContent = 'PS5 e PS4 já vêm selecionadas. Desmarque uma delas para compartilhar somente a plataforma desejada.';
+
+                const list = document.createElement('div');
+                list.className = 'mco-share-platform-list';
+
+                const inputs = [];
+                available.forEach(platform => {
+                    const label = document.createElement('label');
+                    label.className = 'mco-share-platform-choice';
+
+                    const input = document.createElement('input');
+                    input.type = 'checkbox';
+                    input.value = platform;
+                    input.checked = true;
+                    input.setAttribute('aria-label', `Compartilhar ${platform}`);
+
+                    const texts = document.createElement('div');
+                    const strong = document.createElement('strong');
+                    strong.textContent = platform;
+                    const small = document.createElement('span');
+                    const data = getPlatformData(game, platform);
+                    const count = [data.primary, data.secondary].filter(v => Number(v || 0) > 0).length;
+                    small.textContent = count === 2 ? 'Primária e Secundária' : 'Opção disponível';
+
+                    texts.append(strong, small);
+                    label.append(input, texts);
+                    list.append(label);
+                    inputs.push(input);
+                });
+
+                const actions = document.createElement('div');
+                actions.className = 'mco-share-platform-actions';
+
+                const cancel = document.createElement('button');
+                cancel.type = 'button';
+                cancel.className = 'mco-share-platform-cancel';
+                cancel.textContent = 'Cancelar';
+
+                const confirm = document.createElement('button');
+                confirm.type = 'button';
+                confirm.className = 'mco-share-platform-confirm';
+                confirm.textContent = 'Compartilhar';
+
+                const updateConfirm = () => {
+                    confirm.disabled = !inputs.some(input => input.checked);
+                };
+
+                const finish = value => {
+                    document.removeEventListener('keydown', onKey);
+                    overlay.remove();
+                    resolve(value);
+                };
+
+                const onKey = event => {
+                    if (event.key === 'Escape') {
+                        event.preventDefault();
+                        finish(null);
+                    }
+                };
+
+                inputs.forEach(input => input.addEventListener('change', updateConfirm));
+                cancel.addEventListener('click', () => finish(null));
+                confirm.addEventListener('click', () => {
+                    const selected = inputs.filter(input => input.checked).map(input => input.value);
+                    if (!selected.length) return;
+                    finish(selected);
+                });
+                overlay.addEventListener('click', event => {
+                    if (event.target === overlay) finish(null);
+                });
+                document.addEventListener('keydown', onKey);
+
+                actions.append(cancel, confirm);
+                modal.append(title, help, list, actions);
+                overlay.append(modal);
+                document.body.append(overlay);
+                updateConfirm();
+                confirm.focus();
+            });
+        }
+
+        function getMobileShareStateKey(game, cardEl, sharePlatforms = null) {
+            const sharePosterVersion = 'poster-v3-platforms';
             const selected = getSelectedItem(game.id);
             const countText = document.querySelector('#igViewer .ig-count')?.textContent || '';
             const categoryText = document.querySelector('#igViewer .ig-category-label')?.textContent || '';
             const searchText = document.getElementById('searchInput')?.value || '';
 
+            const platformKey = normalizeSharePlatforms(game, sharePlatforms).join('+');
+
             return [sharePosterVersion,
                 game.id,
+                platformKey,
                 selected?.platform || getDefaultPlatform(game) || '',
                 selected?.type || '',
                 countText.trim(),
@@ -8082,8 +8557,8 @@ async function copyShareText(text) {
             ].join('||');
         }
 
-        function getPreparedMobileShareFile(game, cardEl) {
-            return mobileSharePreparedFiles.get(getMobileShareStateKey(game, cardEl)) || null;
+        function getPreparedMobileShareFile(game, cardEl, sharePlatforms = null) {
+            return mobileSharePreparedFiles.get(getMobileShareStateKey(game, cardEl, sharePlatforms)) || null;
         }
 
         function setMobileShareButtonState(
@@ -8123,10 +8598,10 @@ async function copyShareText(text) {
                     : 'Preparando imagem para compartilhar…';
         }
 
-        async function buildPreparedMobileShareFile(game, cardEl) {
+        async function buildPreparedMobileShareFile(game, cardEl, sharePlatforms = null) {
             if (!game || !cardEl || !cardEl.isConnected) return null;
 
-            const key = getMobileShareStateKey(game, cardEl);
+            const key = getMobileShareStateKey(game, cardEl, sharePlatforms);
 
             if (mobileSharePreparedFiles.has(key)) {
                 setMobileShareButtonState(cardEl, true);
@@ -8151,7 +8626,7 @@ async function copyShareText(text) {
 
                     if (!cardEl.isConnected) return null;
 
-                    const canvas = await buildCurrentMobileScreenShare(cardEl, game);
+                    const canvas = await buildCurrentMobileScreenShare(cardEl, game, sharePlatforms);
                     const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
                     if (!blob) return null;
 
@@ -8172,7 +8647,7 @@ async function copyShareText(text) {
                         mobileSharePreparedFiles.delete(mobileSharePreparedFiles.keys().next().value);
                     }
 
-                    if (cardEl.isConnected && getMobileShareStateKey(game, cardEl) === key) {
+                    if (cardEl.isConnected && getMobileShareStateKey(game, cardEl, sharePlatforms) === key) {
                         setMobileShareButtonState(cardEl, true);
                     }
                     return file;
@@ -8242,19 +8717,12 @@ async function copyShareText(text) {
                 return;
             }
 
-            const moneyText = value => `R$ ${Number(value).toFixed(2).replace('.', ',')}`;
-            const optionLines = [];
+            const sharePlatforms = await chooseSharePlatforms(game);
+            if (!sharePlatforms || !sharePlatforms.length) {
+                return;
+            }
 
-            if (game.ps5Primary > 0 || game.ps5Secondary > 0) {
-                optionLines.push(`🟪 *PS5*`);
-                if (game.ps5Primary > 0) optionLines.push(`• Primária: ${moneyText(game.ps5Primary)}`);
-                if (game.ps5Secondary > 0) optionLines.push(`• Secundária: ${moneyText(game.ps5Secondary)}`);
-            }
-            if (game.ps4Primary > 0 || game.ps4Secondary > 0) {
-                optionLines.push(`🟦 *PS4*`);
-                if (game.ps4Primary > 0) optionLines.push(`• Primária: ${moneyText(game.ps4Primary)}`);
-                if (game.ps4Secondary > 0) optionLines.push(`• Secundária: ${moneyText(game.ps4Secondary)}`);
-            }
+            const optionLines = buildSharePlatformOptionLines(game, sharePlatforms);
 
             const comboLines =
                 game.isCombo && Array.isArray(game.comboNames) && game.comboNames.length
@@ -8272,7 +8740,7 @@ async function copyShareText(text) {
             const desktop = !isMobileDevice();
 
             if (!desktop) {
-                const preparedFile = getPreparedMobileShareFile(game, cardEl);
+                const preparedFile = getPreparedMobileShareFile(game, cardEl, sharePlatforms);
 
                 const canSharePreparedFile = !!(
                     preparedFile &&
@@ -8308,7 +8776,7 @@ async function copyShareText(text) {
                 showShareStatus('Preparando a imagem…');
 
                 let file = preparedFile;
-                if (!file) file = await buildPreparedMobileShareFile(game, cardEl);
+                if (!file) file = await buildPreparedMobileShareFile(game, cardEl, sharePlatforms);
 
                 if (file) {
                     const mobileUrl = URL.createObjectURL(file);
@@ -8341,7 +8809,7 @@ async function copyShareText(text) {
             try {
                 showShareStatus('Gerando a imagem da oferta…');
 
-                const canvas = await buildCurrentMobileScreenShare(cardEl, game);
+                const canvas = await buildCurrentMobileScreenShare(cardEl, game, sharePlatforms);
                 const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
                 if (!blob) throw new Error('Não foi possível gerar o PNG.');
 
@@ -8351,7 +8819,8 @@ async function copyShareText(text) {
                     .replace(/[^a-zA-Z0-9]+/g, '_')
                     .replace(/^_+|_+$/g, '');
 
-                const fileName = `MCO_GAMES_${safeName || 'oferta'}.png`;
+                const suffix = sharePlatforms.length === 1 ? `_${sharePlatforms[0]}` : '';
+                const fileName = `MCO_GAMES_${safeName || 'oferta'}${suffix}.png`;
                 const desktopUrl = URL.createObjectURL(blob);
 
                 const a = document.createElement('a');
@@ -8557,11 +9026,18 @@ async function copyShareText(text) {
             let buttonsHtml = '';
 
             if (primaryPriced || secondaryPriced) {
+                const formatTypePrice = (label, value, stockValue, offer) => {
+                    const stockLabel = game.hasStockInfo ? (stockValue > 0 ? ` (${stockValue} Un)` : ' • Esgotado') : '';
+                    if (offer?.active) {
+                        return `<span class="media-label">${label}${stockLabel}</span><span class="mco-special-mini">🔥 ${offer.remaining} un. na oferta</span><br><span class="mco-special-old">R$ ${Number(offer.normalPrice).toFixed(2).replace('.', ',')}</span><span class="media-price mco-special-price">R$ ${Number(value).toFixed(2).replace('.', ',')}</span>`;
+                    }
+                    return `<span class="media-label">${label}${stockLabel}</span><br><span class="media-price">R$ ${Number(value).toFixed(2).replace('.', ',')}</span>`;
+                };
                 const primaryTxt = primaryPriced
-                    ? `<span class="media-label">Primária${game.hasStockInfo ? (data.stockPrimary > 0 ? ` (${data.stockPrimary} Un)` : ' • Esgotado') : ''}</span><br><span class="media-price">R$ ${data.primary.toFixed(2).replace('.', ',')}</span>`
+                    ? formatTypePrice('Primária', data.primary, data.stockPrimary, data.offerPrimary)
                     : '';
                 const secondaryTxt = secondaryPriced
-                    ? `<span class="media-label">Secundária${game.hasStockInfo ? (data.stockSecondary > 0 ? ` (${data.stockSecondary} Un)` : ' • Esgotado') : ''}</span><br><span class="media-price">R$ ${data.secondary.toFixed(2).replace('.', ',')}</span>`
+                    ? formatTypePrice('Secundária', data.secondary, data.stockSecondary, data.offerSecondary)
                     : '';
 
                 buttonsHtml = `
@@ -8599,6 +9075,14 @@ async function copyShareText(text) {
                 }
             }
 
+            const specialSummary = getSpecialOfferSummary(game, selectedPlatform);
+            const specialBadgeHtml = specialSummary
+                ? `<span class="mco-special-offer-badge">${escapeHtml(specialSummary.label)}</span>`
+                : '';
+            const specialMainNoteHtml = specialSummary
+                ? `<span class="mco-special-main-note">${escapeHtml(specialSummary.label)}</span>`
+                : '';
+
             card.innerHTML = `
                 <div class="card-img-container mco-open-product" onclick="openGameById('${game.id}', true)" title="Ver detalhes de ${escapeHtml(game.name)}">
                     ${preorderHtml}
@@ -8606,6 +9090,7 @@ async function copyShareText(text) {
                     ${comboBadgeHtml}
                     ${timerHtml}
                     ${stockBadgeHtml}
+                    ${specialBadgeHtml}
                     ${getComboCoverMarkup(game)}
                 </div>
                 <div class="card-info">
@@ -8619,6 +9104,7 @@ async function copyShareText(text) {
                                 <span class="current-price">A partir de R$ ${displayMainPrice.toFixed(2).replace('.', ',')}</span>
                                 ${discount > 0 ? `<span class="discount-inline">-${discount}%</span>` : ''}
                             </div>
+                            ${specialMainNoteHtml}
                         </div>
                         <a href="https://chat.whatsapp.com/IREOzjw9jh55ekz95Nv3Pd"
                            target="_blank"
@@ -13412,7 +13898,8 @@ function drawSharePosterComboMosaic(
 
 async function buildMcoSharePoster(
     game,
-    cardEl
+    cardEl,
+    sharePlatforms = null
 ) {
     if (!game) {
         throw new Error(
@@ -13667,12 +14154,22 @@ async function buildMcoSharePoster(
 
     ctx.restore();
 
+    const selectedSharePlatforms =
+        normalizeSharePlatforms(
+            game,
+            sharePlatforms
+        );
+
     const platformList =
-        Array.isArray(
-            game.platforms
-        )
-            ? game.platforms
-            : [];
+        selectedSharePlatforms.length
+            ? selectedSharePlatforms
+            : (
+                Array.isArray(
+                    game.platforms
+                )
+                    ? game.platforms
+                    : []
+              );
 
     const platformLabel =
         platformList.length
@@ -13956,6 +14453,23 @@ async function buildMcoSharePoster(
         statusW +
         12;
 
+    const specialShareSummary = getSpecialOfferSummary(
+        game,
+        selectedSharePlatforms.length === 1 ? selectedSharePlatforms[0] : ''
+    );
+
+    if (specialShareSummary) {
+        const offerText = specialShareSummary.label;
+        ctx.font = '900 22px Arial, sans-serif';
+        const offerW = Math.min(440, ctx.measureText(offerText).width + 42);
+        if (chipX + offerW < W - 56) {
+            drawSharePosterRoundedRect(ctx, chipX, infoY, offerW, 46, 23, 'rgba(64,42,4,.78)', '#b38422', 2);
+            ctx.fillStyle = '#ffd36a';
+            ctx.fillText(offerText, chipX + 20, infoY + 31, offerW - 40);
+            chipX += offerW + 12;
+        }
+    }
+
     const countdown =
         game.targetDate
             ? getCountdownString(
@@ -14018,11 +14532,25 @@ async function buildMcoSharePoster(
 
     const currentPrice =
         Number(
-            getGameMainPriceForCurrentFilter(
-                game
+            getSharePlatformPrice(
+                game,
+                selectedSharePlatforms
             ) ||
             0
         );
+
+    const selectedOfferSlots = [];
+    selectedSharePlatforms.forEach(platform => {
+        const d = getPlatformData(game, platform);
+        if (d.offerPrimary?.active) selectedOfferSlots.push(d.offerPrimary);
+        if (d.offerSecondary?.active) selectedOfferSlots.push(d.offerSecondary);
+    });
+    const highlightedOfferSlot = selectedOfferSlots
+        .filter(slot => Number(slot.offerPrice || 0) > 0)
+        .sort((a, b) => Number(a.offerPrice) - Number(b.offerPrice))[0] || null;
+    const specialReferencePrice = highlightedOfferSlot
+        ? Number(highlightedOfferSlot.normalPrice || 0)
+        : 0;
 
     const oldPrice =
         Number(
@@ -14040,8 +14568,13 @@ async function buildMcoSharePoster(
         value =>
             `R$ ${Number(value).toFixed(2).replace('.', ',')}`;
 
+    const referencePriceForShare =
+        specialReferencePrice > currentPrice
+            ? specialReferencePrice
+            : oldPrice;
+
     if (
-        oldPrice >
+        referencePriceForShare >
         currentPrice &&
         currentPrice >
         0
@@ -14054,7 +14587,7 @@ async function buildMcoSharePoster(
 
         ctx.fillText(
             money(
-                oldPrice
+                referencePriceForShare
             ),
             56,
             infoY
@@ -14237,7 +14770,8 @@ async function buildMcoSharePoster(
 
 async function buildCurrentMobileScreenShare(
     cardEl,
-    game = null
+    game = null,
+    sharePlatforms = null
 ) {
     if (!game) {
         throw new Error(
@@ -14252,7 +14786,8 @@ async function buildCurrentMobileScreenShare(
      */
     return await buildMcoSharePoster(
         game,
-        cardEl
+        cardEl,
+        sharePlatforms
     );
 }</script>
 
