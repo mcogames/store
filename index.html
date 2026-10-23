@@ -6481,41 +6481,79 @@ async function copyShareText(text) {
             ].some(value => Number(value || 0) > 0);
         }
 
+        function getStoreVisibilityPriority(game) {
+            if (isCategory(game, 'Lançamento em Oferta')) return 400;
+            if (isCategory(game, 'Pré Venda')) return 300;
+            if (isCategory(game, 'Promoção')) return 200;
+            if (isCategory(game, 'Catálogo')) return 100;
+            return 0;
+        }
+
         function applyStoreVisibilityRules(list, now = Date.now()) {
             const activeGames = (Array.isArray(list) ? list : [])
                 .filter(game => hasValidStorePrice(game))
                 .filter(game => !shouldHideExpiredTimedGame(game, now));
 
-            const promotions = activeGames
-                .filter(game => isCategory(game, 'Promoção'));
+            /*
+             * Um mesmo código pode existir temporariamente em mais de uma aba.
+             * Para o cliente ele deve aparecer UMA única vez.
+             *
+             * Prioridade quando o mesmo código/ID está repetido:
+             * Lançamento em Oferta > Pré-venda > Promoção > Catálogo.
+             *
+             * Isso também corrige links diretos como ?jogo=codmw4: o endereço
+             * continua estável, mas resolve para uma única versão visível.
+             */
+            const preferredById = new Map();
 
-            const promotionIds = new Set(
-                promotions
-                    .map(getGameSheetIdentity)
-                    .filter(Boolean)
-            );
+            activeGames.forEach(game => {
+                const identity = getGameSheetIdentity(game);
+                if (!identity) return;
 
-            const promotionNames = new Set(
-                promotions
+                const current = preferredById.get(identity);
+                if (
+                    !current ||
+                    getStoreVisibilityPriority(game) >
+                    getStoreVisibilityPriority(current)
+                ) {
+                    preferredById.set(identity, game);
+                }
+            });
+
+            /*
+             * Compatibilidade com cadastros antigos: quando o mesmo jogo foi
+             * criado com códigos diferentes, uma versão especial ativa também
+             * substitui o Catálogo pelo nome exato normalizado.
+             */
+            const specialNames = new Set(
+                activeGames
+                    .filter(game => !isCategory(game, 'Catálogo'))
                     .map(getGameNameIdentity)
                     .filter(Boolean)
             );
 
             return activeGames.filter(game => {
-                if (!isCategory(game, 'Catálogo')) return true;
-
                 const identity = getGameSheetIdentity(game);
-                const nameIdentity = getGameNameIdentity(game);
 
-                const sameId =
-                    !!identity &&
-                    promotionIds.has(identity);
+                if (
+                    identity &&
+                    preferredById.has(identity) &&
+                    preferredById.get(identity) !== game
+                ) {
+                    return false;
+                }
 
-                const sameName =
-                    !!nameIdentity &&
-                    promotionNames.has(nameIdentity);
+                if (isCategory(game, 'Catálogo')) {
+                    const nameIdentity = getGameNameIdentity(game);
+                    if (
+                        nameIdentity &&
+                        specialNames.has(nameIdentity)
+                    ) {
+                        return false;
+                    }
+                }
 
-                return !sameId && !sameName;
+                return true;
             });
         }
 
