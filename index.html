@@ -6166,17 +6166,61 @@ async function copyShareText(text) {
             return Number(game?.mainPrice || 0);
         }
 
+        function isLegacyNumericGameId(value) {
+            return /^\d+$/.test(String(value ?? '').trim());
+        }
+
+        function getGameRecordKey(game) {
+            const existing = String(game?.recordKey || game?.id || '').trim();
+            if (existing && existing.includes('::')) return existing;
+
+            const category = categoryKey(game?.category || 'CATALOGO') || 'CATALOGO';
+            const sheetId = String(game?.sheetId ?? '').trim();
+            return `${category}::${sheetId || existing}`;
+        }
+
         function getGameStableRef(game) {
-            return String(game?.sheetId || game?.id || '').trim();
+            const sheetId = String(game?.sheetId ?? '').trim();
+            if (sheetId && !isLegacyNumericGameId(sheetId)) {
+                return sheetId;
+            }
+
+            // IDs antigos numéricos não são globais entre as abas.
+            // Para novos links, usa ABA::ID e elimina a ambiguidade.
+            return getGameRecordKey(game);
         }
 
         function resolveGameReference(ref) {
             const key = String(ref || '').trim();
             if (!key) return null;
-            return games.find(game =>
-                String(game.id || '') === key ||
+
+            // Referência moderna e inequívoca: ABA::ID.
+            const exactRecord = games.find(game =>
+                String(getGameRecordKey(game)) === key ||
+                String(game.id || '') === key
+            );
+            if (exactRecord) return exactRecord;
+
+            // Código moderno (GTAVI, CODMW4 etc.) permanece simples e estável.
+            const exactCode = games.find(game =>
+                String(game.sheetId || '') === key &&
+                !isLegacyNumericGameId(game.sheetId)
+            );
+            if (exactCode) return exactCode;
+
+            // Compatibilidade com links antigos ?jogo=3. Se houver mais de um
+            // ID numérico 3 em abas diferentes, usa a versão visível de maior
+            // prioridade, mas todos os novos links passam a usar ABA::ID.
+            const legacyMatches = games.filter(game =>
                 String(game.sheetId || '') === key
-            ) || null;
+            );
+            if (!legacyMatches.length) return null;
+
+            return legacyMatches
+                .slice()
+                .sort((a, b) =>
+                    getStoreVisibilityPriority(b) - getStoreVisibilityPriority(a)
+                )[0] || null;
         }
 
         function getRecentlyViewedRefs() {
@@ -6451,24 +6495,38 @@ async function copyShareText(text) {
                 .replace(/\s+/g, ' ');
         }
 
+        function getGameDuplicateIdentity(game) {
+            const sheetId = getGameSheetIdentity(game);
+            const nameId = getGameNameIdentity(game);
+
+            /*
+             * Códigos modernos (GTAVI, CODMW4...) são globais e podem
+             * identificar o mesmo jogo em abas diferentes.
+             *
+             * IDs legados somente numéricos NÃO são globais: duas abas podem
+             * ter o mesmo número para jogos diferentes. Nesses casos, o nome
+             * normalizado confirma a identidade do jogo.
+             */
+            if (sheetId && !isLegacyNumericGameId(sheetId)) {
+                return `codigo::${sheetId}`;
+            }
+
+            if (nameId) {
+                return `legado-nome::${nameId}`;
+            }
+
+            return `registro::${getGameRecordKey(game).toLowerCase()}`;
+        }
+
         /*
          * REGRA DE PRIORIDADE DO SITE
          * ------------------------------------------------------------
-         * Promoção ativa sempre substitui o mesmo jogo do Catálogo.
+         * O registro físico é identificado por ABA::ID. Já a deduplicação
+         * entre categorias só acontece quando há evidência de que é realmente
+         * o mesmo jogo (código moderno global ou nome compatível no legado).
          *
-         * A comparação usa primeiro o código/ID da coluna A.
-         * Como pode existir cadastro antigo com códigos diferentes entre
-         * PROMOCAO e CATALOGO, também usamos o nome exato normalizado
-         * como segunda chave de segurança.
-         *
-         * Exemplo:
-         *   Promoção: ARC Raiders
-         *   Catálogo: ARC Raiders
-         * Mesmo que os códigos estejam diferentes, só a Promoção aparece.
-         *
-         * Promoções vencidas são removidas ANTES desta comparação.
-         * Assim, quando a promoção termina, o item do CATALOGO volta
-         * automaticamente a ficar visível.
+         * Quando for o mesmo jogo, a prioridade é:
+         * Lançamento em Oferta > Pré-venda > Promoção > Catálogo.
          */
         function hasValidStorePrice(game) {
             if (!game) return false;
@@ -6495,35 +6553,39 @@ async function copyShareText(text) {
                 .filter(game => !shouldHideExpiredTimedGame(game, now));
 
             /*
-             * Um mesmo código pode existir temporariamente em mais de uma aba.
-             * Para o cliente ele deve aparecer UMA única vez.
+             * IDENTIDADE SEGURA DA LOJA
+             * ------------------------------------------------------------
+             * 1) Registro físico: ABA::ID (ex.: PREVENDA::3).
+             *    O mesmo número em outra aba NÃO é o mesmo registro.
              *
-             * Prioridade quando o mesmo código/ID está repetido:
+             * 2) Mesmo jogo entre abas:
+             *    - código moderno alfanumérico: usa o código global;
+             *    - ID legado numérico: só considera igual quando o nome
+             *      normalizado também identifica o mesmo jogo.
+             *
+             * Prioridade quando é realmente o mesmo jogo:
              * Lançamento em Oferta > Pré-venda > Promoção > Catálogo.
-             *
-             * Isso também corrige links diretos como ?jogo=codmw4: o endereço
-             * continua estável, mas resolve para uma única versão visível.
              */
-            const preferredById = new Map();
+            const preferredByGame = new Map();
 
             activeGames.forEach(game => {
-                const identity = getGameSheetIdentity(game);
+                const identity = getGameDuplicateIdentity(game);
                 if (!identity) return;
 
-                const current = preferredById.get(identity);
+                const current = preferredByGame.get(identity);
                 if (
                     !current ||
                     getStoreVisibilityPriority(game) >
                     getStoreVisibilityPriority(current)
                 ) {
-                    preferredById.set(identity, game);
+                    preferredByGame.set(identity, game);
                 }
             });
 
             /*
-             * Compatibilidade com cadastros antigos: quando o mesmo jogo foi
-             * criado com códigos diferentes, uma versão especial ativa também
-             * substitui o Catálogo pelo nome exato normalizado.
+             * Compatibilidade adicional: se um cadastro antigo e um moderno
+             * possuem códigos diferentes, mas o MESMO nome, uma categoria
+             * especial ativa ainda substitui o Catálogo.
              */
             const specialNames = new Set(
                 activeGames
@@ -6533,12 +6595,12 @@ async function copyShareText(text) {
             );
 
             return activeGames.filter(game => {
-                const identity = getGameSheetIdentity(game);
+                const identity = getGameDuplicateIdentity(game);
 
                 if (
                     identity &&
-                    preferredById.has(identity) &&
-                    preferredById.get(identity) !== game
+                    preferredByGame.has(identity) &&
+                    preferredByGame.get(identity) !== game
                 ) {
                     return false;
                 }
@@ -7192,10 +7254,15 @@ async function copyShareText(text) {
                     ? imgRaw
                     : "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTnOXAQFE6SWdIZy6b4OpXDWYJUjkIbnYx7gQLCRunJ3w&s=10";
 
+                const rawSheetId = text(row[C.id]) || `${sheetName}-${i}`;
+                const recordKey = `${categoryKey(category)}::${rawSheetId}`;
+
                 parsedGames.push({
-                    // Mesmo jogo pode existir em mais de uma aba; o ID da planilha sozinho não pode ser a chave interna.
-                    id: `${categoryKey(category)}::${text(row[C.id]) || `${sheetName}-${i}`}`,
-                    sheetId: text(row[C.id]) || `${sheetName}-${i}`,
+                    // Identidade física do registro: ABA + ID. Assim PREVENDA::3
+                    // e CATALOGO::3 nunca colidem apenas por terem o mesmo número.
+                    id: recordKey,
+                    recordKey,
+                    sheetId: rawSheetId,
                     name,
                     platform: platforms.length ? platforms.join(' / ') : 'Plataforma não informada',
                     platforms,
@@ -7392,7 +7459,7 @@ async function copyShareText(text) {
                 // Promoção > Catálogo é aplicada logo abaixo pela sheetId.
                 const seen = new Set();
                 sourceGames = sourceGames.filter(game => {
-                    const key = `${categoryKey(game.category)}::${getGameSheetIdentity(game)}::${game.id}`;
+                    const key = getGameRecordKey(game).toLowerCase();
                     if (seen.has(key)) return false;
                     seen.add(key);
                     return true;
@@ -7401,8 +7468,8 @@ async function copyShareText(text) {
                 /*
                  * Aplica todas as regras antes de renderizar:
                  * 1. remove Promoção/Pré-venda vencidas;
-                 * 2. se o mesmo jogo estiver em Promoção e Catálogo,
-                 *    por código ou nome normalizado, mantém só a Promoção.
+                 * 2. resolve duplicidade real entre abas sem confundir IDs
+                 *    numéricos legados iguais de jogos diferentes.
                  */
                 games = applyStoreVisibilityRules(
                     sourceGames
