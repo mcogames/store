@@ -6261,10 +6261,44 @@ async function copyShareText(text) {
             return correspondentes.length === 1 ? correspondentes[0] : null;
         }
 
+        /* Compatibilidade de IDs anteriores à migração PSN.
+           Lê CODIGOS_ANTERIORES_MCO (AG) de cada aba.
+           ABA::codigo-antigo não pode abrir um registro de outra aba.
+           Código antigo simples só é usado se identificar 1 único registro. */
+        function mcoResolverAliasPsnMigrado(ref) {
+            const raw = String(ref || '').trim();
+            if (!raw) return null;
+            const parts = /^([A-Z][A-Z0-9.]*)::(.+)$/i.exec(raw);
+            const sheetNames = { 'CATALOGO':'catalogo', 'PROMOCAO':'promocao',
+                'PREVENDA':'pre-venda', 'LANCAMENTO.EM.OFERTA':'lancamento-em-oferta' };
+            const category = parts ? (sheetNames[parts[1].toUpperCase()] || categoryKey(parts[1])) : '';
+            const code = (parts ? parts[2] : raw).toUpperCase();
+            const source = Array.isArray(sourceGames) && sourceGames.length ? sourceGames : games;
+            const matches = source.filter(game => {
+                if (category && categoryKey(game.category) !== category) return false;
+                return (game.legacyRefs || []).some(value => String(value).trim().toUpperCase() === code);
+            });
+            // Números reaproveitados entre abas nunca devem apontar arbitrariamente a outro jogo.
+            if (!category) {
+                const idsInUse = source.filter(game => String(game.sheetId || '').trim().toUpperCase() === code);
+                const identities = new Set([...matches,...idsInUse].map(getGameRecordKey));
+                if (identities.size !== 1) return null;
+            }
+            if (matches.length !== 1) return null;
+            const master = matches[0];
+            const visible = games.find(game => getGameRecordKey(game) === getGameRecordKey(master));
+            if (visible) return visible;
+            // Quando uma promoção substitui o catálogo, só usar equivalência sem ambiguidade.
+            const same = games.filter(game => getGameNameIdentity(game) === getGameNameIdentity(master));
+            return same.length === 1 ? same[0] : null;
+        }
+
         function resolveGameReference(ref) {
             const key = String(ref || '').trim();
             if (!key) return null;
 
+            const aliasDinamico = mcoResolverAliasPsnMigrado(key);
+            if (aliasDinamico) return aliasDinamico;
             const aliasCatalogo = mcoResolverAliasCatalogoAntigo(key);
             if (aliasCatalogo) return aliasCatalogo;
 
@@ -7157,7 +7191,8 @@ async function copyShareText(text) {
                 offerPs4SecondaryPrice: col(27, 'Oferta PS4 Secundária - Preço', 'Oferta PS4 Secundaria - Preco'),
                 offerPs4SecondaryQty: col(28, 'Oferta PS4 Secundária - Qtd', 'Oferta PS4 Secundaria - Qtd'),
                 offerPs4SecondaryBase: col(29, 'Oferta PS4 Secundária - Estoque Base', 'Oferta PS4 Secundaria - Estoque Base'),
-                offerUntil: col(30, 'Oferta Especial - Válida Até', 'Oferta Especial - Valida Ate')
+                offerUntil: col(30, 'Oferta Especial - Válida Até', 'Oferta Especial - Valida Ate'),
+                legacyRefs: col(32, 'CODIGOS_ANTERIORES_MCO')
             };
 
             const money = value => {
@@ -7328,6 +7363,7 @@ async function copyShareText(text) {
                     ? imgRaw
                     : "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTnOXAQFE6SWdIZy6b4OpXDWYJUjkIbnYx7gQLCRunJ3w&s=10";
 
+                const legacyRefs = text(row[C.legacyRefs]).split('|').map(s => s.trim()).filter(Boolean);
                 const rawSheetId = text(row[C.id]) || `${sheetName}-${i}`;
                 const recordKey = `${categoryKey(category)}::${rawSheetId}`;
 
@@ -7337,6 +7373,7 @@ async function copyShareText(text) {
                     id: recordKey,
                     recordKey,
                     sheetId: rawSheetId,
+                    legacyRefs,
                     name,
                     platform: platforms.length ? platforms.join(' / ') : 'Plataforma não informada',
                     platforms,
