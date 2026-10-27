@@ -6180,13 +6180,10 @@ async function copyShareText(text) {
         }
 
         function getGameStableRef(game) {
-            const sheetId = String(game?.sheetId ?? '').trim();
-            if (sheetId && !isLegacyNumericGameId(sheetId)) {
-                return sheetId;
-            }
-
-            // IDs antigos numéricos não são globais entre as abas.
-            // Para novos links, usa ABA::ID e elimina a ambiguidade.
+            // O produto tem o MESMO código PSN em todas as abas, mas cada
+            // anúncio é único pela combinação CATEGORIA::CÓDIGO.
+            // Novos links sempre incluem a categoria; os links antigos
+            // simples continuam sendo interpretados pela rotina de resolução.
             return getGameRecordKey(game);
         }
 
@@ -6303,18 +6300,30 @@ async function copyShareText(text) {
             if (aliasCatalogo) return aliasCatalogo;
 
             // Referência moderna e inequívoca: ABA::ID.
+            // Normaliza também nomes antigos de abas em URLs compartilhadas.
+            const partida = /^([A-Z][A-Z0-9.\-]*)::(.+)$/i.exec(key);
+            const nomesDasAbas = {
+                'CATALOGO': 'catalogo', 'PROMOCAO': 'promocao',
+                'PREVENDA': 'pre-venda',
+                'LANCAMENTO.EM.OFERTA': 'lancamento-em-oferta'
+            };
+            const referenciaExata = partida
+                ? `${nomesDasAbas[partida[1].toUpperCase()] || categoryKey(partida[1])}::${partida[2]}`
+                : key;
             const exactRecord = games.find(game =>
-                String(getGameRecordKey(game)) === key ||
-                String(game.id || '') === key
+                String(getGameRecordKey(game)).toUpperCase() === referenciaExata.toUpperCase() ||
+                String(game.id || '').toUpperCase() === referenciaExata.toUpperCase()
             );
             if (exactRecord) return exactRecord;
 
-            // Código moderno (GTAVI, CODMW4 etc.) permanece simples e estável.
-            const exactCode = games.find(game =>
-                String(game.sheetId || '') === key &&
+            // Links antigos sem categoria: somente abrir se o código
+            // identificar um ÚNICO anúncio visível (ou recusar ambiguidade).
+            const exactCodes = games.filter(game =>
+                String(game.sheetId || '').toUpperCase() === key.toUpperCase() &&
                 !isLegacyNumericGameId(game.sheetId)
             );
-            if (exactCode) return exactCode;
+            if (exactCodes.length === 1) return exactCodes[0];
+            if (exactCodes.length > 1) return null;
 
             // Compatibilidade com links antigos ?jogo=3. Se houver mais de um
             // ID numérico 3 em abas diferentes, usa a versão visível de maior
