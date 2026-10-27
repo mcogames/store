@@ -6190,9 +6190,83 @@ async function copyShareText(text) {
             return getGameRecordKey(game);
         }
 
+        /*
+         * MCO GAMES — COMPATIBILIDADE DE LINKS DE ANÚNCIOS CONSOLIDADOS
+         * -------------------------------------------------------------
+         * Somente os dois anúncios duplicados CONFIRMADOS do CATÁLOGO.
+         * NÃO muda IDs da planilha, preços, estoque ou prioridade comercial.
+         *
+         * CATALOGO::18 -> CATALOGO::hks  (Hollow Knight: Silksong)
+         * CATALOGO::25 -> CATALOGO::ar   (ARC Raiders)
+         *
+         * IDs numéricos simples (?jogo=18/25) são aceitos apenas quando
+         * não existir outro registro com o mesmo número em outra categoria.
+         * Assim evitamos confundir, por exemplo, PREVENDA::18 com CATÁLOGO::18.
+         */
+        const MCO_CATALOGO_ALIASES_CONFIRMADOS = Object.freeze({
+            '18': Object.freeze({ codigo: 'hks', nome: 'Hollow Knight: Silksong' }),
+            '25': Object.freeze({ codigo: 'ar', nome: 'ARC Raiders' })
+        });
+
+        function mcoResolverAliasCatalogoAntigo(referencia) {
+            const ref = String(referencia ?? '').trim();
+            const qualificado = /^catalogo::(18|25)$/i.exec(ref);
+            const numerico = /^(18|25)$/.test(ref);
+            if (!qualificado && !numerico) return null;
+
+            const antigo = qualificado ? qualificado[1] : ref;
+            const alias = MCO_CATALOGO_ALIASES_CONFIRMADOS[antigo];
+            if (!alias) return null;
+
+            const origem = Array.isArray(sourceGames) && sourceGames.length
+                ? sourceGames : games;
+            const nomeEsperado = getGameNameIdentity({ name: alias.nome });
+
+            // Nunca reinterpretar número utilizado por outra aba.
+            if (numerico && origem.some(game =>
+                String(game.sheetId ?? '').trim() === antigo &&
+                !isCategory(game, 'Catálogo')
+            )) return null;
+
+            // Impede que um eventual novo jogo com ID 18/25 no Catálogo
+            // tenha seu link desviado para Silksong/ARC Raiders.
+            const registroAntigo = origem.find(game =>
+                isCategory(game, 'Catálogo') &&
+                String(game.sheetId ?? '').trim() === antigo
+            );
+            if (registroAntigo && getGameNameIdentity(registroAntigo) !== nomeEsperado) {
+                return null;
+            }
+
+            // O produto principal deve existir realmente nos dados lidos.
+            const principal = origem.find(game =>
+                isCategory(game, 'Catálogo') &&
+                String(game.sheetId ?? '').trim().toLowerCase() === alias.codigo &&
+                getGameNameIdentity(game) === nomeEsperado
+            );
+            if (!principal) return null;
+
+            const visivel = games.find(game =>
+                getGameRecordKey(game) === getGameRecordKey(principal)
+            );
+            if (visivel) return visivel;
+
+            // O Catálogo pode estar oculto por uma oferta especial de maior
+            // prioridade. Somente redireciona se houver UMA correspondência
+            // exata de nome; se houver ambiguidade, não escolhe por conta própria.
+            const correspondentes = games.filter(game =>
+                getStoreVisibilityPriority(game) > 100 &&
+                getGameNameIdentity(game) === nomeEsperado
+            );
+            return correspondentes.length === 1 ? correspondentes[0] : null;
+        }
+
         function resolveGameReference(ref) {
             const key = String(ref || '').trim();
             if (!key) return null;
+
+            const aliasCatalogo = mcoResolverAliasCatalogoAntigo(key);
+            if (aliasCatalogo) return aliasCatalogo;
 
             // Referência moderna e inequívoca: ABA::ID.
             const exactRecord = games.find(game =>
@@ -8423,17 +8497,41 @@ async function copyShareText(text) {
             await copyDirectGameLink(gameId);
         }
 
+        function mcoLerReferenciaJogoDaUrl(params) {
+            const gameId = params.get('jogo');
+            if (!gameId) return '';
+
+            // Se o link informa a aba de origem, não confunde CATALOGO::18
+            // com PREVENDA::18 (ID reaproveitado por outro jogo).
+            const categoriaInformada = params.get('categoria') || params.get('aba') || '';
+            return /^(18|25)$/.test(gameId) &&
+                categoryKey(categoriaInformada) === 'catalogo'
+                    ? `CATALOGO::${gameId}` : gameId;
+        }
+
         function applySharedGameFromUrl() {
             const params = new URLSearchParams(window.location.search);
-            const gameId = params.get('jogo');
-            if (!gameId) return false;
-            return openGameById(gameId, false);
+            const referencia = mcoLerReferenciaJogoDaUrl(params);
+            if (!referencia) return false;
+
+            // A URL antiga abre o anúncio principal e passa a exibir o link
+            // canônico. Não reescreve URLs numéricas que pertençam a outra aba.
+            const aliasCatalogo = mcoResolverAliasCatalogoAntigo(referencia);
+            const abriu = openGameById(referencia, false);
+            if (abriu && aliasCatalogo && window.history && window.history.replaceState) {
+                window.history.replaceState(
+                    { jogo: getGameStableRef(aliasCatalogo) },
+                    '',
+                    getGameDirectUrl(aliasCatalogo)
+                );
+            }
+            return abriu;
         }
 
 
         window.addEventListener('popstate', () => {
             const params = new URLSearchParams(window.location.search);
-            const ref = params.get('jogo');
+            const ref = mcoLerReferenciaJogoDaUrl(params);
             if (ref) {
                 openGameById(ref, false);
             } else if (selectedSearchGameId) {
