@@ -6450,11 +6450,14 @@ async function copyShareText(text) {
             return isCategory(game, "Pré Venda");
         }
 
-        // A data de PREVENDA é a previsão de lançamento, não uma autorização
-        // para retirar o produto. Apenas PROMOCAO expira automaticamente no site.
-        // Nenhuma destas regras escreve nem remove linhas na planilha.
+        // A coluna "Data Encerramento" controla a visibilidade das abas
+        // PROMOCAO e PREVENDA. Quando a data/hora passar, o anúncio deixa
+        // de aparecer na loja, mesmo permanecendo intacto na planilha.
+        // LANCAMENTO.EM.OFERTA e CATALOGO não expiram por esta regra.
+        // Datas vazias/invalidas não autorizam a exclusão do anúncio.
         function shouldHideExpiredTimedGame(game, now = Date.now()) {
-            if (!game || !game.targetDate || !isCategory(game, 'Promoção')) return false;
+            if (!game || !game.targetDate) return false;
+            if (!isCategory(game, 'Promoção') && !isCategory(game, 'Pré Venda')) return false;
             const target = parseTargetDate(game.targetDate);
             return !!target && target.getTime() <= now;
         }
@@ -6491,8 +6494,8 @@ async function copyShareText(text) {
          *    mesmo jogo cadastrado com CÓDIGOS DIFERENTES em outras abas.
          * 5) A maior prioridade vence:
          *    LANCAMENTO.EM.OFERTA > PREVENDA > PROMOCAO > CATALOGO.
-         * 6) Somente jogos ativos participam da escolha: se a PROMOCAO
-         *    vencer, o CATALOGO reaparece sem alteração na planilha.
+         * 6) Somente anúncios com data válida (ou sem vencimento) participam:
+         *    se a PREVENDA/PROMOCAO vencer, o CATALOGO reaparece intacto.
          */
         function hasValidStorePrice(game) {
             if (!game) return false;
@@ -6717,7 +6720,7 @@ async function copyShareText(text) {
             /*
              * Recalcular toda a lista de centenas de jogos a cada segundo
              * era desnecessário. Os contadores seguem em 1s; a validade de
-             * PROMOCAO é revista a cada 15s. PREVENDA não expira pelo relógio.
+             * PROMOCAO e PREVENDA é revista a cada 15s.
              */
             if (
                 now -
@@ -7410,8 +7413,8 @@ async function copyShareText(text) {
                 /*
                  * Aplica prioridade entre registros do mesmo jogo, respeitando
                  * código moderno ou confirmação por nome para legados numéricos.
-                 * Promoções vencem apenas enquanto estiverem ativas.
-                 * Pré-vendas nunca desaparecem automaticamente pela data.
+                 * Promoções e pré-vendas só aparecem até o vencimento da data
+                 * de encerramento. Não modifica as linhas da planilha.
                  */
                 games = applyStoreVisibilityRules(
                     sourceGames
