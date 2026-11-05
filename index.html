@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="mco-mobile-engine" content="vertical-feed-normal-psn-discount-v9-stock-internal-v217">
     <meta name="mco-promo-priority-version" content="NEXUS-2M.2.23-PRODUCT-EDITION-PROMO-FIRST">
+    <meta name="mco-campaign-dynamic-version" content="NEXUS-2M.2.24-CAMPAIGN-DYNAMIC">
     <title>MCO GAMES | Sua Loja Digital</title>
     <!-- Favicon oficial MCO GAMES -->
     <link rel="icon" type="image/png" sizes="64x64" href="./favicon-mco.png">
@@ -5448,7 +5449,7 @@ async function copyShareText(text) {
             <div class="carousel-section category-feature-section promotion-section" id="promotionSection" style="display: none;">
                 <div class="carousel-title">
                     <span class="title-main">💥 <span id="mcoPromoCampaignName">Promoções</span> <span class="carousel-hint">(Deslize ➜)</span></span>
-                    <button type="button" class="category-share-btn" onclick="shareCategoryOffer('Promoção')" title="Compartilhar Promoções">
+                    <button type="button" id="mcoPromoCampaignShareButton" class="category-share-btn" onclick="shareCategoryOffer('Promoção')" title="Compartilhar Promoções">
                         <span class="share-mini-icon">↗</span><span class="share-mini-label">Compartilhar</span>
                     </button>
                 </div>
@@ -5614,6 +5615,27 @@ async function copyShareText(text) {
         // Campaign metadata is a public static JSON file published with the site.
         // It is never read from the protected NEXUS endpoint.
         let mcoPromoCampaign={name:'Promoções',description:'',banner:'',published:false,sharePageEnabled:false};
+        // Public text only. Internal category remains 'Promoção' (sheet PROMOCAO).
+        function mcoPromoCampaignLabel(){
+            return mcoPromoCampaign.published ? mcoPromoCampaign.name : 'Promoções';
+        }
+        function mcoPromoCampaignPosterLabel(ctx, maxWidth){
+            const name=mcoPromoCampaignLabel();
+            let label=name;
+            while(label.length>5&&ctx.measureText(label).width>maxWidth){
+                label=label.slice(0,-2);
+            }
+            return label===name ? label : label.trimEnd()+'…';
+        }
+        function mcoPromoCampaignRefreshNavigation(){
+            // JSON may finish loading after the store and category menus.
+            // Refresh only presentation; do not change selected categories, products or prices.
+            if(!Array.isArray(games)||!games.length)return;
+            const mainContent=document.getElementById('mainContent');
+            if(!mainContent||mainContent.style.display==='none')return;
+            populateCategories();
+            renderGames();
+        }
         function mcoPromoPublicBanner(raw){
             const s=String(raw||'').trim();
             if(!s)return '';
@@ -5622,25 +5644,34 @@ async function copyShareText(text) {
         }
         async function mcoPromoCampaignLoad(){
             try{
+                // Only a public static JSON is loaded; never expose private NEXUS credentials.
                 const res=await fetch('./promocao-campanha.json?v='+Date.now(),{cache:'no-store'});
                 if(!res.ok)return;
                 const json=await res.json();
                 if(!json||Number(json.version)!==1||typeof json.name!=='string')return;
-                const name=json.name.trim().slice(0,85),description=String(json.description||'').trim().slice(0,180);
+                const name=json.name.trim().replace(/\s+/g,' ').slice(0,85);
+                const description=String(json.description||'').trim().slice(0,180);
                 if(name.length<3)return;
                 const banner=mcoPromoPublicBanner(json.banner);
                 mcoPromoCampaign={name,description,banner,published:true,sharePageEnabled:false};
-                // Never share a dead campaign page; fallback to the standard category URL.
+                // If campaign preview is missing, share the normal public category URL.
                 fetch('./campanha.html',{method:'HEAD',cache:'no-store'}).then(r=>{mcoPromoCampaign.sharePageEnabled=!!r.ok;}).catch(()=>{});
-                const heading=document.getElementById('mcoPromoCampaignName');if(heading)heading.textContent=name;
+                const heading=document.getElementById('mcoPromoCampaignName');
+                if(heading)heading.textContent=name;
+                const shareButton=document.getElementById('mcoPromoCampaignShareButton');
+                if(shareButton){shareButton.title='Compartilhar '+name;shareButton.setAttribute('aria-label','Compartilhar '+name);}
                 const hero=document.getElementById('mcoPromoCampaignBanner'),image=document.getElementById('mcoPromoCampaignImage');
                 const heroName=document.getElementById('mcoPromoCampaignHeroName'),desc=document.getElementById('mcoPromoCampaignDescription');
-                if(heroName)heroName.textContent=name;if(desc)desc.textContent=description;
+                if(heroName)heroName.textContent=name;
+                if(desc)desc.textContent=description;
+                if(image)image.alt='Banner da campanha '+name;
                 const mobilePanel=document.getElementById('mcoCampaignMobilePanel'),mobileTitle=document.getElementById('mcoCampaignMobileTitle'),mobileImage=document.getElementById('mcoCampaignMobileImage');
-                if(mobilePanel)mobilePanel.hidden=false;if(mobileTitle)mobileTitle.textContent=name;
-                if(mobileImage){if(banner){mobileImage.src=banner;mobileImage.hidden=false;mobileImage.onerror=()=>{mobileImage.hidden=true;};}else mobileImage.hidden=true;}
+                if(mobilePanel)mobilePanel.hidden=false;
+                if(mobileTitle)mobileTitle.textContent=name;
+                if(mobileImage){if(banner){mobileImage.src=banner;mobileImage.hidden=false;mobileImage.alt='Banner da campanha '+name;mobileImage.onerror=()=>{mobileImage.hidden=true;};}else mobileImage.hidden=true;}
                 if(hero&&image&&banner){image.onload=()=>{hero.hidden=false;};image.onerror=()=>{hero.hidden=true;};image.src=banner;}else if(hero){hero.hidden=true;}
-            }catch(_){/* Without the optional JSON the original shop remains fully functional. */}
+                mcoPromoCampaignRefreshNavigation();
+            }catch(error){console.warn('Campanha indisponível; mantendo categorias originais.',error);}
         }
         document.addEventListener('DOMContentLoaded',mcoPromoCampaignLoad,{once:true});
 
@@ -6781,7 +6812,7 @@ async function copyShareText(text) {
         function getExpandLabel(category, expanded) {
             if (expanded) return 'Mostrar menos';
 
-            if (isCategory({ category }, 'Promoção')) return 'Todas as Promoções';
+            if (isCategory({ category }, 'Promoção')) return 'Ver todos — ' + mcoPromoCampaignLabel();
             if (isCategory({ category }, 'Pré Venda')) return 'Todas as Pré-vendas';
             if (isCategory({ category }, 'Lançamento em Oferta')) return 'Todos os Lançamentos em Oferta';
             if (isCategory({ category }, 'Catálogo')) return 'Ver todo o Catálogo';
@@ -7635,7 +7666,7 @@ async function copyShareText(text) {
             categories.forEach(cat => {
                 const opt = document.createElement('option');
                 opt.value = cat;
-                opt.innerText = cat;
+                opt.innerText = isCategory({category:cat},'Promoção') ? mcoPromoCampaignLabel() : cat;
                 select.appendChild(opt);
             });
 
@@ -8088,7 +8119,10 @@ async function copyShareText(text) {
             const promotion = isCategory(game, 'Promoção');
             let categoryLabel = '';
             if (preorder) categoryLabel = '🚀 PRÉ-VENDA';
-            else if (promotion) categoryLabel = '🔥 PROMOÇÃO';
+            else if (promotion) {
+                ctx.font = '900 54px Arial, sans-serif';
+                categoryLabel = '🔥 ' + mcoPromoCampaignPosterLabel(ctx, 1550);
+            }
             else if (isCategory(game, 'Lançamento em Oferta')) categoryLabel = '✨ LANÇAMENTO EM OFERTA';
             else categoryLabel = '🎮 CATÁLOGO';
 
@@ -9408,7 +9442,7 @@ async function copyShareText(text) {
         function getCategoryDisplayName(category) {
             if (isCategory({ category }, 'Lançamento em Oferta')) return 'LANÇAMENTO EM OFERTA';
             if (isCategory({ category }, 'Pré Venda')) return 'PRÉ-VENDAS';
-            if (isCategory({ category }, 'Promoção')) return mcoPromoCampaign.published ? mcoPromoCampaign.name : 'PROMOÇÕES';
+            if (isCategory({ category }, 'Promoção')) return mcoPromoCampaignLabel();
             if (isCategory({ category }, 'Catálogo')) return 'CATÁLOGO';
             return String(category || 'CATÁLOGO').toUpperCase();
         }
@@ -10060,7 +10094,7 @@ async function copyShareText(text) {
                         ${game.isCombo ? '<span class="mco-search-suggestion-combo">COMBO</span>' : ''}
                     </span>
                     <span class="mco-search-suggestion-meta">
-                        ${game.isCombo ? `${game.comboCount || 0} jogos • ` : ''}${escapeHtml(game.category)} • ${escapeHtml(game.platform)}
+                        ${game.isCombo ? `${game.comboCount || 0} jogos • ` : ''}${escapeHtml(isCategory(game, 'Promoção') ? mcoPromoCampaignLabel() : game.category)} • ${escapeHtml(game.platform)}
                     </span>
                     <span class="mco-search-suggestion-price">R$ ${getGameMainPriceForCurrentFilter(game).toFixed(2).replace('.', ',')}</span>
                 </button>
@@ -10240,7 +10274,7 @@ async function copyShareText(text) {
                 : (
                     catVal === '__FOR_YOU__'
                         ? '✨ Para você'
-                        : (catVal !== 'ALL' ? `Jogos de ${escapeHtml(catVal)}` : 'Resultados')
+                        : (catVal !== 'ALL' ? `Jogos de ${escapeHtml(isCategory({category:catVal}, 'Promoção') ? mcoPromoCampaignLabel() : catVal)}` : 'Resultados')
                   );
 
             if (platformVal !== 'ALL') label += ` • ${escapeHtml(platformVal)}`;
@@ -11751,7 +11785,7 @@ async function copyShareText(text) {
         function getFastFeedCategoryLabel(
             game
         ) {
-            if(isCategory(game,'Promoção') && mcoPromoCampaign.published) return mcoPromoCampaign.name;
+            if(isCategory(game,'Promoção')) return mcoPromoCampaignLabel();
             const searchInput =
                 document.getElementById(
                     'searchInput'
@@ -12206,7 +12240,9 @@ async function copyShareText(text) {
                     const label =
                         category === 'ALL'
                             ? 'Ver todos'
-                            : category;
+                            : isCategory({category},'Promoção')
+                                ? mcoPromoCampaignLabel()
+                                : category;
 
                     const count =
                         category === 'ALL'
@@ -14563,8 +14599,8 @@ async function buildMcoSharePoster(
             '#7b42ff';
 
     } else if (promotion) {
-        categoryLabel =
-            'PROMOÇÃO';
+        ctx.font = '900 28px Arial, sans-serif';
+        categoryLabel = mcoPromoCampaignPosterLabel(ctx, 300);
 
         categoryColor =
             '#f01262';
