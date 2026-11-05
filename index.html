@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="mco-mobile-engine" content="vertical-feed-normal-psn-discount-v9">
+    <meta name="mco-mobile-engine" content="vertical-feed-normal-psn-discount-v9-stock-internal-v216">
     <title>MCO GAMES | Sua Loja Digital</title>
     <!-- Favicon oficial MCO GAMES -->
     <link rel="icon" type="image/png" sizes="64x64" href="./favicon-mco.png">
@@ -5503,10 +5503,11 @@ async function copyShareText(text) {
                 <strong id="purchaseConfirmProduct">Jogo</strong>
                 <span id="purchaseConfirmChoice">Conta Primária • PS4</span>
             </div>
+            <p id="purchaseConfirmAvailabilityNote" style="color:#ffd27b;font-weight:700" aria-live="polite"></p>
             <p>Confira a plataforma, o tipo de conta e o valor antes de continuar para o pagamento.</p>
             <div class="purchase-confirm-actions">
                 <button type="button" class="purchase-confirm-cancel" onclick="closePurchaseConfirm()">Voltar</button>
-                <button type="button" class="purchase-confirm-ok" onclick="confirmPurchaseChoice()">Sim, está correto</button>
+                <button type="button" class="purchase-confirm-ok" id="purchaseConfirmOk" onclick="confirmPurchaseChoice()">Sim, está correto</button>
             </div>
         </div>
     </div>
@@ -6313,7 +6314,8 @@ async function copyShareText(text) {
             ].filter(value => value !== null);
             const totalStock = priced.reduce((sum, value) => sum + Number(value || 0), 0);
             if (game.hasStockInfo && priced.length && totalStock <= 0) {
-                return { label: 'Esgotado', className: 'soldout' };
+                // Estoque é controle interno. Não anunciar pronta-entrega quando zerado.
+                return { label: 'Disponibilidade sob consulta', className: 'promo' };
             }
             if (game.isCombo) {
                 if (isCategory(game, 'Promoção')) {
@@ -6946,7 +6948,7 @@ async function copyShareText(text) {
                     const price = Number(primary ? data.primary : data.secondary);
                     const stockValue = Number(primary ? data.stockPrimary : data.stockSecondary);
                     if (!(price > 0)) return null;
-                    if (game.hasStockInfo && stockValue <= 0) return null;
+                    // Estoque zero não elimina o pedido: exige contato antes do pagamento.
                     return { ...item, price, stock: stockValue };
                 }).filter(Boolean);
                 renderLaunchCarousel();
@@ -7653,7 +7655,7 @@ async function copyShareText(text) {
             const stock = isPrimary ? data.stockPrimary : data.stockSecondary;
 
             if (!(price > 0)) return;
-            if (game.hasStockInfo && stock <= 0) return;
+            // A seleção fica disponível; sem estoque confirmado, o pedido segue por consulta.
 
             const idx = selectedCart.findIndex(
                 i => i.gameId === gameId && i.platform === platform
@@ -7715,7 +7717,7 @@ async function copyShareText(text) {
             const isPrimary = cartItem.type === 'Primária';
             const currentPrice = Number(isPrimary ? currentData.primary : currentData.secondary);
             const currentStock = Number(isPrimary ? currentData.stockPrimary : currentData.stockSecondary);
-            if (!(currentPrice > 0) || (game.hasStockInfo && currentStock <= 0)) {
+            if (!(currentPrice > 0)) {
                 selectedCart = selectedCart.filter(item => item.gameId !== gameId);
                 renderGames();
                 updateBottomBar();
@@ -7738,6 +7740,13 @@ async function copyShareText(text) {
             document.getElementById('purchaseConfirmProduct').innerText = game.name;
             document.getElementById('purchaseConfirmChoice').innerText =
                 `Conta ${cartItem.type} • ${cartItem.platform} • R$ ${cartItem.price.toFixed(2).replace('.', ',')}`;
+            const requiresCheck = game.hasStockInfo && currentStock <= 0;
+            const message = document.getElementById('purchaseConfirmAvailabilityNote');
+            if (message) message.textContent = requiresCheck
+                ? 'Disponibilidade a confirmar pelo WhatsApp antes de efetuar o pagamento.'
+                : '';
+            const confirmButton = document.getElementById('purchaseConfirmOk');
+            if (confirmButton) confirmButton.textContent = requiresCheck ? 'Consultar no WhatsApp' : 'Sim, está correto';
 
             overlay.classList.add('active');
             document.body.classList.add('modal-open');
@@ -7757,13 +7766,32 @@ async function copyShareText(text) {
 
         function confirmPurchaseChoice() {
             if (!pendingPurchaseGameId) return;
-
+            const requiresCheck = mcoOrderNeedsAvailabilityCheck();
             closePurchaseConfirm();
-
-            // Mantém o fluxo de pagamento existente: PIX ou cartão.
-            if (typeof openPaymentModal === 'function') {
-                openPaymentModal();
+            if (requiresCheck) {
+                mcoRequestAvailabilityWhatsApp();
+                return;
             }
+            if (typeof openPaymentModal === 'function') openPaymentModal();
+        }
+
+        // Quantidades da planilha são controle administrativo. Sem quantidade confirmada,
+        // o cliente pode pedir o jogo, mas não recebe instrução de PIX antecipado.
+        function mcoOrderNeedsAvailabilityCheck() {
+            return selectedCart.some(item => {
+                const game = games.find(g => g.id === item.gameId);
+                if (!game || !game.hasStockInfo) return false;
+                const data = getPlatformData(game, item.platform);
+                return Number(item.type === 'Primária' ? data.stockPrimary : data.stockSecondary) <= 0;
+            });
+        }
+        function mcoRequestAvailabilityWhatsApp() {
+            if (!selectedCart.length) return;
+            const message = '🎮 *MCO GAMES — CONSULTA DE COMPRA*\n\n' +
+                'Olá! Tenho interesse nos seguintes jogos:\n\n' +
+                buildOrderItemsText() + '\n\n' +
+                'Pode confirmar disponibilidade, prazo de entrega e o valor antes de eu realizar o pagamento?';
+            window.open(`https://wa.me/${PHONE_NUMBER}?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
         }
 
         // --- PREPARAR IMAGENS EXTERNAS PARA O HTML2CANVAS ---
@@ -8239,7 +8267,7 @@ async function copyShareText(text) {
                 game.ps5Secondary > 0 ? game.stockPs5Secondary : null
             ].filter(v => v !== null);
             const totalStock = stockValues.reduce((sum, v) => sum + Number(v || 0), 0);
-            const available = !game.hasStockInfo || totalStock > 0;
+            const available = !game.hasStockInfo || totalStock > 0; // Não converter estoque interno em promessa de pronta entrega.
 
             const productSchema = {
                 "@context": "https://schema.org",
@@ -8254,7 +8282,7 @@ async function copyShareText(text) {
                     "priceCurrency": "BRL",
                     "lowPrice": price > 0 ? price.toFixed(2) : undefined,
                     "offerCount": [game.ps4Primary, game.ps4Secondary, game.ps5Primary, game.ps5Secondary].filter(v => v > 0).length,
-                    "availability": available ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+                    "availability": available ? "https://schema.org/InStock" : undefined, // Zero: disponibilidade a confirmar, sem falso InStock/OutOfStock.
                     "url": directUrl
                 }
             };
@@ -9091,15 +9119,16 @@ async function copyShareText(text) {
 
             const primaryPriced = data.primary > 0;
             const secondaryPriced = data.secondary > 0;
-            const primaryInStock = !game.hasStockInfo || data.stockPrimary > 0;
-            const secondaryInStock = !game.hasStockInfo || data.stockSecondary > 0;
+            // Os botões representam opções com preço; o estoque não bloqueia a consulta.
+            const primaryInStock = primaryPriced;
+            const secondaryInStock = secondaryPriced;
             let buttonsHtml = '';
 
             if (primaryPriced || secondaryPriced) {
                 const formatTypePrice = (label, value, stockValue, offer) => {
-                    const stockLabel = game.hasStockInfo ? (stockValue > 0 ? ` (${stockValue} Un)` : ' • Esgotado') : '';
+                    const stockLabel = ''; // Quantidade interna nunca aparece na vitrine.
                     if (offer?.active) {
-                        return `<span class="media-label">${label}${stockLabel}</span><span class="mco-special-mini">🔥 ${offer.remaining} un. na oferta</span><br><span class="mco-special-old">R$ ${Number(offer.normalPrice).toFixed(2).replace('.', ',')}</span><span class="media-price mco-special-price">R$ ${Number(value).toFixed(2).replace('.', ',')}</span>`;
+                        return `<span class="media-label">${label}${stockLabel}</span><span class="mco-special-mini">🔥 Oferta especial</span><br><span class="mco-special-old">R$ ${Number(offer.normalPrice).toFixed(2).replace('.', ',')}</span><span class="media-price mco-special-price">R$ ${Number(value).toFixed(2).replace('.', ',')}</span>`;
                     }
                     return `<span class="media-label">${label}${stockLabel}</span><br><span class="media-price">R$ ${Number(value).toFixed(2).replace('.', ',')}</span>`;
                 };
@@ -9133,17 +9162,8 @@ async function copyShareText(text) {
                 isCategory(game, 'Promoção') ||
                 isCategory(game, 'Pré Venda');
 
+            // Sem selos de quantidade/estoque: dados internos da BD+Loja.
             let stockBadgeHtml = '';
-            if (game.hasStockInfo && pricedStockValues.length) {
-                if (totalStock <= 0) {
-                    stockBadgeHtml = `<span class="stock-badge soldout">Esgotado</span>`;
-                } else if (totalStock <= 3 && !hideLowStockBadge) {
-                    const stockText = totalStock === 1
-                        ? 'Última unidade'
-                        : `Últimas ${totalStock} un.`;
-                    stockBadgeHtml = `<span class="stock-badge low">${stockText}</span>`;
-                }
-            }
 
             const specialSummary = getSpecialOfferSummary(game, selectedPlatform);
             const specialBadgeHtml = specialSummary
@@ -11393,15 +11413,9 @@ async function copyShareText(text) {
                     data.secondary >
                     0;
 
-                const primaryInStock =
-                    !game.hasStockInfo ||
-                    data.stockPrimary >
-                    0;
-
-                const secondaryInStock =
-                    !game.hasStockInfo ||
-                    data.stockSecondary >
-                    0;
+                // Permite pedido/consulta também para estoque administrativo zerado.
+                const primaryInStock = primaryPriced;
+                const secondaryInStock = secondaryPriced;
 
                 if (
                     primaryPriced ||
@@ -11454,15 +11468,7 @@ async function copyShareText(text) {
                                         : ''
                                 );
 
-                            const stockText =
-                                game.hasStockInfo
-                                    ? (
-                                        stock >
-                                        0
-                                            ? ` (${stock} Un)`
-                                            : ' • Esgotado'
-                                      )
-                                    : '';
+                            const stockText = ''; // Estoque interno não aparece na loja.
 
                             button.innerHTML =
                                 `<span class="media-label">` +
@@ -12597,6 +12603,10 @@ async function copyShareText(text) {
 
         function openPaymentModal() {
             if (selectedCart.length === 0) return;
+            if (mcoOrderNeedsAvailabilityCheck()) {
+                mcoRequestAvailabilityWhatsApp();
+                return;
+            }
 
             const total = calculateTotal();
             document.getElementById('paymentTotalValue').innerText = `R$ ${total.toFixed(2).replace('.', ',')}`;
