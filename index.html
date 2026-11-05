@@ -6581,9 +6581,11 @@ async function copyShareText(text) {
         }
 
         function getStoreVisibilityPriority(game) {
+            // Durante uma oferta temporária, a promoção é a única versão pública
+            // do MESMO Content ID. Depois do encerramento, a origem reaparece.
+            if (isCategory(game, 'Promoção')) return 500;
             if (isCategory(game, 'Lançamento em Oferta')) return 400;
             if (isCategory(game, 'Pré Venda')) return 300;
-            if (isCategory(game, 'Promoção')) return 200;
             if (isCategory(game, 'Catálogo')) return 100;
             return 0;
         }
@@ -6664,30 +6666,37 @@ async function copyShareText(text) {
             const distinct = activeGames.filter((_, index) => winners.get(find(index)) === index);
             const activePromos = distinct.filter(game => isCategory(game, 'Promoção'));
             return distinct.filter(game => {
-                if (!isCategory(game, 'Catálogo')) return true;
+                // Categoria de origem pode ser CATALOGO, LANCAMENTO.EM.OFERTA
+                // ou PREVENDA. Ocultar somente enquanto existir PROMOCAO válida.
+                if (!isCategory(game, 'Catálogo') &&
+                    !isCategory(game, 'Lançamento em Oferta') &&
+                    !isCategory(game, 'Pré Venda')) return true;
                 return !activePromos.some(promo => isSameStoreProduct(game, promo));
             });
         }
         function rebuildVisibleGames(now = Date.now()) {
-            const previousIds = games.map(game => game.id).join('||');
-
-            games = applyStoreVisibilityRules(
-                sourceGames,
-                now
-            );
-
-            const nextIds = games.map(game => game.id).join('||');
-            return previousIds !== nextIds;
+            // Uma oferta e seu anúncio de origem podem usar o MESMO ID.
+            // Comparar somente game.id impediria o redesenho quando a promoção
+            // vence e a categoria de origem volta a ser exibida.
+            const signature = game => [game.id, categoryKey(game.category),
+                String(game.targetDate || ''), Number(game.ps5Primary || 0),
+                Number(game.ps4Primary || 0)].join('|');
+            const previous = games.map(signature).join('||');
+            games = applyStoreVisibilityRules(sourceGames, now);
+            return previous !== games.map(signature).join('||');
         }
 
         function removeExpiredTimedGames() {
-            const now =
-                Date.now();
-
-            const changed =
-                rebuildVisibleGames(
-                    now
-                );
+            const now = Date.now();
+            // Não manter preço de oferta expirada no carrinho quando o mesmo
+            // Content ID volta a ser exibido na categoria de origem.
+            const previousCategoryById = new Map(games.map(game =>
+                [String(game.id), categoryKey(game.category)]));
+            const changed = rebuildVisibleGames(now);
+            const changedCategoryIds = new Set(games.filter(game =>
+                previousCategoryById.has(String(game.id)) &&
+                previousCategoryById.get(String(game.id)) !== categoryKey(game.category)
+            ).map(game => String(game.id)));
 
             if (!changed) {
                 return;
@@ -6695,9 +6704,8 @@ async function copyShareText(text) {
 
             const validIds =
                 new Set(
-                    games.map(
-                        game => game.id
-                    )
+                    games.filter(game => !changedCategoryIds.has(String(game.id)))
+                        .map(game => game.id)
                 );
 
             selectedCart =
