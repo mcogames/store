@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="mco-mobile-engine" content="vertical-feed-normal-psn-discount-v9-stock-internal-v216">
+    <meta name="mco-mobile-engine" content="vertical-feed-normal-psn-discount-v9-stock-internal-v217">
     <title>MCO GAMES | Sua Loja Digital</title>
     <!-- Favicon oficial MCO GAMES -->
     <link rel="icon" type="image/png" sizes="64x64" href="./favicon-mco.png">
@@ -5194,6 +5194,15 @@ async function copyShareText(text) {
   @media(max-width:800px){.mco-special-offer-badge{font-size:.58rem;padding:5px 7px;bottom:7px;left:7px}.type-btn .mco-special-mini{font-size:.56rem}.type-btn .mco-special-old{font-size:.58rem}.mco-special-main-note{font-size:.58rem}}
 </style>
 
+<style id="mco-promo-campaign-style">
+.mco-campaign-hero{position:relative;margin:0 0 16px;border-radius:17px;border:1px solid #265c82;background:linear-gradient(120deg,#091d33,#156395,#0b1a2d);overflow:hidden;isolation:isolate;min-height:145px;box-shadow:0 10px 30px rgba(0,0,0,.24)}
+.mco-campaign-hero img{display:block;width:100%;aspect-ratio:1200/450;object-fit:cover;max-height:350px;min-height:145px}
+.mco-campaign-hero-caption{position:absolute;left:0;bottom:0;width:100%;padding:40px 23px 18px;background:linear-gradient(transparent,rgba(2,8,16,.90));display:grid;gap:5px;pointer-events:none;text-shadow:0 2px 12px #000c}
+.mco-campaign-hero-caption strong{font-size:clamp(18px,3vw,29px);font-weight:950;color:#fff;line-height:1.2}
+.mco-campaign-hero-caption span{font-size:clamp(10px,1.5vw,14px);color:#d6efff}
+.mco-campaign-mobile-panel{display:grid;gap:9px;padding:11px;margin:0 0 11px;background:linear-gradient(120deg,#102e4d,#081f36);border:1px solid #2274a4;border-radius:12px;color:#fff}.mco-campaign-mobile-panel[hidden]{display:none!important}.mco-campaign-mobile-panel img{width:100%;max-height:135px;object-fit:cover;border-radius:8px}.mco-campaign-mobile-panel strong{font-size:13px}.mco-campaign-mobile-panel button{min-height:38px;background:#18b8ff;border:0;border-radius:8px;color:#071521;font-weight:900}
+@media(max-width:700px){.mco-campaign-hero{border-radius:12px}.mco-campaign-hero img{aspect-ratio:16/8}.mco-campaign-hero-caption{padding:32px 12px 12px}}
+</style>
 </head>
 <body>
 
@@ -5350,6 +5359,11 @@ async function copyShareText(text) {
             <div id="igMobilePopupBackdrop" class="ig-mobile-popup-backdrop" onclick="if(event.target===this)toggleInstagramPopup(false)">
                 <div class="ig-mobile-popup" role="dialog" aria-modal="true" aria-label="Navegação rápida por categoria">
                     <div class="ig-mobile-popup-head"><span>🎮 Navegação rápida</span><button type="button" class="ig-mobile-popup-close" onclick="toggleInstagramPopup(false)">Fechar ✕</button></div>
+                    <div id="mcoCampaignMobilePanel" class="mco-campaign-mobile-panel" hidden>
+                        <img id="mcoCampaignMobileImage" alt="Banner da campanha MCO GAMES" hidden>
+                        <strong id="mcoCampaignMobileTitle">Promoções MCO GAMES</strong>
+                        <button class="btn" type="button" onclick="shareCategoryOffer('Promoção')">↗ Compartilhar a campanha</button>
+                    </div>
 
                     <div id="igMobilePlatformFilter"
                          class="ig-platform-filter-mobile"
@@ -5432,10 +5446,14 @@ async function copyShareText(text) {
 
             <div class="carousel-section category-feature-section promotion-section" id="promotionSection" style="display: none;">
                 <div class="carousel-title">
-                    <span class="title-main">💥 Promoções <span class="carousel-hint">(Deslize ➜)</span></span>
+                    <span class="title-main">💥 <span id="mcoPromoCampaignName">Promoções</span> <span class="carousel-hint">(Deslize ➜)</span></span>
                     <button type="button" class="category-share-btn" onclick="shareCategoryOffer('Promoção')" title="Compartilhar Promoções">
                         <span class="share-mini-icon">↗</span><span class="share-mini-label">Compartilhar</span>
                     </button>
+                </div>
+                <div id="mcoPromoCampaignBanner" class="mco-campaign-hero" hidden>
+                    <img id="mcoPromoCampaignImage" alt="Banner da campanha de promoções MCO GAMES" loading="lazy">
+                    <div class="mco-campaign-hero-caption"><strong id="mcoPromoCampaignHeroName"></strong><span id="mcoPromoCampaignDescription"></span></div>
                 </div>
                 <div id="promotionGrid" class="carousel-grid"></div>
                 <div id="promotionGridExtra" class="feature-extra-grid" hidden></div>
@@ -5592,6 +5610,39 @@ async function copyShareText(text) {
         const brandAssetImages = { logo: null, ps4: null, ps5: null };
         let brandAssetsReady = Promise.resolve();
         const SHARE_URL = "https://mcogames.github.io/store/";
+        // Campaign metadata is a public static JSON file published with the site.
+        // It is never read from the protected NEXUS endpoint.
+        let mcoPromoCampaign={name:'Promoções',description:'',banner:'',published:false,sharePageEnabled:false};
+        function mcoPromoPublicBanner(raw){
+            const s=String(raw||'').trim();
+            if(!s)return '';
+            if(s==='./banner-promocao.jpg')return s;
+            try{const u=new URL(s,window.location.href);return u.protocol==='https:'&&!u.username&&!u.password?s:'';}catch(_){return '';}
+        }
+        async function mcoPromoCampaignLoad(){
+            try{
+                const res=await fetch('./promocao-campanha.json?v='+Date.now(),{cache:'no-store'});
+                if(!res.ok)return;
+                const json=await res.json();
+                if(!json||Number(json.version)!==1||typeof json.name!=='string')return;
+                const name=json.name.trim().slice(0,85),description=String(json.description||'').trim().slice(0,180);
+                if(name.length<3)return;
+                const banner=mcoPromoPublicBanner(json.banner);
+                mcoPromoCampaign={name,description,banner,published:true,sharePageEnabled:false};
+                // Never share a dead campaign page; fallback to the standard category URL.
+                fetch('./campanha.html',{method:'HEAD',cache:'no-store'}).then(r=>{mcoPromoCampaign.sharePageEnabled=!!r.ok;}).catch(()=>{});
+                const heading=document.getElementById('mcoPromoCampaignName');if(heading)heading.textContent=name;
+                const hero=document.getElementById('mcoPromoCampaignBanner'),image=document.getElementById('mcoPromoCampaignImage');
+                const heroName=document.getElementById('mcoPromoCampaignHeroName'),desc=document.getElementById('mcoPromoCampaignDescription');
+                if(heroName)heroName.textContent=name;if(desc)desc.textContent=description;
+                const mobilePanel=document.getElementById('mcoCampaignMobilePanel'),mobileTitle=document.getElementById('mcoCampaignMobileTitle'),mobileImage=document.getElementById('mcoCampaignMobileImage');
+                if(mobilePanel)mobilePanel.hidden=false;if(mobileTitle)mobileTitle.textContent=name;
+                if(mobileImage){if(banner){mobileImage.src=banner;mobileImage.hidden=false;mobileImage.onerror=()=>{mobileImage.hidden=true;};}else mobileImage.hidden=true;}
+                if(hero&&image&&banner){image.onload=()=>{hero.hidden=false;};image.onerror=()=>{hero.hidden=true;};image.src=banner;}else if(hero){hero.hidden=true;}
+            }catch(_){/* Without the optional JSON the original shop remains fully functional. */}
+        }
+        document.addEventListener('DOMContentLoaded',mcoPromoCampaignLoad,{once:true});
+
         const PIX_KEY = "pixmcogames@gmail.com";
         const CATEGORY_VISIBLE_LIMIT = 4;
         const CATEGORY_ORDER = [
@@ -6306,6 +6357,8 @@ async function copyShareText(text) {
 
         function getAvailabilityState(game) {
             if (!game) return { label: 'Indisponível', className: 'soldout' };
+            // PROMOCAO é compra de oferta, sem limite de estoque exibido ao cliente.
+            if (isCategory(game, 'Promoção')) return { label: 'Em promoção', className: 'promo' };
             const priced = [
                 game.ps4Primary > 0 ? game.stockPs4Primary : null,
                 game.ps4Secondary > 0 ? game.stockPs4Secondary : null,
@@ -6470,6 +6523,33 @@ async function copyShareText(text) {
                 .toUpperCase();
         }
 
+        // Identidade do produto: vínculo AF é preferível a um nome parecido.
+        // Quando o cadastro é legado, nomes idênticos com PS4/PS5/™/®
+        // normalizados permitem reconhecer o MESMO jogo entre abas.
+        function getGameLinkedProductCodes(game) {
+            const codes = [game?.productBaseCode, game?.sheetId];
+            const previous = String(game?.previousProductCodes || '').split('|');
+            return [...codes, ...previous]
+                .map(v => String(v || '').trim().toUpperCase())
+                .filter(v => v && !/^\d+$/.test(v));
+        }
+        function getGameEditionIdentity(game) {
+            const name = String(game?.name || '')
+                .replace(/['’]s\b/gi, 's')
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                .replace(/[™®©]/g, '')
+                .replace(/\b(?:PS4|PS5)\b/gi, ' ')
+                .replace(/[^\p{L}\p{N}]+/gu, ' ')
+                .trim().toLowerCase().replace(/\s+/g, ' ');
+            // Removemos somente descrições CLARAS de edição nas bordas,
+            // nunca números ou palavras do título-base (ex.: FIFA 26).
+            return name
+                .replace(/^edicao (?:digital )?(?:standard|padrao|deluxe|ultimate|premium|gold|completa|definitiva) de /, '')
+                .replace(/ (?:edicao|edition) (?:digital )?(?:standard|padrao|deluxe|ultimate|premium|gold|completa|definitiva)$/, '')
+                .replace(/ (?:digital )?(?:standard|padrao|deluxe|ultimate|premium|gold|complete|definitive) (?:edicao|edition)$/, '')
+                .trim();
+        }
+
         function isLegacyNumericGameCode(code) {
             return /^\d+$/.test(String(code || '').trim());
         }
@@ -6486,18 +6566,13 @@ async function copyShareText(text) {
         }
 
         /*
-         * DEDUPLICAÇÃO ENTRE AS QUATRO ABAS
+         * DEDUPLICAÇÃO ENTRE AS QUATRO ABAS — SITE 2M.2.19
          * ------------------------------------------------------------
-         * 1) ABA::ID é a identidade do REGISTRO (não do jogo).
-         * 2) IDs modernos não numéricos iguais identificam o mesmo jogo.
-         * 3) IDs antigos só numéricos NUNCA são prova de identidade:
-         *    é preciso o nome normalizado ser igual.
-         * 4) Nomes normalizados idênticos também permitem identificar o
-         *    mesmo jogo cadastrado com CÓDIGOS DIFERENTES em outras abas.
-         * 5) A maior prioridade vence:
-         *    LANCAMENTO.EM.OFERTA > PREVENDA > PROMOCAO > CATALOGO.
-         * 6) Somente anúncios com data válida (ou sem vencimento) participam:
-         *    se a PREVENDA/PROMOCAO vencer, o CATALOGO reaparece intacto.
+         * Promoção ativa prevalece sobre CATALOGO somente para O MESMO PRODUTO.
+         * Edições Standard, Deluxe, Ultimate etc. com Content IDs PSN diferentes
+         * são produtos distintos: ambas permanecem visíveis e vendáveis.
+         * Não usar "nome do jogo base" para ocultar edições diferentes.
+         * Ao expirar a promoção, a oferta sai e o CATALOGO volta automaticamente.
          */
         function hasValidStorePrice(game) {
             if (!game) return false;
@@ -6513,13 +6588,34 @@ async function copyShareText(text) {
             return 0;
         }
 
+        function getGameModernPsnProductCode(game) {
+            // Identidade da EDIÇÃO individual: PPSA/CUSA + sufixo da edição.
+            return [game?.productBaseCode, game?.sheetId]
+                .map(v => String(v || '').trim().toUpperCase())
+                .find(v => /^(?:PPSA|CUSA)\d{5}-[A-Z0-9]{16}$/.test(v)) || '';
+        }
+
+        function areDifferentPsnEditions(a, b) {
+            const aId = getGameModernPsnProductCode(a);
+            const bId = getGameModernPsnProductCode(b);
+            return !!(aId && bId && aId !== bId);
+        }
+
+        function isSameStoreProduct(a, b) {
+            // IDs modernos distintos são prova de edições diferentes,
+            // mesmo que os títulos comerciais sejam semelhantes ou iguais.
+            if (areDifferentPsnEditions(a, b)) return false;
+            const aCodes = new Set(getGameLinkedProductCodes(a));
+            if (getGameLinkedProductCodes(b).some(code => aCodes.has(code))) return true;
+            const aName = getGameNameIdentity(a);
+            return !!aName && aName === getGameNameIdentity(b);
+        }
+
         function applyStoreVisibilityRules(list, now = Date.now()) {
             const activeGames = (Array.isArray(list) ? list : [])
                 .filter(game => hasValidStorePrice(game))
                 .filter(game => !shouldHideExpiredTimedGame(game, now));
 
-            // Une registros somente quando há confirmação por código moderno
-            // ou por nome do jogo; NÃO usa IDs exclusivamente numéricos aqui.
             const parents = activeGames.map((_, index) => index);
             const find = index => {
                 while (parents[index] !== index) {
@@ -6529,42 +6625,49 @@ async function copyShareText(text) {
                 return index;
             };
             const union = (a, b) => {
-                const ra = find(a);
-                const rb = find(b);
+                const ra = find(a), rb = find(b);
                 if (ra !== rb) parents[rb] = ra;
             };
-            const byModernCode = new Map();
-            const byExactName = new Map();
-
+            const byCode = new Map(), byExactEdition = new Map();
             activeGames.forEach((game, index) => {
-                const code = getGameSheetIdentity(game);
-                if (code && !isLegacyNumericGameCode(code)) {
-                    if (byModernCode.has(code)) union(index, byModernCode.get(code));
-                    else byModernCode.set(code, index);
+                for (const code of getGameLinkedProductCodes(game)) {
+                    const primary = [game.productBaseCode, game.sheetId]
+                        .some(v => String(v || '').trim().toUpperCase() === code);
+                    const key = primary
+                        ? 'PRODUCT::' + code
+                        : 'ALIAS::' + code + '::' + getGameNameIdentity(game);
+                    const matches = byCode.get(key) || [];
+                    matches.forEach(otherIndex => {
+                        if (isSameStoreProduct(game, activeGames[otherIndex])) union(index, otherIndex);
+                    });
+                    matches.push(index);
+                    byCode.set(key, matches);
                 }
-
-                const normalizedName = getGameNameIdentity(game);
-                if (normalizedName) {
-                    if (byExactName.has(normalizedName)) union(index, byExactName.get(normalizedName));
-                    else byExactName.set(normalizedName, index);
+                const exact = getGameNameIdentity(game);
+                if (exact) {
+                    const matches = byExactEdition.get(exact) || [];
+                    matches.forEach(otherIndex => {
+                        if (isSameStoreProduct(game, activeGames[otherIndex])) union(index, otherIndex);
+                    });
+                    matches.push(index);
+                    byExactEdition.set(exact, matches);
                 }
             });
-
-            // Mantém o registro de maior prioridade para cada jogo. Em empates,
-            // permanece o primeiro da ordem original de leitura das abas.
             const winners = new Map();
             activeGames.forEach((game, index) => {
-                const group = find(index);
-                const previous = winners.get(group);
+                const group = find(index), previous = winners.get(group);
                 if (previous === undefined ||
                     getStoreVisibilityPriority(game) > getStoreVisibilityPriority(activeGames[previous])) {
                     winners.set(group, index);
                 }
             });
-
-            return activeGames.filter((_, index) => winners.get(find(index)) === index);
+            const distinct = activeGames.filter((_, index) => winners.get(find(index)) === index);
+            const activePromos = distinct.filter(game => isCategory(game, 'Promoção'));
+            return distinct.filter(game => {
+                if (!isCategory(game, 'Catálogo')) return true;
+                return !activePromos.some(promo => isSameStoreProduct(game, promo));
+            });
         }
-
         function rebuildVisibleGames(now = Date.now()) {
             const previousIds = games.map(game => game.id).join('||');
 
@@ -6999,7 +7102,9 @@ async function copyShareText(text) {
             // L Data Encerramento
             // M Capa
             const C = {
-                id: col(0, 'ID'),
+                id: col(0, 'ID', 'Código', 'Codigo'),
+                productBase: col(31, 'CODIGO_BASE_MCO'),
+                previousCodes: col(32, 'CODIGOS_ANTERIORES_MCO'),
                 name: col(1, 'Jogo', 'Nome'),
                 psn: col(2, 'Preço PSN', 'Preco PSN'),
                 ps5Primary: col(3, 'PS5 Primária', 'PS5 Primaria'),
@@ -7208,6 +7313,8 @@ async function copyShareText(text) {
                     recordKey,
                     sheetName: sheetName.toUpperCase(),
                     sheetId,
+                    productBaseCode: text(row[C.productBase]),
+                    previousProductCodes: text(row[C.previousCodes]),
                     name,
                     platform: platforms.length ? platforms.join(' / ') : 'Plataforma não informada',
                     platforms,
@@ -7740,7 +7847,7 @@ async function copyShareText(text) {
             document.getElementById('purchaseConfirmProduct').innerText = game.name;
             document.getElementById('purchaseConfirmChoice').innerText =
                 `Conta ${cartItem.type} • ${cartItem.platform} • R$ ${cartItem.price.toFixed(2).replace('.', ',')}`;
-            const requiresCheck = game.hasStockInfo && currentStock <= 0;
+            const requiresCheck = !isCategory(game, 'Promoção') && game.hasStockInfo && currentStock <= 0;
             const message = document.getElementById('purchaseConfirmAvailabilityNote');
             if (message) message.textContent = requiresCheck
                 ? 'Disponibilidade a confirmar pelo WhatsApp antes de efetuar o pagamento.'
@@ -7780,7 +7887,7 @@ async function copyShareText(text) {
         function mcoOrderNeedsAvailabilityCheck() {
             return selectedCart.some(item => {
                 const game = games.find(g => g.id === item.gameId);
-                if (!game || !game.hasStockInfo) return false;
+                if (!game || !game.hasStockInfo || isCategory(game, 'Promoção')) return false;
                 const data = getPlatformData(game, item.platform);
                 return Number(item.type === 'Primária' ? data.stockPrimary : data.stockSecondary) <= 0;
             });
@@ -8635,6 +8742,37 @@ async function copyShareText(text) {
             });
         }
 
+        // Nome exclusivo a CADA compartilhamento, inclusive quando o PNG foi
+        // gerado antecipadamente e ficou em cache no celular.
+        let mcoShareFileSequence = 0;
+        function mcoShareFileName(title, suffix = '') {
+            const safeName = String(title || 'oferta')
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^a-zA-Z0-9]+/g, '_')
+                .replace(/^_+|_+$/g, '')
+                .slice(0, 82) || 'oferta';
+            const d = new Date();
+            const pad2 = value => String(value).padStart(2, '0');
+            const timestamp = [
+                d.getFullYear(), pad2(d.getMonth() + 1), pad2(d.getDate())
+            ].join('') + '_' + [
+                pad2(d.getHours()), pad2(d.getMinutes()), pad2(d.getSeconds())
+            ].join('') + '_' + String(d.getMilliseconds()).padStart(3, '0');
+            // Sequência protege também dois cliques no mesmo milissegundo.
+            mcoShareFileSequence += 1;
+            const sequence = String(mcoShareFileSequence).padStart(3, '0');
+            return `MCO_GAMES_${safeName}${suffix}_${timestamp}_${sequence}.png`;
+        }
+
+        function mcoShareFreshFile(file, filename) {
+            if (!file) return null;
+            return new File([file], filename, {
+                type: file.type || 'image/png',
+                lastModified: Date.now()
+            });
+        }
+
         function getMobileShareStateKey(game, cardEl, sharePlatforms = null) {
             const sharePosterVersion = 'poster-v3-platforms';
             const selected = getSelectedItem(game.id);
@@ -8836,9 +8974,12 @@ async function copyShareText(text) {
                 `🔗 Ver ${game.isCombo ? 'este combo' : 'este jogo'}:\n${getGameDirectUrl(game)}`;
 
             const desktop = !isMobileDevice();
+            const platformSuffix = sharePlatforms.length === 1 ? `_${sharePlatforms[0]}` : '';
+            const uniqueFileName = mcoShareFileName(game.name, platformSuffix);
 
             if (!desktop) {
-                const preparedFile = getPreparedMobileShareFile(game, cardEl, sharePlatforms);
+                const cachedFile = getPreparedMobileShareFile(game, cardEl, sharePlatforms);
+                const preparedFile = mcoShareFreshFile(cachedFile, uniqueFileName);
 
                 const canSharePreparedFile = !!(
                     preparedFile &&
@@ -8874,7 +9015,10 @@ async function copyShareText(text) {
                 showShareStatus('Preparando a imagem…');
 
                 let file = preparedFile;
-                if (!file) file = await buildPreparedMobileShareFile(game, cardEl, sharePlatforms);
+                if (!file) {
+                    const generated = await buildPreparedMobileShareFile(game, cardEl, sharePlatforms);
+                    file = mcoShareFreshFile(generated, uniqueFileName);
+                }
 
                 if (file) {
                     const mobileUrl = URL.createObjectURL(file);
@@ -8911,14 +9055,7 @@ async function copyShareText(text) {
                 const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
                 if (!blob) throw new Error('Não foi possível gerar o PNG.');
 
-                const safeName = game.name
-                    .normalize('NFD')
-                    .replace(/[\u0300-\u036f]/g, '')
-                    .replace(/[^a-zA-Z0-9]+/g, '_')
-                    .replace(/^_+|_+$/g, '');
-
-                const suffix = sharePlatforms.length === 1 ? `_${sharePlatforms[0]}` : '';
-                const fileName = `MCO_GAMES_${safeName || 'oferta'}${suffix}.png`;
+                const fileName = uniqueFileName;
                 const desktopUrl = URL.createObjectURL(blob);
 
                 const a = document.createElement('a');
@@ -9252,12 +9389,14 @@ async function copyShareText(text) {
         function getCategoryDisplayName(category) {
             if (isCategory({ category }, 'Lançamento em Oferta')) return 'LANÇAMENTO EM OFERTA';
             if (isCategory({ category }, 'Pré Venda')) return 'PRÉ-VENDAS';
-            if (isCategory({ category }, 'Promoção')) return 'PROMOÇÕES';
+            if (isCategory({ category }, 'Promoção')) return mcoPromoCampaign.published ? mcoPromoCampaign.name : 'PROMOÇÕES';
             if (isCategory({ category }, 'Catálogo')) return 'CATÁLOGO';
             return String(category || 'CATÁLOGO').toUpperCase();
         }
 
         function getCategoryShareUrl(category) {
+            if(isCategory({category},'Promoção') && mcoPromoCampaign.published && mcoPromoCampaign.sharePageEnabled)
+                return `${SHARE_URL}campanha.html`;
             const key = categoryKey(category);
             return `${SHARE_URL}?categoria=${encodeURIComponent(key)}`;
         }
@@ -9322,6 +9461,34 @@ async function copyShareText(text) {
 
             const ctx = canvas.getContext('2d');
             if (!ctx) throw new Error('Canvas não disponível.');
+
+            // For category PROMOCAO, use the official campaign banner in the shared image.
+            // Cross-origin images must be CORS-enabled; if not, retain the existing collage.
+            if (isCategory({category}, 'Promoção') && mcoPromoCampaign.banner) {
+                try {
+                    const image = new Image();
+                    image.crossOrigin = 'anonymous';
+                    image.src = mcoPromoCampaign.banner;
+                    await new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=()=>reject(Error('Banner indisponível'));});
+                    if (image.naturalWidth < 1) throw Error('Banner vazio');
+                    const k=Math.max(1200/image.naturalWidth,630/image.naturalHeight);
+                    ctx.drawImage(image,(1200-image.naturalWidth*k)/2,(630-image.naturalHeight*k)/2,image.naturalWidth*k,image.naturalHeight*k);
+                    const overlay=ctx.createLinearGradient(0,250,0,630);
+                    overlay.addColorStop(0,'rgba(0,0,0,0)');overlay.addColorStop(1,'rgba(0,8,18,.88)');
+                    ctx.fillStyle=overlay;ctx.fillRect(0,0,1200,630);
+                    ctx.fillStyle='#19bfff';ctx.fillRect(0,0,1200,7);
+                    ctx.fillStyle='#ffffff';ctx.font='900 47px Inter, Arial, sans-serif';
+                    let title=mcoPromoCampaign.name;while(ctx.measureText(title).width>1075&&title.length>15)title=title.slice(0,-2);
+                    ctx.fillText(title+(title!==mcoPromoCampaign.name?'…':''),58,520);
+                    ctx.fillStyle='#bce4ff';ctx.font='700 25px Inter, Arial, sans-serif';
+                    ctx.fillText((mcoPromoCampaign.description||'Jogos em oferta na MCO GAMES').slice(0,72),60,566);
+                    ctx.font='700 18px Inter, Arial, sans-serif';ctx.fillText('MCO GAMES  •  PS4 / PS5',60,603);
+                    return canvas;
+                } catch (error) {
+                    console.warn('Banner não pôde ser usado na arte. Mantendo mosaico de jogos.',error);
+                    ctx.clearRect(0,0,1200,630);
+                }
+            }
 
             // Fundo.
             const bgGradient = ctx.createLinearGradient(0, 0, 1200, 630);
@@ -9477,13 +9644,7 @@ async function copyShareText(text) {
 
                 if (!blob) throw new Error('Não foi possível criar a capa.');
 
-                const safeName = displayName
-                    .normalize('NFD')
-                    .replace(/[\u0300-\u036f]/g, '')
-                    .replace(/[^a-zA-Z0-9]+/g, '_')
-                    .replace(/^_+|_+$/g, '');
-
-                const fileName = `MCO_GAMES_${safeName}.png`;
+                const fileName = mcoShareFileName(displayName);
                 const file = new File([blob], fileName, { type: 'image/png' });
 
                 // Celular: compartilhamento nativo com imagem + texto.
@@ -11571,6 +11732,7 @@ async function copyShareText(text) {
         function getFastFeedCategoryLabel(
             game
         ) {
+            if(isCategory(game,'Promoção') && mcoPromoCampaign.published) return mcoPromoCampaign.name;
             const searchInput =
                 document.getElementById(
                     'searchInput'
