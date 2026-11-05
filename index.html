@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="mco-mobile-engine" content="vertical-feed-normal-psn-discount-v9-stock-internal-v217">
+    <meta name="mco-promo-priority-version" content="NEXUS-2M.2.23-PRODUCT-EDITION-PROMO-FIRST">
     <title>MCO GAMES | Sua Loja Digital</title>
     <!-- Favicon oficial MCO GAMES -->
     <link rel="icon" type="image/png" sizes="64x64" href="./favicon-mco.png">
@@ -6626,10 +6627,20 @@ async function copyShareText(text) {
                 }
                 return index;
             };
+            const groupPsnCode = activeGames.map(game => getGameModernPsnProductCode(game));
             const union = (a, b) => {
                 const ra = find(a), rb = find(b);
-                if (ra !== rb) parents[rb] = ra;
+                if (ra === rb) return;
+                // Mesmo que cada comparação isolada pareça válida, o grupo
+                // inteiro não pode unir Standard e Deluxe por meio de um alias.
+                const codeA = groupPsnCode[ra], codeB = groupPsnCode[rb];
+                if (codeA && codeB && codeA !== codeB) return;
+                parents[rb] = ra;
+                groupPsnCode[ra] = codeA || codeB;
             };
+            // Não permitir fusões indiretas: um registro histórico sem SKU
+            // pode conectar dois grupos cujos Content IDs PSN são distintos.
+            // A raiz só pode conter um único código de edição moderno.
             const byCode = new Map(), byExactEdition = new Map();
             activeGames.forEach((game, index) => {
                 for (const code of getGameLinkedProductCodes(game)) {
