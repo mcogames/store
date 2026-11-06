@@ -6,7 +6,7 @@
     <meta name="mco-mobile-engine" content="vertical-feed-normal-psn-discount-v9-stock-internal-v217">
     <meta name="mco-promo-priority-version" content="NEXUS-2M.2.23-PRODUCT-EDITION-PROMO-FIRST">
     <meta name="mco-campaign-dynamic-version" content="NEXUS-2M.2.24-CAMPAIGN-DYNAMIC">
-    <meta name="mco-home-category-version" content="NEXUS-2M.2.31-UNIFIED-BANNER-LEFT">
+    <meta name="mco-home-category-version" content="NEXUS-2M.2.35-NO-CROP-BANNERS">
     <title>MCO GAMES | Sua Loja Digital</title>
     <!-- Favicon oficial MCO GAMES -->
     <link rel="icon" type="image/png" sizes="64x64" href="./favicon-mco.png">
@@ -5327,6 +5327,42 @@ async function copyShareText(text) {
     background:linear-gradient(90deg,rgba(3,11,25,.96),rgba(3,11,25,.82) 58%,rgba(3,11,25,.38));
   }
 }
+/* NEXUS 2M.2.35 — BANNERS SEM RECORTE
+   Artes 1200 x 450 (2,67:1) nao cabem em banners 6,8:1 com cover.
+   Em vez de cortar ou esticar, exibimos a imagem INTEIRA a direita,
+   reservando a esquerda para os textos. A altura compacta fica inalterada.
+   Se uma arte dedicada, panoramica, for criada depois, ela tambem sera
+   preservada, sem perda de informacao. */
+.mco-chome-banner.has-artwork picture img{
+  position:absolute!important;
+  top:0!important;bottom:auto!important;
+  left:auto!important;right:0!important;
+  width:auto!important;height:100%!important;
+  max-width:100%!important;max-height:100%!important;
+  object-fit:contain!important;
+  object-position:right center!important;
+}
+.mco-chome-banner.has-artwork::after{
+  background:linear-gradient(90deg,
+    rgba(3,11,25,.97) 0%,
+    rgba(3,11,25,.96) 34%,
+    rgba(3,11,25,.70) 50%,
+    rgba(3,11,25,.12) 70%,
+    rgba(3,11,25,.06) 100%);
+}
+@media(max-width:800px){
+  .mco-chome-banner.has-artwork::after{
+    background:linear-gradient(90deg,
+      rgba(3,11,25,.96),rgba(3,11,25,.83) 53%,rgba(3,11,25,.25) 100%);
+  }
+}
+@media(max-width:420px){
+  .mco-chome-banner.has-artwork::after{
+    background:linear-gradient(90deg,
+      rgba(3,11,25,.96),rgba(3,11,25,.84) 60%,rgba(3,11,25,.35) 100%);
+  }
+}
+
 </style>
 </head>
 <body>
@@ -5854,7 +5890,7 @@ async function copyShareText(text) {
                 // Exibicao apenas na HOME: "Black Friday MCO GAMES" vira "Black Friday".
                 // Outras campanhas dinamicas e seu nome salvo no NEXUS nao mudam.
                 const homeTitle=/black\s*friday/i.test(campaignTitle)
-                    ? campaignTitle.replace(/\s*(?:[|·—–-]\s*)?MCO\s*GAMES\s*$/i,'').trim()
+                    ? 'Black Friday'
                     : campaignTitle;
                 return {
                     title:homeTitle||campaignTitle,
