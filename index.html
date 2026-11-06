@@ -6,7 +6,7 @@
     <meta name="mco-mobile-engine" content="vertical-feed-normal-psn-discount-v9-stock-internal-v217">
     <meta name="mco-promo-priority-version" content="NEXUS-2M.2.23-PRODUCT-EDITION-PROMO-FIRST">
     <meta name="mco-campaign-dynamic-version" content="NEXUS-2M.2.24-CAMPAIGN-DYNAMIC">
-    <meta name="mco-home-category-version" content="NEXUS-2M.2.35-NO-CROP-BANNERS">
+    <meta name="mco-home-category-version" content="NEXUS-2M.2.31-UNIFIED-BANNER-LEFT">
     <title>MCO GAMES | Sua Loja Digital</title>
     <!-- Favicon oficial MCO GAMES -->
     <link rel="icon" type="image/png" sizes="64x64" href="./favicon-mco.png">
@@ -5327,42 +5327,12 @@ async function copyShareText(text) {
     background:linear-gradient(90deg,rgba(3,11,25,.96),rgba(3,11,25,.82) 58%,rgba(3,11,25,.38));
   }
 }
-/* NEXUS 2M.2.35 — BANNERS SEM RECORTE
-   Artes 1200 x 450 (2,67:1) nao cabem em banners 6,8:1 com cover.
-   Em vez de cortar ou esticar, exibimos a imagem INTEIRA a direita,
-   reservando a esquerda para os textos. A altura compacta fica inalterada.
-   Se uma arte dedicada, panoramica, for criada depois, ela tambem sera
-   preservada, sem perda de informacao. */
-.mco-chome-banner.has-artwork picture img{
-  position:absolute!important;
-  top:0!important;bottom:auto!important;
-  left:auto!important;right:0!important;
-  width:auto!important;height:100%!important;
-  max-width:100%!important;max-height:100%!important;
-  object-fit:contain!important;
-  object-position:right center!important;
+/* NEXUS 2M.2.36 — a arte enviada segue 2400×350 desktop / 1200×480 mobile.
+   Mantém o banner compacto anterior; a escolha de imagem é feita por <picture>.
+   Em telas 320–420 px, usa altura 40vw para encaixar exatamente 1200×480. */
+@media (max-width:420px){
+  .mco-chome-banner{height:40vw;min-height:40vw;max-height:40vw}
 }
-.mco-chome-banner.has-artwork::after{
-  background:linear-gradient(90deg,
-    rgba(3,11,25,.97) 0%,
-    rgba(3,11,25,.96) 34%,
-    rgba(3,11,25,.70) 50%,
-    rgba(3,11,25,.12) 70%,
-    rgba(3,11,25,.06) 100%);
-}
-@media(max-width:800px){
-  .mco-chome-banner.has-artwork::after{
-    background:linear-gradient(90deg,
-      rgba(3,11,25,.96),rgba(3,11,25,.83) 53%,rgba(3,11,25,.25) 100%);
-  }
-}
-@media(max-width:420px){
-  .mco-chome-banner.has-artwork::after{
-    background:linear-gradient(90deg,
-      rgba(3,11,25,.96),rgba(3,11,25,.84) 60%,rgba(3,11,25,.35) 100%);
-  }
-}
-
 </style>
 </head>
 <body>
@@ -5784,7 +5754,7 @@ async function copyShareText(text) {
         const SHARE_URL = "https://mcogames.github.io/store/";
         // Campaign metadata is a public static JSON file published with the site.
         // It is never read from the protected NEXUS endpoint.
-        let mcoPromoCampaign={name:'Promoções',description:'',banner:'',published:false,sharePageEnabled:false};
+        let mcoPromoCampaign={name:'Promoções',description:'',banner:'',bannerMobile:'',published:false,sharePageEnabled:false};
         // Public text only. Internal category remains 'Promoção' (sheet PROMOCAO).
         function mcoPromoCampaignLabel(){
             return mcoPromoCampaign.published ? mcoPromoCampaign.name : 'Promoções';
@@ -5809,7 +5779,7 @@ async function copyShareText(text) {
         function mcoPromoPublicBanner(raw){
             const s=String(raw||'').trim();
             if(!s)return '';
-            if(s==='./banner-promocao.jpg')return s;
+            if(s==='./banner-promocao.jpg'||s==='./banner-promocao-mobile.jpg')return s;
             try{const u=new URL(s,window.location.href);return u.protocol==='https:'&&!u.username&&!u.password?s:'';}catch(_){return '';}
         }
         async function mcoPromoCampaignLoad(){
@@ -5823,7 +5793,8 @@ async function copyShareText(text) {
                 const description=String(json.description||'').trim().slice(0,180);
                 if(name.length<3)return;
                 const banner=mcoPromoPublicBanner(json.banner);
-                mcoPromoCampaign={name,description,banner,published:true,sharePageEnabled:false};
+                const bannerMobile=mcoPromoPublicBanner(json.bannerMobile);
+                mcoPromoCampaign={name,description,banner,bannerMobile,published:true,sharePageEnabled:false};
                 // If campaign preview is missing, share the normal public category URL.
                 fetch('./campanha.html',{method:'HEAD',cache:'no-store'}).then(r=>{mcoPromoCampaign.sharePageEnabled=!!r.ok;}).catch(()=>{});
                 const heading=document.getElementById('mcoPromoCampaignName');
@@ -5838,7 +5809,7 @@ async function copyShareText(text) {
                 const mobilePanel=document.getElementById('mcoCampaignMobilePanel'),mobileTitle=document.getElementById('mcoCampaignMobileTitle'),mobileImage=document.getElementById('mcoCampaignMobileImage');
                 if(mobilePanel)mobilePanel.hidden=false;
                 if(mobileTitle)mobileTitle.textContent=name;
-                if(mobileImage){if(banner){mobileImage.src=banner;mobileImage.hidden=false;mobileImage.alt='Banner da campanha '+name;mobileImage.onerror=()=>{mobileImage.hidden=true;};}else mobileImage.hidden=true;}
+                if(mobileImage){if(bannerMobile||banner){mobileImage.src=bannerMobile||banner;mobileImage.hidden=false;mobileImage.alt='Banner da campanha '+name;mobileImage.onerror=()=>{mobileImage.hidden=true;};}else mobileImage.hidden=true;}
                 if(hero&&image&&banner){image.onload=()=>{hero.hidden=false;};image.onerror=()=>{hero.hidden=true;};image.src=banner;}else if(hero){hero.hidden=true;}
                 mcoPromoCampaignRefreshNavigation();
             }catch(error){console.warn('Campanha indisponível; mantendo categorias originais.',error);}
@@ -5860,7 +5831,7 @@ async function copyShareText(text) {
         function mcoHomePublicImage(raw){
             const v=String(raw||'').trim();
             if(!v)return '';
-            if(v==='./banner-promocao.jpg'||/^\.\/banner-(?:lancamento-em-oferta|pre-venda|catalogo)(?:-mobile)?\.jpg$/.test(v))return v;
+            if(v==='./banner-promocao.jpg'||v==='./banner-promocao-mobile.jpg'||/^\.\/banner-(?:lancamento-em-oferta|pre-venda|catalogo)(?:-mobile)?\.jpg$/.test(v))return v;
             try { const url=new URL(v,location.href);return url.protocol==='https:'&&!url.username&&!url.password?v:''; }
             catch(_){return '';}
         }
@@ -5895,7 +5866,7 @@ async function copyShareText(text) {
                 return {
                     title:homeTitle||campaignTitle,
                     description:mcoPromoCampaign.description||category.description,
-                    image:mcoPromoCampaign.banner||'',imageMobile:''
+                    image:mcoPromoCampaign.banner||'',imageMobile:mcoPromoCampaign.bannerMobile||''
                 };
             }
             return {title:extra.title||category.title,description:extra.description||category.description,image:extra.image||'',imageMobile:extra.imageMobile||''};
