@@ -5239,6 +5239,23 @@ async function copyShareText(text) {
 .mco-chome-price{color:#59d4ff;font-size:.87rem;font-weight:950}
 .mco-chome-more{justify-self:end;width:max-content;color:#9dddff;font-size:.79rem;font-weight:850;text-decoration:none}
 .mco-chome-more:hover{text-decoration:underline}
+/* NEXUS 2M.2.29: banners sem sobreposição e sem recorte para todas as resoluções. */
+.mco-chome-banner.has-artwork{min-height:0;background:#101923}
+.mco-chome-banner.has-artwork::before,.mco-chome-banner.has-artwork::after{display:none}
+.mco-chome-banner.has-artwork picture{display:block;width:100%;line-height:0}
+.mco-chome-banner.has-artwork picture img{display:block;position:static;inset:auto;width:100%;height:auto;max-height:none;min-height:0;aspect-ratio:auto;object-fit:contain;z-index:auto}
+.mco-chome-banner.has-artwork .mco-chome-banner-copy{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto;min-height:0;max-width:none;gap:3px 16px;padding:12px clamp(12px,2vw,23px);background:linear-gradient(100deg,#101f32,#132943);text-shadow:none}
+.mco-chome-banner.has-artwork .mco-chome-kicker{display:none}
+.mco-chome-banner.has-artwork .mco-chome-banner-copy strong{grid-column:1;grid-row:1;font-size:clamp(16px,1.8vw,22px);line-height:1.2;letter-spacing:0;text-shadow:none}
+.mco-chome-banner.has-artwork .mco-chome-banner-copy small{grid-column:1;grid-row:2;font-size:clamp(11px,1.1vw,13px);color:#c4dfed;max-width:65ch;line-height:1.35}
+.mco-chome-banner.has-artwork .mco-chome-go{grid-column:2;grid-row:1 / span 2;align-self:center;justify-self:end;margin:0;white-space:nowrap}
+@media(max-width:700px){
+ .mco-chome-banner.has-artwork picture img{max-height:none!important;aspect-ratio:auto!important;object-fit:contain!important}
+ .mco-chome-banner.has-artwork .mco-chome-banner-copy{grid-template-columns:minmax(0,1fr);gap:6px;padding:12px}
+ .mco-chome-banner.has-artwork .mco-chome-banner-copy strong{grid-column:1;grid-row:1;font-size:18px}
+ .mco-chome-banner.has-artwork .mco-chome-banner-copy small{grid-column:1;grid-row:2;font-size:12px}
+ .mco-chome-banner.has-artwork .mco-chome-go{grid-column:1;grid-row:3;justify-self:start;margin-top:2px}
+}
 #mcoCategoryLanding{margin:0 0 20px;padding:12px 0;border-bottom:1px solid #293f56}
 .mco-chome-back{min-height:40px;padding:8px 13px;border:1px solid #458cb6;background:#142c46;border-radius:10px;color:#d4efff;font-weight:850;cursor:pointer}
 .mco-clanding-title{font-size:clamp(23px,3vw,33px);color:#fff;font-weight:950;margin:12px 0 5px}
@@ -5747,7 +5764,7 @@ async function copyShareText(text) {
         function mcoHomePublicImage(raw){
             const v=String(raw||'').trim();
             if(!v)return '';
-            if(v==='./banner-promocao.jpg'||/^\.\/banner-(?:lancamento-em-oferta|pre-venda|catalogo)\.jpg$/.test(v))return v;
+            if(v==='./banner-promocao.jpg'||/^\.\/banner-(?:lancamento-em-oferta|pre-venda|catalogo)(?:-mobile)?\.jpg$/.test(v))return v;
             try { const url=new URL(v,location.href);return url.protocol==='https:'&&!url.username&&!url.password?v:''; }
             catch(_){return '';}
         }
@@ -5763,7 +5780,7 @@ async function copyShareText(text) {
                     if(!MCO_HOME_CATEGORIES.some(c=>c.key===key&&key!=='promocao'))continue;
                     const title=String(item.title||'').trim().slice(0,85).replace(/[<>]/g,'');
                     const description=String(item.description||'').trim().slice(0,180).replace(/[<>]/g,'');
-                    next[key]={title,description,image:mcoHomePublicImage(item.image)};
+                    next[key]={title,description,image:mcoHomePublicImage(item.image),imageMobile:mcoHomePublicImage(item.imageMobile)};
                 }
                 mcoCategoryBannerData=next;
                 if(Array.isArray(games)&&games.length)renderGames();
@@ -5775,9 +5792,9 @@ async function copyShareText(text) {
             if(category.key==='promocao')return {
                 title:mcoPromoCampaign.published?mcoPromoCampaign.name:category.title,
                 description:mcoPromoCampaign.description||category.description,
-                image:mcoPromoCampaign.banner||''
+                image:mcoPromoCampaign.banner||'',imageMobile:''
             };
-            return {title:extra.title||category.title,description:extra.description||category.description,image:extra.image||''};
+            return {title:extra.title||category.title,description:extra.description||category.description,image:extra.image||'',imageMobile:extra.imageMobile||''};
         }
         function mcoHomeCategoryUrl(key){return getStoreBaseUrl()+'?categoria='+encodeURIComponent(key);}
         function mcoHomeTake4(key,list){
@@ -5802,7 +5819,20 @@ async function copyShareText(text) {
             link.href=mcoHomeCategoryUrl(cat.key);
             link.setAttribute('aria-label','Abrir somente '+config.title);
             const imgUrl=mcoHomePublicImage(config.image);
-            if(imgUrl){const img=document.createElement('img');img.alt='';img.loading='lazy';img.decoding='async';img.src=imgUrl;img.onerror=()=>img.remove();link.append(img);}
+            if(imgUrl){
+                link.classList.add('has-artwork');
+                const picture=document.createElement('picture');
+                const mobileUrl=mcoHomePublicImage(config.imageMobile);
+                let mobileSource=null;
+                if(mobileUrl){mobileSource=document.createElement('source');mobileSource.media='(max-width: 700px)';mobileSource.srcset=mobileUrl;picture.append(mobileSource);}
+                const img=document.createElement('img');img.alt='Arte promocional de '+config.title;
+                img.loading='lazy';img.decoding='async';img.src=imgUrl;
+                img.onerror=()=>{
+                    if(mobileSource){mobileSource.remove();mobileSource=null;img.src=imgUrl;return;}
+                    picture.remove();link.classList.remove('has-artwork');
+                };
+                picture.append(img);link.append(picture);
+            }
             const text=document.createElement('span');text.className='mco-chome-banner-copy';
             const kicker=document.createElement('span');kicker.className='mco-chome-kicker';kicker.textContent='MCO GAMES  ·  EXPLORAR CATEGORIA';
             const heading=document.createElement('strong');heading.textContent=config.title;
