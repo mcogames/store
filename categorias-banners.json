@@ -5,19 +5,19 @@
       "key": "lancamento-em-oferta",
       "title": "Lançamentos em oferta",
       "description": "Novidades com preços especiais.",
-      "image": ""
+      "image": "./banner-lancamento-em-oferta.jpg"
     },
     {
       "key": "pre-venda",
       "title": "Pré-vendas",
-      "description": "Garanta os próximos lançamentos.",
-      "image": ""
+      "description": "🔥 *ANTECIPE-SE AO LANÇAMENTO!* Garanta os jogos mais aguardados e seja um dos primeiros a viver essa experiência!",
+      "image": "./banner-pre-venda.jpg"
     },
     {
       "key": "catalogo",
       "title": "Catálogo de jogos",
       "description": "Encontre seu próximo jogo de PS4 ou PS5.",
-      "image": ""
+      "image": "./banner-catalogo.jpg"
     }
   ]
 }
