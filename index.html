@@ -6,6 +6,7 @@
     <meta name="mco-mobile-engine" content="vertical-feed-normal-psn-discount-v9-stock-internal-v217">
     <meta name="mco-promo-priority-version" content="NEXUS-2M.2.23-PRODUCT-EDITION-PROMO-FIRST">
     <meta name="mco-campaign-dynamic-version" content="NEXUS-2M.2.24-CAMPAIGN-DYNAMIC">
+    <meta name="mco-home-category-version" content="NEXUS-2M.2.28-HOME-CATEGORIES">
     <title>MCO GAMES | Sua Loja Digital</title>
     <!-- Favicon oficial MCO GAMES -->
     <link rel="icon" type="image/png" sizes="64x64" href="./favicon-mco.png">
@@ -5205,6 +5206,51 @@ async function copyShareText(text) {
 .mco-campaign-mobile-panel{display:grid;gap:9px;padding:11px;margin:0 0 11px;background:linear-gradient(120deg,#102e4d,#081f36);border:1px solid #2274a4;border-radius:12px;color:#fff}.mco-campaign-mobile-panel[hidden]{display:none!important}.mco-campaign-mobile-panel img{width:100%;max-height:135px;object-fit:cover;border-radius:8px}.mco-campaign-mobile-panel strong{font-size:13px}.mco-campaign-mobile-panel button{min-height:38px;background:#18b8ff;border:0;border-radius:8px;color:#071521;font-weight:900}
 @media(max-width:700px){.mco-campaign-hero{border-radius:12px}.mco-campaign-hero img{aspect-ratio:16/8}.mco-campaign-hero-caption{padding:32px 12px 12px}}
 </style>
+
+<style id="mco-home-category-v228">
+/* 2M.2.28 - vitrine home e página exclusiva por categoria. Não altera cartões/compras. */
+#mcoCategoryHome[hidden],#mcoCategoryLanding[hidden],#mcoHomeFeedBack[hidden]{display:none!important}
+#mainContent.mco-special-route #instagramLayout,#mainContent.mco-special-route #igMobileCategory,#mainContent.mco-special-route .ig-mobile-nav-trigger{display:none!important}
+#mcoCategoryHome{display:grid;gap:29px;padding-bottom:35px}
+.mco-chome-head{display:flex;justify-content:space-between;align-items:end;gap:12px;flex-wrap:wrap}
+.mco-chome-head h2{font-size:clamp(22px,3vw,31px);font-weight:950;letter-spacing:-.6px;color:#fff}
+.mco-chome-head p{font-size:.81rem;color:#9fb4c7;margin:6px 0 0}
+.mco-chome-feed-button,.mco-chome-feed-back{display:none;min-height:40px;padding:8px 13px;border:1px solid #4a91bb;border-radius:9px;background:#163955;color:#d7f3ff;font-weight:850;cursor:pointer}
+@media(max-width:800px){.mco-chome-feed-button,.mco-chome-feed-back{display:inline-flex;align-items:center;gap:6px}.mco-chome-feed-back{margin-bottom:10px}}
+.mco-chome-section{display:grid;gap:13px;min-width:0}
+.mco-chome-banner{--cg1:#153c6d;--cg2:#182346;position:relative;display:block;isolation:isolate;overflow:hidden;min-height:170px;border-radius:19px;border:1px solid #386a8b;color:white;text-decoration:none!important;background:radial-gradient(circle at 83% 27%,#72caff36,transparent 42%),linear-gradient(112deg,var(--cg1),var(--cg2));box-shadow:0 13px 34px #0005;transition:transform .22s,border-color .22s}
+.mco-chome-banner:hover{transform:translateY(-2px);border-color:#8cd9ff}
+.mco-chome-banner::before{content:'✧';position:absolute;right:6%;top:-85px;font-size:290px;line-height:1;color:#d7edff17;pointer-events:none}
+.mco-chome-banner img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-1}
+.mco-chome-banner::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(4,12,25,.84),rgba(4,12,25,.38) 69%,rgba(4,12,25,.10));z-index:0;pointer-events:none}
+.mco-chome-banner-copy{position:relative;z-index:1;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;min-height:170px;padding:23px clamp(19px,4vw,45px);gap:8px;max-width:680px}
+.mco-chome-kicker{font-size:.68rem;font-weight:900;letter-spacing:.16em;color:#88dfff;text-transform:uppercase}
+.mco-chome-banner strong{font-size:clamp(24px,4vw,38px);font-weight:950;letter-spacing:-.8px;line-height:1.13;text-shadow:0 2px 10px #0008}
+.mco-chome-banner small{color:#e0efff;font-size:clamp(.73rem,1.3vw,.92rem);line-height:1.45}
+.mco-chome-banner .mco-chome-go{display:inline-block;margin-top:4px;padding:7px 11px;border:1px solid #89dcff80;border-radius:9px;background:#167bb44d;font-weight:850;font-size:.74rem}
+.mco-chome-games{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px}
+.mco-chome-game{min-width:0;display:flex;flex-direction:column;overflow:hidden;text-decoration:none!important;color:#fff;border:1px solid #30475c;border-radius:13px;background:#151b24;transition:border-color .2s,transform .2s}
+.mco-chome-game:hover{transform:translateY(-2px);border-color:#48adf2}
+.mco-chome-cover{aspect-ratio:1/1;background:linear-gradient(135deg,#1d3a58,#142338);overflow:hidden;display:grid;place-items:center;color:#6fcaff;font-size:35px}
+.mco-chome-cover img{width:100%;height:100%;object-fit:cover;display:block}
+.mco-chome-game-info{display:grid;gap:5px;padding:11px;min-height:94px}
+.mco-chome-game-info strong{font-size:.78rem;line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.mco-chome-platforms{color:#9db4c9;font-size:.65rem;font-weight:750}
+.mco-chome-price{color:#59d4ff;font-size:.87rem;font-weight:950}
+.mco-chome-more{justify-self:end;width:max-content;color:#9dddff;font-size:.79rem;font-weight:850;text-decoration:none}
+.mco-chome-more:hover{text-decoration:underline}
+#mcoCategoryLanding{margin:0 0 20px;padding:12px 0;border-bottom:1px solid #293f56}
+.mco-chome-back{min-height:40px;padding:8px 13px;border:1px solid #458cb6;background:#142c46;border-radius:10px;color:#d4efff;font-weight:850;cursor:pointer}
+.mco-clanding-title{font-size:clamp(23px,3vw,33px);color:#fff;font-weight:950;margin:12px 0 5px}
+.mco-clanding-desc{color:#a5c5d9;font-size:.86rem;margin:0 0 8px}
+.mco-chome-banner[data-cat="lancamento-em-oferta"]{--cg1:#702c3e;--cg2:#242b65}
+.mco-chome-banner[data-cat="pre-venda"]{--cg1:#54317b;--cg2:#172d56}
+.mco-chome-banner[data-cat="promocao"]{--cg1:#6e1b3e;--cg2:#191d47}
+.mco-chome-banner[data-cat="catalogo"]{--cg1:#125860;--cg2:#142a58}
+@media(max-width:800px){#mcoCategoryHome{gap:22px}.mco-chome-games{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.mco-chome-banner,.mco-chome-banner-copy{min-height:160px}.mco-chome-banner strong{font-size:26px}.mco-chome-game-info{padding:9px}.mco-chome-head h2{font-size:24px}}
+@media(max-width:420px){.mco-chome-banner,.mco-chome-banner-copy{min-height:148px}.mco-chome-banner-copy{padding:17px}.mco-chome-banner small{font-size:.75rem}.mco-chome-games{gap:8px}}
+@media(prefers-reduced-motion:reduce){.mco-chome-banner,.mco-chome-game{transition:none}}
+</style>
 </head>
 <body>
 
@@ -5348,6 +5394,17 @@ async function copyShareText(text) {
             <select id="igMobileCategory" class="ig-mobile-category" aria-label="Navegar por categoria" onchange="selectInstagramCategory(this.value)">
                 <option value="ALL">🎮 Ver todos os jogos</option>
             </select>
+
+            <section id="mcoCategoryHome" aria-label="Vitrine de categorias MCO GAMES" hidden>
+                <div class="mco-chome-head"><div><h2>Escolha sua próxima aventura</h2><p>Confira os destaques de cada categoria. Os jogos mudam a cada atualização.</p></div><button type="button" class="mco-chome-feed-button" onclick="mcoOpenFeedMode()">Explorar em tela cheia →</button></div>
+                <div id="mcoCategoryHomeSections"></div>
+            </section>
+            <section id="mcoCategoryLanding" aria-label="Página exclusiva da categoria" hidden>
+                <button class="mco-chome-back" type="button" onclick="goToStoreHome(event)">← Voltar à HOME</button>
+                <h1 id="mcoCategoryLandingTitle" class="mco-clanding-title"></h1>
+                <p id="mcoCategoryLandingDescription" class="mco-clanding-desc"></p>
+            </section>
+            <button type="button" id="mcoHomeFeedBack" class="mco-chome-feed-back" onclick="goToStoreHome(event)" hidden>← Voltar à HOME</button>
             <div class="ig-layout" id="instagramLayout">
                 <section class="ig-feed" aria-label="Visualização de jogos">
                     <div id="igViewer"></div>
@@ -5674,6 +5731,139 @@ async function copyShareText(text) {
             }catch(error){console.warn('Campanha indisponível; mantendo categorias originais.',error);}
         }
         document.addEventListener('DOMContentLoaded',mcoPromoCampaignLoad,{once:true});
+
+        /* NEXUS 2M.2.28: HOME com banners por categoria e página exclusiva.
+         * Apenas lê JSON público; nunca escreve no Google Sheets ou no NEXUS. */
+        const MCO_HOME_CATEGORIES=[
+            {key:'promocao',category:'Promoção',title:'Promoções',description:'Ofertas especiais por tempo limitado.'},
+            {key:'lancamento-em-oferta',category:'Lançamento em Oferta',title:'Lançamentos em oferta',description:'Novidades com preços especiais.'},
+            {key:'pre-venda',category:'Pré Venda',title:'Pré-vendas',description:'Garanta os próximos lançamentos.'},
+            {key:'catalogo',category:'Catálogo',title:'Catálogo de jogos',description:'Encontre seu próximo jogo de PS4 ou PS5.'}
+        ];
+        let mcoCategoryRoute='';
+        let mcoHomeFeedMode=false;
+        let mcoCategoryBannerData={};
+        let mcoHomeRandomCards={};
+        function mcoHomePublicImage(raw){
+            const v=String(raw||'').trim();
+            if(!v)return '';
+            if(v==='./banner-promocao.jpg'||/^\.\/banner-(?:lancamento-em-oferta|pre-venda|catalogo)\.jpg$/.test(v))return v;
+            try { const url=new URL(v,location.href);return url.protocol==='https:'&&!url.username&&!url.password?v:''; }
+            catch(_){return '';}
+        }
+        async function mcoHomeLoadBannerConfig(){
+            try{
+                const result=await fetch('./categorias-banners.json?v='+Date.now(),{cache:'no-store'});
+                if(!result.ok)return;
+                const json=await result.json();
+                if(!json||json.version!==1||!Array.isArray(json.categories))return;
+                const next={};
+                for(const item of json.categories){
+                    const key=String(item?.key||'');
+                    if(!MCO_HOME_CATEGORIES.some(c=>c.key===key&&key!=='promocao'))continue;
+                    const title=String(item.title||'').trim().slice(0,85).replace(/[<>]/g,'');
+                    const description=String(item.description||'').trim().slice(0,180).replace(/[<>]/g,'');
+                    next[key]={title,description,image:mcoHomePublicImage(item.image)};
+                }
+                mcoCategoryBannerData=next;
+                if(Array.isArray(games)&&games.length)renderGames();
+            }catch(_){/* configuração opcional: manter os banners CSS */}
+        }
+        document.addEventListener('DOMContentLoaded',mcoHomeLoadBannerConfig,{once:true});
+        function mcoHomeConfig(category){
+            const extra=mcoCategoryBannerData[category.key]||{};
+            if(category.key==='promocao')return {
+                title:mcoPromoCampaign.published?mcoPromoCampaign.name:category.title,
+                description:mcoPromoCampaign.description||category.description,
+                image:mcoPromoCampaign.banner||''
+            };
+            return {title:extra.title||category.title,description:extra.description||category.description,image:extra.image||''};
+        }
+        function mcoHomeCategoryUrl(key){return getStoreBaseUrl()+'?categoria='+encodeURIComponent(key);}
+        function mcoHomeTake4(key,list){
+            const existing=mcoHomeRandomCards[key];
+            if(existing){
+                const map=new Map(list.map(game=>[getGameRecordIdentity(game),game]));
+                const current=existing.map(id=>map.get(id)).filter(Boolean);
+                if(current.length===Math.min(4,list.length))return current;
+            }
+            const copy=[...list];
+            for(let i=copy.length-1;i>0;i--){
+                const j=secureRandomIndex(i+1);
+                [copy[i],copy[j]]=[copy[j],copy[i]];
+            }
+            const selected=copy.slice(0,4);
+            mcoHomeRandomCards[key]=selected.map(getGameRecordIdentity);
+            return selected;
+        }
+        function mcoHomeBanner(cat,config){
+            const link=document.createElement('a');
+            link.className='mco-chome-banner';link.dataset.cat=cat.key;
+            link.href=mcoHomeCategoryUrl(cat.key);
+            link.setAttribute('aria-label','Abrir somente '+config.title);
+            const imgUrl=mcoHomePublicImage(config.image);
+            if(imgUrl){const img=document.createElement('img');img.alt='';img.loading='lazy';img.decoding='async';img.src=imgUrl;img.onerror=()=>img.remove();link.append(img);}
+            const text=document.createElement('span');text.className='mco-chome-banner-copy';
+            const kicker=document.createElement('span');kicker.className='mco-chome-kicker';kicker.textContent='MCO GAMES  ·  EXPLORAR CATEGORIA';
+            const heading=document.createElement('strong');heading.textContent=config.title;
+            const desc=document.createElement('small');desc.textContent=config.description;
+            const action=document.createElement('span');action.className='mco-chome-go';action.textContent='Ver todos os jogos →';
+            text.append(kicker,heading,desc,action);link.append(text);
+            return link;
+        }
+        function mcoHomeGameCard(game){
+            const card=document.createElement('a');card.className='mco-chome-game';card.href=getGameDirectUrl(game);
+            card.setAttribute('aria-label','Ver jogo '+String(game.name||''));
+            const cover=document.createElement('span');cover.className='mco-chome-cover';cover.textContent='🎮';
+            const source=String(game.img||'').trim();
+            if(source&&(/^(https?:)?\/\//i.test(source)||source.startsWith('./'))){
+                const img=document.createElement('img');img.loading='lazy';img.decoding='async';img.alt='';img.src=source;
+                img.onerror=()=>img.remove();cover.textContent='';cover.append(img);
+            }
+            const info=document.createElement('span');info.className='mco-chome-game-info';
+            const title=document.createElement('strong');title.textContent=game.name||'Jogo MCO GAMES';
+            const platforms=document.createElement('span');platforms.className='mco-chome-platforms';platforms.textContent=(game.platforms||[]).join(' • ')||game.platform||'PS4 / PS5';
+            const price=document.createElement('span');price.className='mco-chome-price';
+            const value=Number(getGameMainPriceForCurrentFilter(game)||0);
+            price.textContent=value>0?'A partir de '+value.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}):'Ver opções';
+            info.append(title,platforms,price);card.append(cover,info);return card;
+        }
+        function mcoHomeRender(){
+            const target=document.getElementById('mcoCategoryHomeSections');if(!target)return;
+            target.replaceChildren();
+            for(const cat of MCO_HOME_CATEGORIES){
+                const listings=getPlatformFilteredGames(games).filter(g=>isCategory(g,cat.category));
+                if(!listings.length)continue;
+                const config=mcoHomeConfig(cat);
+                const section=document.createElement('section');section.className='mco-chome-section';section.dataset.category=cat.key;
+                section.append(mcoHomeBanner(cat,config));
+                const grid=document.createElement('div');grid.className='mco-chome-games';
+                mcoHomeTake4(cat.key,listings).forEach(game=>grid.append(mcoHomeGameCard(game)));
+                section.append(grid);
+                const all=document.createElement('a');all.className='mco-chome-more';all.href=mcoHomeCategoryUrl(cat.key);
+                all.textContent='Ver todos ('+listings.length+') →';section.append(all);target.append(section);
+            }
+        }
+        function mcoOpenFeedMode(){
+            mcoHomeFeedMode=true;
+            instagramCategory='ALL';instagramIndex=0;
+            renderGames();
+            window.scrollTo({top:0,behavior:'smooth'});
+        }
+        function mcoHomeSetVisibility(home,landing){
+            const a=document.getElementById('mcoCategoryHome'),b=document.getElementById('mcoCategoryLanding');
+            if(a)a.hidden=!home;if(b)b.hidden=!landing;
+            const back=document.getElementById('mcoHomeFeedBack');
+            if(back)back.hidden=!mcoHomeFeedMode||home||landing;
+            const root=document.getElementById('mainContent');
+            if(root)root.classList.toggle('mco-special-route',!!(home||landing));
+        }
+        function mcoHomeRenderCategoryLanding(cat,config){
+            const title=document.getElementById('mcoCategoryLandingTitle'),desc=document.getElementById('mcoCategoryLandingDescription');
+            if(title)title.textContent=config.title;
+            if(desc)desc.textContent=config.description;
+            document.title=config.title+' | MCO GAMES';
+        }
 
         const PIX_KEY = "pixmcogames@gmail.com";
         const CATEGORY_VISIBLE_LIMIT = 4;
@@ -6926,51 +7116,16 @@ async function copyShareText(text) {
 
 
         function applySharedCategoryFromUrl() {
-            const params = new URLSearchParams(window.location.search);
-            const sharedKey = params.get('categoria');
-
-            if (!sharedKey) return;
-
-            const realCategory = games.find(game => categoryKey(game.category) === sharedKey)?.category;
-            if (!realCategory) return;
-
-            const featureSectionMap = {
-                'lancamento-em-oferta': 'launchSection',
-                'pre-venda': 'preorderSection',
-                'promocao': 'promotionSection'
-            };
-
-            const targetId = featureSectionMap[sharedKey];
-
-            if (targetId) {
-                setTimeout(() => {
-                    const section = document.getElementById(targetId);
-                    if (!section) return;
-
-                    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    section.style.transition = 'filter 0.25s ease, transform 0.25s ease';
-                    section.style.filter = 'drop-shadow(0 0 18px rgba(0, 230, 118, 0.18))';
-                    section.style.transform = 'translateY(-2px)';
-
-                    setTimeout(() => {
-                        section.style.filter = '';
-                        section.style.transform = '';
-                    }, 1800);
-                }, 350);
-            } else {
-                const select = document.getElementById('categorySelect');
-                if (select) {
-                    const option = [...select.options].find(
-                        option => categoryKey(option.value) === sharedKey
-                    );
-
-                    if (option) {
-                        select.value = option.value;
-                        renderGames();
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }
-                }
-            }
+            const value=new URLSearchParams(window.location.search).get('categoria');
+            if (!value) { mcoCategoryRoute=''; return; }
+            const requested=categoryKey(value);
+            const found=games.find(game=>categoryKey(game.category)===requested);
+            if (!found) { mcoCategoryRoute=''; return; }
+            mcoCategoryRoute=requested;
+            const select=document.getElementById('categorySelect');
+            if(select)select.value='ALL';
+            renderGames();
+            window.scrollTo(0,0);
         }
 
         function buildSheetCsvUrl(tab) {
@@ -7578,6 +7733,7 @@ async function copyShareText(text) {
                 games = applyStoreVisibilityRules(
                     sourceGames
                 );
+                mcoHomeRandomCards={};
 
                 if (games.length === 0) {
                     showError();
@@ -7598,6 +7754,8 @@ async function copyShareText(text) {
                 registerPersonalizationVisit();
 
                 populateCategories();
+                const initialCategoryParam=new URLSearchParams(window.location.search).get('categoria');
+                mcoCategoryRoute=initialCategoryParam&&games.some(g=>categoryKey(g.category)===categoryKey(initialCategoryParam))?categoryKey(initialCategoryParam):'';
                 syncSortUi();
                 renderLaunchCarousel();
                 renderPreorderCarousel();
@@ -10121,6 +10279,9 @@ async function copyShareText(text) {
         }
 
         function handleCategoryFilterChange() {
+            mcoCategoryRoute='';
+            mcoHomeFeedMode=false;
+            if (window.history?.replaceState)window.history.replaceState({},'',getStoreBaseUrl());
             leaveProductModeForFilter();
             instagramIndex = 0;
             renderGames();
@@ -10128,6 +10289,7 @@ async function copyShareText(text) {
         }
 
         function handleCatalogFilterInput() {
+            if(mcoCategoryRoute){mcoCategoryRoute='';if(window.history?.replaceState)window.history.replaceState({},'',getStoreBaseUrl());}
             // Qualquer nova digitação ou troca de categoria encerra o modo produto.
             if (selectedSearchGameId) {
                 selectedSearchGameId = null;
@@ -10151,6 +10313,8 @@ async function copyShareText(text) {
         }
 
         function goToStoreHome(event) {
+            mcoCategoryRoute='';
+            mcoHomeFeedMode=false;
             if (event) {
                 event.preventDefault();
                 event.stopPropagation();
@@ -10199,6 +10363,8 @@ async function copyShareText(text) {
 
 
         function clearCatalogSearch() {
+            mcoCategoryRoute='';
+            mcoHomeFeedMode=false;
             const input = document.getElementById('searchInput');
 
             selectedSearchGameId = null;
@@ -10425,6 +10591,9 @@ async function copyShareText(text) {
         }
 
         function selectInstagramCategory(category) {
+            mcoCategoryRoute='';
+            mcoHomeFeedMode=true;
+            if(window.history?.replaceState)window.history.replaceState({},'',getStoreBaseUrl());
             leaveProductModeForFilter();
             selectedSearchGameId = null;
             instagramCategory = category || 'ALL';
@@ -12631,6 +12800,7 @@ async function copyShareText(text) {
         }
 
         function renderGames() {
+            if(selectedSearchGameId)mcoCategoryRoute='';
             const catalogContainer = document.getElementById('catalogContainer');
             const layout = document.getElementById('instagramLayout');
             const mobileCategory = document.getElementById('igMobileCategory');
@@ -12641,6 +12811,31 @@ async function copyShareText(text) {
             const desktopMode = window.matchMedia('(min-width: 801px)').matches;
 
             syncPlatformFilterUi();
+
+            // O endereço ?categoria=... é uma página exclusiva, nunca uma rolagem ao carrossel.
+            const matchedCategory=mcoCategoryRoute?MCO_HOME_CATEGORIES.find(c=>c.key===mcoCategoryRoute):null;
+            if(matchedCategory && !selectedSearchGameId && !searchVal){
+                mcoHomeSetVisibility(false,true);
+                mcoHomeRenderCategoryLanding(matchedCategory,mcoHomeConfig(matchedCategory));
+                if(layout)layout.style.display='none';
+                if(mobileCategory)mobileCategory.style.display='none';
+                const matches=sortGamesForCurrentView(platformGames.filter(g=>isCategory(g,matchedCategory.category)));
+                renderFilteredResults(matches,'',matchedCategory.category,platformVal);
+                return;
+            }
+            const showHome=!selectedSearchGameId&&!searchVal&&catVal==='ALL'&&!mcoCategoryRoute&&!mcoHomeFeedMode;
+            if(showHome){
+                mcoHomeSetVisibility(true,false);
+                if(layout)layout.style.display='none';
+                if(mobileCategory)mobileCategory.style.display='none';
+                if(catalogContainer)catalogContainer.innerHTML='';
+                setFeatureSectionsVisible(false);
+                mcoHomeRender();
+                renderRecentSection();
+                document.title='MCO GAMES — Sua Loja Digital';
+                return;
+            }
+            mcoHomeSetVisibility(false,false);
 
             if (desktopMode) {
                 if (layout) layout.style.display = 'none';

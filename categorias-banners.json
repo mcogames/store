@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "categories": [
+    {
+      "key": "lancamento-em-oferta",
+      "title": "Lançamentos em oferta",
+      "description": "Novidades com preços especiais.",
+      "image": ""
+    },
+    {
+      "key": "pre-venda",
+      "title": "Pré-vendas",
+      "description": "Garanta os próximos lançamentos.",
+      "image": ""
+    },
+    {
+      "key": "catalogo",
+      "title": "Catálogo de jogos",
+      "description": "Encontre seu próximo jogo de PS4 ou PS5.",
+      "image": ""
+    }
+  ]
+}
