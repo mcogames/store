@@ -7,6 +7,7 @@
     <meta name="mco-promo-priority-version" content="NEXUS-2M.2.23-PRODUCT-EDITION-PROMO-FIRST">
     <meta name="mco-campaign-dynamic-version" content="NEXUS-2M.2.24-CAMPAIGN-DYNAMIC">
     <meta name="mco-home-category-version" content="NEXUS-2M.2.31-UNIFIED-BANNER-LEFT">
+    <meta name="mco-retro-ps5-version" content="NEXUS-2M.2.38-PS4-RETRO-LABEL">
     <title>MCO GAMES | Sua Loja Digital</title>
     <!-- Favicon oficial MCO GAMES -->
     <link rel="icon" type="image/png" sizes="64x64" href="./favicon-mco.png">
@@ -814,6 +815,16 @@
             border: 1px solid rgba(255,255,255,0.2);
             z-index: 2;
         }
+
+        .mco-retro-compat-note {
+            display:block;
+            margin:7px 0 2px;
+            color:#9bdfff;
+            font-size:11px;
+            font-weight:750;
+            line-height:1.45;
+        }
+        .platform-btn[title*="retrocompatibilidade"] {border-color:#54bce9;}
 
         .discount-badge {
             position: absolute;
@@ -5927,7 +5938,7 @@ async function copyShareText(text) {
             }
             const info=document.createElement('span');info.className='mco-chome-game-info';
             const title=document.createElement('strong');title.textContent=game.name||'Jogo MCO GAMES';
-            const platforms=document.createElement('span');platforms.className='mco-chome-platforms';platforms.textContent=(game.platforms||[]).join(' • ')||game.platform||'PS4 / PS5';
+            const platforms=document.createElement('span');platforms.className='mco-chome-platforms';platforms.textContent=getGamePlatformsDisplayText(game)||game.platform||'PS4 / PS5';
             const price=document.createElement('span');price.className='mco-chome-price';
             const value=Number(getGameMainPriceForCurrentFilter(game)||0);
             price.textContent=value>0?'A partir de '+value.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}):'Ver opções';
@@ -6499,6 +6510,50 @@ async function copyShareText(text) {
         function normalizePlatformFilter(value) {
             const normalized = String(value || 'ALL').trim().toUpperCase();
             return ['PS4', 'PS5'].includes(normalized) ? normalized : 'ALL';
+        }
+
+        // Um SKU CUSA identifica a versão PS4. Quando existe preço PS5 para esse
+        // mesmo SKU, a loja deve informar que é a versão PS4 executada no PS5,
+        // nunca apresentá-la como edição nativa PS5.
+        const MCO_PS4_ONLY_EXCEPTIONS = [
+            'Afro Samurai 2 Revenge of Kuma Volume One',
+            'Just Deal With It!',
+            'Robinson: The Journey',
+            'We Sing',
+            'Hitman Go: Definitive Edition',
+            'Shadwen'
+        ];
+
+        function normalizeRetroGameName(value) {
+            return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase().replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim();
+        }
+
+        function isOfficialPs4OnlyException(game) {
+            const name = normalizeRetroGameName(game?.name);
+            return MCO_PS4_ONLY_EXCEPTIONS.some(item => {
+                const key = normalizeRetroGameName(item);
+                return name === key || name.startsWith(key + ' ps4') || name.startsWith(key + ' edition');
+            });
+        }
+
+        function isPs4RetroOnPs5(game) {
+            if (!game || game.isCombo || game.isPs4OnlyException || isOfficialPs4OnlyException(game)) return false;
+            const identity = String(game.productBaseCode || game.sheetId || '').trim().toUpperCase();
+            const isCusa = /(?:^|[^A-Z0-9])CUSA\d{5}(?:[-_]|$)/.test(identity);
+            const hasPs5Price = Number(game.ps5Primary || 0) > 0 || Number(game.ps5Secondary || 0) > 0;
+            return isCusa && hasPs5Price;
+        }
+
+        function getPlatformDisplayLabel(game, platform) {
+            const key = String(platform || '').trim().toUpperCase();
+            return key === 'PS5' && isPs4RetroOnPs5(game) ? 'PS4 no PS5' : key;
+        }
+
+        function getGamePlatformsDisplayText(game) {
+            const list = Array.isArray(game?.platforms) ? game.platforms : [];
+            if (isPs4RetroOnPs5(game)) return 'PS4 no PS5';
+            return list.map(platform => getPlatformDisplayLabel(game, platform)).join(' / ');
         }
 
         function gameMatchesPlatformFilter(game, platform = selectedPlatformFilter) {
@@ -7575,6 +7630,13 @@ async function copyShareText(text) {
                 if (specialOfferState.ps4Primaria.active) ps4Primary = specialOfferState.ps4Primaria.price;
                 if (specialOfferState.ps4Secundaria.active) ps4Secondary = specialOfferState.ps4Secundaria.price;
 
+                const retroIdentity = String(text(row[C.productBase]) || text(row[C.id])).trim().toUpperCase();
+                const isCusaSku = /(?:^|[^A-Z0-9])CUSA\d{5}(?:[-_]|$)/.test(retroIdentity);
+                const isPs4OnlyException = isCusaSku && isOfficialPs4OnlyException({name});
+                // Segurança adicional no catálogo público: títulos da lista oficial
+                // "PS4 only" não recebem modalidade PS5, mesmo que haja preço legado na planilha.
+                if (isPs4OnlyException) { ps5Primary = 0; ps5Secondary = 0; }
+
                 const platformPrices = [
                     ps4Primary, ps4Secondary, ps5Primary, ps5Secondary
                 ].filter(v => v > 0);
@@ -7638,6 +7700,7 @@ async function copyShareText(text) {
                     comboNames,
                     comboCovers,
                     comboCount: comboNames.length || comboCodes.length,
+                    isPs4OnlyException,
 
                     oldPrice,
                     psnCurrentPrice,
@@ -7670,6 +7733,7 @@ async function copyShareText(text) {
                 });
 
                 const game = parsedGames[parsedGames.length - 1];
+                game.platform = getGamePlatformsDisplayText(game) || 'Plataforma não informada';
                 const onlyPlatform = platforms.length === 1 ? platforms[0] : null;
 
                 if (onlyPlatform === 'PS4') {
@@ -8158,8 +8222,9 @@ async function copyShareText(text) {
 
             const overlay = document.getElementById('purchaseConfirmOverlay');
             document.getElementById('purchaseConfirmProduct').innerText = game.name;
+            const purchasePlatformLabel = getPlatformDisplayLabel(game, cartItem.platform);
             document.getElementById('purchaseConfirmChoice').innerText =
-                `Conta ${cartItem.type} • ${cartItem.platform} • R$ ${cartItem.price.toFixed(2).replace('.', ',')}`;
+                `Conta ${cartItem.type} • ${purchasePlatformLabel} • R$ ${cartItem.price.toFixed(2).replace('.', ',')}`;
             const requiresCheck = !isCategory(game, 'Promoção') && game.hasStockInfo && currentStock <= 0;
             const message = document.getElementById('purchaseConfirmAvailabilityNote');
             if (message) message.textContent = requiresCheck
@@ -8440,10 +8505,10 @@ async function copyShareText(text) {
 
             const moneyText = value => `R$ ${Number(value).toFixed(2).replace('.', ',')}`;
             const options = [];
-            if (Number(game.ps5Primary) > 0) options.push({ label: 'PS5 PRIMÁRIA', value: Number(game.ps5Primary) });
-            if (Number(game.ps5Secondary) > 0) options.push({ label: 'PS5 SECUNDÁRIA', value: Number(game.ps5Secondary) });
-            if (Number(game.ps4Primary) > 0) options.push({ label: 'PS4 PRIMÁRIA', value: Number(game.ps4Primary) });
-            if (Number(game.ps4Secondary) > 0) options.push({ label: 'PS4 SECUNDÁRIA', value: Number(game.ps4Secondary) });
+            if (Number(game.ps5Primary) > 0) options.push({ label: isPs4RetroOnPs5(game) ? 'PS4 NO PS5 PRIMÁRIA' : 'PS5 PRIMÁRIA', platform: 'PS5', value: Number(game.ps5Primary) });
+            if (Number(game.ps5Secondary) > 0) options.push({ label: isPs4RetroOnPs5(game) ? 'PS4 NO PS5 SECUNDÁRIA' : 'PS5 SECUNDÁRIA', platform: 'PS5', value: Number(game.ps5Secondary) });
+            if (Number(game.ps4Primary) > 0) options.push({ label: 'PS4 PRIMÁRIA', platform: 'PS4', value: Number(game.ps4Primary) });
+            if (Number(game.ps4Secondary) > 0) options.push({ label: 'PS4 SECUNDÁRIA', platform: 'PS4', value: Number(game.ps4Secondary) });
 
             // Quadro de preços em linhas e colunas, com identificador visual de PS4/PS5.
             // Só mostra opções com preço positivo vindo da planilha; o bloco acompanha a quantidade de opções.
@@ -8469,8 +8534,8 @@ async function copyShareText(text) {
             const priceStartY = boxY + headerH;
             options.slice(0, 4).forEach((opt, i) => {
                 const y = priceStartY + i * rowH;
-                const isPs5 = opt.label.startsWith('PS5');
-                const platform = isPs5 ? 'PS5' : 'PS4';
+                const isPs5 = opt.platform === 'PS5' || opt.label.startsWith('PS5');
+                const platform = isPs5 ? (isPs4RetroOnPs5(game) ? 'PS4 NO PS5' : 'PS5') : 'PS4';
                 const accountType = opt.label.includes('SECUNDÁRIA') ? 'SECUNDÁRIA' : 'PRIMÁRIA';
                 // Ícone de plataforma em coluna própria; rótulo da conta e preço ficam alinhados.
                 ctx.textAlign = 'left';
@@ -8668,7 +8733,8 @@ async function copyShareText(text) {
                     ? ` Combo com ${game.comboNames.join(', ')}.`
                     : '';
 
-            const description = `${game.name} para ${game.platform || 'PlayStation'} na MCO GAMES${comboDescription}${price > 0 ? ` A partir de R$ ${price.toFixed(2).replace('.', ',')}.` : '.'}`;
+            const platformDescription = isPs4RetroOnPs5(game) ? 'versão PS4, jogável no PS5 por retrocompatibilidade (não é edição nativa PS5)' : (game.platform || 'PlayStation');
+            const description = `${game.name} para ${platformDescription} na MCO GAMES${comboDescription}${price > 0 ? ` A partir de R$ ${price.toFixed(2).replace('.', ',')}.` : '.'}`;
 
             document.title = `${game.name} | MCO GAMES`;
             setMetaTag('meta[name="description"]', 'name', 'description', description);
@@ -9557,17 +9623,24 @@ async function copyShareText(text) {
                 platformHtml = `
                     <div class="platform-heading">Plataforma</div>
                     <div class="platform-selector" aria-label="Escolha a plataforma">
-                        ${platformList.map(platform => `
+                        ${platformList.map(platform => {
+                            const displayLabel = getPlatformDisplayLabel(game, platform);
+                            const title = isPs4RetroOnPs5(game) && platform === 'PS5'
+                                ? 'Versão PS4 executada no PS5 por retrocompatibilidade; não é edição nativa PS5.'
+                                : 'Selecionar plataforma ' + platform;
+                            return `
                             <button type="button"
                                 class="platform-btn ${selectedPlatform === platform ? 'active' : ''}"
+                                aria-label="${escapeHtml(displayLabel)}"
+                                title="${escapeHtml(title)}"
                                 aria-pressed="${selectedPlatform === platform ? 'true' : 'false'}"
-                                onclick="event.stopPropagation(); selectPlatform('${game.id}', '${platform}')">${platform}</button>
-                        `).join('')}
+                                onclick="event.stopPropagation(); selectPlatform('${game.id}', '${platform}')">${escapeHtml(displayLabel)}</button>
+                        `;}).join('')}
                     </div>`;
             } else if (platformList.length === 1) {
                 platformHtml = `
                     <div class="platform-heading">Plataforma</div>
-                    <div class="platform-single">${escapeHtml(platformList[0])}</div>`;
+                    <div class="platform-single">${escapeHtml(getPlatformDisplayLabel(game, platformList[0]))}</div>`;
             }
 
             const primaryPriced = data.primary > 0;
@@ -9602,7 +9675,7 @@ async function copyShareText(text) {
             const timerHtml = game.targetDate
                 ? `<div class="timer-badge" data-target="${escapeHtml(game.targetDate)}">⏳ Carregando...</div>` : '';
             const preorderHtml = isPreorderGame(game) ? `<span class="preorder-label">🚀 PRÉ-VENDA</span>` : '';
-            const platformTag = platformList.length ? platformList.join(' / ') : 'Plataforma não informada';
+            const platformTag = getGamePlatformsDisplayText(game) || 'Plataforma não informada';
 
             const pricedStockValues = [
                 game.ps4Primary > 0 ? game.stockPs4Primary : null,
@@ -9656,6 +9729,7 @@ async function copyShareText(text) {
                            aria-label="Abrir Grupo VIP">💬 Grupo VIP</a>
                     </div>
                     ${platformHtml}
+                    ${isPs4RetroOnPs5(game) ? '<span class="mco-retro-compat-note">Versão PS4 · jogável no PS5 por retrocompatibilidade. Não é edição nativa PS5.</span>' : game.isPs4OnlyException ? '<span class="mco-retro-compat-note">PS4 apenas · a Sony lista este título como não compatível com PS5.</span>' : ''}
                     ${buttonsHtml}
                     <div class="card-actions-row">
                         <button class="btn-buy-direct" ${selectedItem ? '' : 'disabled'} ${selectedItem ? '' : 'aria-disabled="true"'}
@@ -11838,7 +11912,10 @@ async function copyShareText(text) {
                             );
 
                             button.textContent =
-                                platform;
+                                getPlatformDisplayLabel(game, platform);
+                            if (isPs4RetroOnPs5(game) && platform === 'PS5') {
+                                button.title = 'Versão PS4 executada no PS5 por retrocompatibilidade; não é edição nativa PS5.';
+                            }
 
                             button.addEventListener(
                                 'click',
@@ -11874,12 +11951,18 @@ async function copyShareText(text) {
 
                     single.textContent =
                         platformList.length
-                            ? platformList[0]
+                            ? getPlatformDisplayLabel(game, platformList[0])
                             : 'Não informada';
 
                     platformContent.appendChild(
                         single
                     );
+                }
+                if (isPs4RetroOnPs5(game) || game.isPs4OnlyException) {
+                    const retroNote = document.createElement('small');
+                    retroNote.className = 'mco-retro-compat-note';
+                    retroNote.textContent = game.isPs4OnlyException ? 'PS4 apenas · a Sony lista este título como não compatível com PS5.' : 'Versão PS4 · jogável no PS5 por retrocompatibilidade. Não é edição nativa PS5.';
+                    platformContent.appendChild(retroNote);
                 }
             }
 
@@ -13059,9 +13142,11 @@ async function copyShareText(text) {
         }
 
         function buildOrderItemsText() {
-            return selectedCart.map((item, index) =>
-                `${index + 1}. ${item.name} (${item.platform}) - [${item.type}] — R$ ${item.price.toFixed(2).replace('.', ',')}`
-            ).join('\n');
+            return selectedCart.map((item, index) => {
+                const game = games.find(g => g.id === item.gameId);
+                const platformLabel = getPlatformDisplayLabel(game, item.platform);
+                return `${index + 1}. ${item.name} (${platformLabel}) - [${item.type}] — R$ ${item.price.toFixed(2).replace('.', ',')}`;
+            }).join('\n');
         }
 
         function buildWhatsAppOrderMessage(paymentMethod = 'PIX') {
@@ -14832,9 +14917,7 @@ async function buildMcoSharePoster(
 
     const platformLabel =
         platformList.length
-            ? platformList.join(
-                ' / '
-              )
+            ? platformList.map(platform => getPlatformDisplayLabel(game, platform)).join(' / ')
             : (
                 game.platform ||
                 'PLAYSTATION'
