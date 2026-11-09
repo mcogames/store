@@ -7,6 +7,7 @@
     <meta name="mco-promo-priority-version" content="NEXUS-2M.2.23-PRODUCT-EDITION-PROMO-FIRST">
     <meta name="mco-campaign-dynamic-version" content="NEXUS-2M.2.24-CAMPAIGN-DYNAMIC">
     <meta name="mco-home-category-version" content="NEXUS-2M.2.31-UNIFIED-BANNER-LEFT">
+    <meta name="mco-share-category-version" content="NEXUS-2M.2.41-BANNER-PLUS-FOUR-GAMES">
     <meta name="mco-retro-ps5-version" content="NEXUS-2M.2.38-PS4-RETRO-LABEL">
     <title>MCO GAMES | Sua Loja Digital</title>
     <!-- Favicon oficial MCO GAMES -->
@@ -9852,170 +9853,216 @@ async function copyShareText(text) {
             return selected;
         }
 
+        /* NEXUS 2M.2.41 — Compartilhar categoria: BANNER + 4 JOGOS.
+         * Não altera a HOME nem a navegação mobile. A arte é criada apenas
+         * quando o cliente clica em Compartilhar. Sem tocar em planilhas.
+         * A imagem do banner é exibida inteira (contain), sem corte forçado.
+         */
+        async function mcoShareCategoryLoadImage(sourceUrl) {
+            if (!sourceUrl) return null;
+            let url;
+            try {
+                url = new URL(String(sourceUrl), window.location.href);
+                if (!['https:', 'http:'].includes(url.protocol)) return null;
+            } catch (_) { return null; }
+            const tryImage = async src => {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.decoding = 'async';
+                img.src = src;
+                try { await img.decode(); } catch (_) {
+                    await new Promise((resolve, reject) => {
+                        img.onload = resolve;
+                        img.onerror = reject;
+                        if (img.complete) img.naturalWidth ? resolve() : reject(Error('Imagem inválida'));
+                    });
+                }
+                return img.naturalWidth > 0 ? img : null;
+            };
+            // GitHub Pages: usa o próprio arquivo, sem proxy.
+            if (url.origin === window.location.origin) {
+                try { return await tryImage(url.href); } catch (_) { /* fallback */ }
+            }
+            // Imagens externas podem impedir desenho no canvas por CORS.
+            // Reaproveita o mesmo preparo seguro usado no compartilhamento de jogos.
+            try {
+                const safe = await getImageDataUrlForCanvas(url.href);
+                if (safe) return await tryImage(safe);
+            } catch (_) { /* fallback */ }
+            try { return await tryImage(url.href); } catch (_) { return null; }
+        }
+
+        function mcoShareCategoryFitText(ctx, text, maxWidth, minChars = 8) {
+            const original = String(text || '').trim();
+            let result = original;
+            while (result.length > minChars && ctx.measureText(result).width > maxWidth)
+                result = result.slice(0, -2).trimEnd();
+            return result === original ? result : result + '…';
+        }
+
+        function mcoShareCategoryLines(ctx, text, maxWidth, maxLines = 2) {
+            const words = String(text || '').trim().split(/\s+/).filter(Boolean);
+            const lines = [];
+            let line = '';
+            for (let i = 0; i < words.length; i++) {
+                const candidate = line ? line + ' ' + words[i] : words[i];
+                if (ctx.measureText(candidate).width <= maxWidth || !line) {
+                    line = candidate;
+                } else {
+                    lines.push(line);
+                    line = words[i];
+                    if (lines.length >= maxLines - 1) {
+                        line = [line, ...words.slice(i+1)].join(' ');
+                        break;
+                    }
+                }
+            }
+            if (line) lines.push(line);
+            return lines.slice(0, maxLines).map((t, i) =>
+                i === maxLines-1 ? mcoShareCategoryFitText(ctx, t, maxWidth) : t
+            );
+        }
+
         async function buildCategoryShareCanvas(category) {
             const allGames = games.filter(game => isCategory(game, category));
-            const featuredGames = getCategoryShareGames(category, allGames, 3);
+            if (!allGames.length) throw new Error('Categoria sem jogos disponíveis.');
+            const featuredGames = getCategoryShareGames(category, allGames, 4);
+            // Carrega as capas em paralelo para evitar espera acumulada no celular.
+            const coverImagesPromise = Promise.all(featuredGames.map(game =>
+                mcoShareCategoryLoadImage(game.img).catch(() => null)
+            ));
+            const key = categoryKey(category);
+            const item = MCO_HOME_CATEGORIES.find(x => x.key === key);
+            const config = item ? mcoHomeConfig(item) : {
+                title: getCategoryDisplayName(category), description: 'Confira nossos jogos.', image: '', imageMobile: ''
+            };
+            const fallbackBanners = {
+                'promocao': './banner-promocao.jpg',
+                'lancamento-em-oferta': './banner-lancamento-em-oferta.jpg',
+                'pre-venda': './banner-pre-venda.jpg',
+                'catalogo': './banner-catalogo.jpg'
+            };
 
+            const W = 1200, H = 950;
             const canvas = document.createElement('canvas');
-            canvas.width = 1200;
-            canvas.height = 630;
-
+            canvas.width = W;
+            canvas.height = H;
             const ctx = canvas.getContext('2d');
             if (!ctx) throw new Error('Canvas não disponível.');
+            ctx.textBaseline = 'alphabetic';
+            ctx.textAlign = 'left';
 
-            // For category PROMOCAO, use the official campaign banner in the shared image.
-            // Cross-origin images must be CORS-enabled; if not, retain the existing collage.
-            if (isCategory({category}, 'Promoção') && mcoPromoCampaign.banner) {
-                try {
-                    const image = new Image();
-                    image.crossOrigin = 'anonymous';
-                    image.src = mcoPromoCampaign.banner;
-                    await new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=()=>reject(Error('Banner indisponível'));});
-                    if (image.naturalWidth < 1) throw Error('Banner vazio');
-                    const k=Math.max(1200/image.naturalWidth,630/image.naturalHeight);
-                    ctx.drawImage(image,(1200-image.naturalWidth*k)/2,(630-image.naturalHeight*k)/2,image.naturalWidth*k,image.naturalHeight*k);
-                    const overlay=ctx.createLinearGradient(0,250,0,630);
-                    overlay.addColorStop(0,'rgba(0,0,0,0)');overlay.addColorStop(1,'rgba(0,8,18,.88)');
-                    ctx.fillStyle=overlay;ctx.fillRect(0,0,1200,630);
-                    ctx.fillStyle='#19bfff';ctx.fillRect(0,0,1200,7);
-                    ctx.fillStyle='#ffffff';ctx.font='900 47px Inter, Arial, sans-serif';
-                    let title=mcoPromoCampaign.name;while(ctx.measureText(title).width>1075&&title.length>15)title=title.slice(0,-2);
-                    ctx.fillText(title+(title!==mcoPromoCampaign.name?'…':''),58,520);
-                    ctx.fillStyle='#bce4ff';ctx.font='700 25px Inter, Arial, sans-serif';
-                    ctx.fillText((mcoPromoCampaign.description||'Jogos em oferta na MCO GAMES').slice(0,72),60,566);
-                    ctx.font='700 18px Inter, Arial, sans-serif';ctx.fillText('MCO GAMES  •  PS4 / PS5',60,603);
-                    return canvas;
-                } catch (error) {
-                    console.warn('Banner não pôde ser usado na arte. Mantendo mosaico de jogos.',error);
-                    ctx.clearRect(0,0,1200,630);
-                }
+            // Fundo e detalhes da identidade MCO GAMES.
+            const bg = ctx.createLinearGradient(0, 0, W, H);
+            bg.addColorStop(0, '#070e19');
+            bg.addColorStop(1, '#101e30');
+            ctx.fillStyle = bg;
+            ctx.fillRect(0, 0, W, H);
+            ctx.fillStyle = '#62d2ff';
+            ctx.fillRect(0, 0, W, 7);
+
+            // Banner original completo, sem object-fit:cover.
+            const bx = 32, by = 28, bw = 1136, bh = 185;
+            ctx.fillStyle = '#102b47';
+            ctx.beginPath(); ctx.roundRect(bx, by, bw, bh, 19); ctx.fill();
+            let banner = await mcoShareCategoryLoadImage(config.image || fallbackBanners[key]);
+            if (!banner && config.image && fallbackBanners[key])
+                banner = await mcoShareCategoryLoadImage(fallbackBanners[key]);
+            if (!banner && config.imageMobile)
+                banner = await mcoShareCategoryLoadImage(config.imageMobile);
+            ctx.save();
+            ctx.beginPath(); ctx.roundRect(bx, by, bw, bh, 19); ctx.clip();
+            if (banner) {
+                const ratio = Math.min(bw / banner.naturalWidth, bh / banner.naturalHeight);
+                const dw = banner.naturalWidth * ratio, dh = banner.naturalHeight * ratio;
+                ctx.drawImage(banner, bx + (bw-dw)/2, by + (bh-dh)/2, dw, dh);
+            } else {
+                const gradient = ctx.createLinearGradient(bx, by, bx+bw, by+bh);
+                gradient.addColorStop(0,'#174968');gradient.addColorStop(1,'#242b5a');
+                ctx.fillStyle=gradient;ctx.fillRect(bx,by,bw,bh);
             }
+            // Gradiente apenas na área do texto, preservando o restante da arte.
+            const overlay = ctx.createLinearGradient(bx, 0, bx+890, 0);
+            overlay.addColorStop(0, 'rgba(2,9,21,.93)');
+            overlay.addColorStop(.60, 'rgba(2,9,21,.62)');
+            overlay.addColorStop(1, 'rgba(2,9,21,0)');
+            ctx.fillStyle = overlay;ctx.fillRect(bx,by,bw,bh);
+            ctx.restore();
+            ctx.lineWidth = 2;ctx.strokeStyle = 'rgba(103,211,255,.65)';
+            ctx.beginPath();ctx.roundRect(bx,by,bw,bh,19);ctx.stroke();
 
-            // Fundo.
-            const bgGradient = ctx.createLinearGradient(0, 0, 1200, 630);
-            bgGradient.addColorStop(0, '#0b0d10');
-            bgGradient.addColorStop(1, '#141a21');
-            ctx.fillStyle = bgGradient;
-            ctx.fillRect(0, 0, 1200, 630);
+            ctx.fillStyle = '#83dfff';ctx.font = '900 16px Inter, Arial, sans-serif';
+            ctx.fillText('EXPLORAR CATEGORIA', bx+30, by+42);
+            ctx.fillStyle = '#fff';ctx.font = '900 42px Inter, Arial, sans-serif';
+            const heading = mcoShareCategoryFitText(ctx, config.title || getCategoryDisplayName(category), 705);
+            ctx.fillText(heading, bx+30, by+96);
+            ctx.fillStyle='#d8efff';ctx.font='600 21px Inter, Arial, sans-serif';
+            ctx.fillText(mcoShareCategoryFitText(ctx, config.description || '', 700), bx+30, by+134);
+            ctx.fillStyle = 'rgba(64,188,255,.22)';
+            ctx.beginPath();ctx.roundRect(bx+30,by+148,220,26,8);ctx.fill();
+            ctx.fillStyle='#fff';ctx.font='800 14px Inter, Arial, sans-serif';
+            ctx.fillText('VER TODOS OS JOGOS  →',bx+44,by+166);
 
-            // Faixa de destaque.
-            const accentGradient = ctx.createLinearGradient(0, 0, 1200, 0);
-            accentGradient.addColorStop(0, '#18B8FF');
-            accentGradient.addColorStop(1, '#0878D1');
-            ctx.fillStyle = accentGradient;
-            ctx.fillRect(0, 0, 1200, 7);
+            ctx.fillStyle = '#fff';ctx.font = '900 28px Inter, Arial, sans-serif';
+            ctx.fillText('JOGOS EM DESTAQUE', 33, 263);
+            ctx.textAlign = 'right';
+            ctx.fillStyle='#9ec7e3';ctx.font='700 18px Inter, Arial, sans-serif';
+            ctx.fillText(allGames.length + ' JOGOS NESTA CATEGORIA', 1166, 262);
+            ctx.textAlign='left';
 
-            // Título.
-            ctx.fillStyle = '#ffffff';
-            ctx.font = '900 42px Inter, Arial, sans-serif';
-            ctx.fillText(getCategoryDisplayName(category), 60, 76);
-
-            ctx.fillStyle = '#8c96a3';
-            ctx.font = '600 19px Inter, Arial, sans-serif';
-            ctx.fillText(`${allGames.length} jogo${allGames.length === 1 ? '' : 's'} disponível${allGames.length === 1 ? '' : 'is'} • PS4 / PS5`, 60, 108);
-
-            const positions = [
-                { x: 60,  w: 320 },
-                { x: 440, w: 320 },
-                { x: 820, w: 320 }
-            ];
-
-            const imageSize = 320;
-            const y = 145;
-
-            for (let i = 0; i < 3; i++) {
-                const pos = positions[i];
-                const game = featuredGames[i];
-
+            // Quatro cards aleatórios, iguais ao conceito da HOME.
+            const coverImages = await coverImagesPromise;
+            const gap=18, cardW=270.5, cardY=291, cardH=539;
+            for(let i=0; i<featuredGames.length; i++) {
+                const game=featuredGames[i];
+                const x=32+i*(cardW+gap), coverY=302, coverH=275;
+                ctx.fillStyle='#132235';
+                ctx.beginPath();ctx.roundRect(x,cardY,cardW,cardH,16);ctx.fill();
+                ctx.strokeStyle='#335b7b';ctx.lineWidth=1.5;
+                ctx.beginPath();ctx.roundRect(x,cardY,cardW,cardH,16);ctx.stroke();
                 ctx.save();
-                ctx.beginPath();
-                ctx.roundRect(pos.x, y, imageSize, imageSize, 18);
-                ctx.clip();
-
-                if (game) {
-                    let dataUrl = await getImageDataUrlForCanvas(game.img);
-
-                    if (!dataUrl) {
-                        dataUrl = game.img;
-                    }
-
-                    try {
-                        const img = new Image();
-                        img.src = dataUrl;
-
-                        await new Promise(resolve => {
-                            img.onload = resolve;
-                            img.onerror = resolve;
-                        });
-
-                        if (img.naturalWidth > 0) {
-                            const scale = Math.max(imageSize / img.naturalWidth, imageSize / img.naturalHeight);
-                            const dw = img.naturalWidth * scale;
-                            const dh = img.naturalHeight * scale;
-                            const dx = pos.x + (imageSize - dw) / 2;
-                            const dy = y + (imageSize - dh) / 2;
-                            ctx.drawImage(img, dx, dy, dw, dh);
-                        } else {
-                            throw new Error('Imagem inválida');
-                        }
-                    } catch (_) {
-                        ctx.fillStyle = '#1a202a';
-                        ctx.fillRect(pos.x, y, imageSize, imageSize);
-                    }
+                ctx.beginPath();ctx.roundRect(x+8,coverY,cardW-16,coverH,11);ctx.clip();
+                ctx.fillStyle='#233955';ctx.fillRect(x+8,coverY,cardW-16,coverH);
+                const cover=coverImages[i];
+                if (cover) {
+                    const innerW=cardW-16;
+                    const scale=Math.max(innerW/cover.naturalWidth,coverH/cover.naturalHeight);
+                    const sw=cover.naturalWidth*scale, sh=cover.naturalHeight*scale;
+                    ctx.drawImage(cover,x+8+(innerW-sw)/2,coverY+(coverH-sh)/2,sw,sh);
                 } else {
-                    ctx.fillStyle = '#1a202a';
-                    ctx.fillRect(pos.x, y, imageSize, imageSize);
-
-                    ctx.fillStyle = '#66717e';
-                    ctx.font = '700 20px Inter, Arial, sans-serif';
-                    ctx.textAlign = 'center';
-                    ctx.fillText('MCO GAMES', pos.x + imageSize / 2, y + imageSize / 2);
-                    ctx.textAlign = 'left';
+                    ctx.fillStyle='#7bcfff';ctx.textAlign='center';
+                    ctx.font='900 25px Inter, Arial, sans-serif';
+                    ctx.fillText('MCO GAMES',x+cardW/2,coverY+coverH/2);
+                    ctx.textAlign='left';
                 }
-
                 ctx.restore();
 
-                // Moldura.
-                ctx.strokeStyle = 'rgba(0, 230, 118, 0.18)';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.roundRect(pos.x, y, imageSize, imageSize, 18);
-                ctx.stroke();
-
-                if (game) {
-                    // Tarja discreta com o nome.
-                    ctx.fillStyle = 'rgba(0,0,0,0.74)';
-                    ctx.fillRect(pos.x, y + imageSize - 54, imageSize, 54);
-
-                    ctx.fillStyle = '#ffffff';
-                    ctx.font = '800 17px Inter, Arial, sans-serif';
-
-                    const maxWidth = imageSize - 28;
-                    let title = game.name;
-
-                    while (ctx.measureText(title).width > maxWidth && title.length > 12) {
-                        title = title.slice(0, -2);
-                    }
-
-                    if (title !== game.name) title = title.trim() + '…';
-                    ctx.fillText(title, pos.x + 14, y + imageSize - 21);
+                ctx.fillStyle='#fff';ctx.font='800 20px Inter, Arial, sans-serif';
+                const lines=mcoShareCategoryLines(ctx,game.name || 'Jogo MCO GAMES',cardW-28,2);
+                lines.forEach((line,j)=>ctx.fillText(line,x+14,615+j*26));
+                const platform = typeof getGamePlatformsDisplayText==='function'
+                    ? (getGamePlatformsDisplayText(game) || game.platform || 'PS4 / PS5')
+                    : (game.platform || 'PS4 / PS5');
+                ctx.fillStyle='#9fb7cd';ctx.font='600 15px Inter, Arial, sans-serif';
+                ctx.fillText(mcoShareCategoryFitText(ctx,platform,cardW-28),x+14,696);
+                const price=Number(getGameMainPriceForCurrentFilter(game) || game.mainPrice || 0);
+                ctx.fillStyle='#89d8ff';ctx.font='700 14px Inter, Arial, sans-serif';
+                ctx.fillText(price>0?'A PARTIR DE':'CONSULTE AS OPÇÕES',x+14,739);
+                if (price>0) {
+                    ctx.fillStyle='#66d0ff';ctx.font='900 31px Inter, Arial, sans-serif';
+                    ctx.fillText(mcoWholeMoney(price),x+14,783);
                 }
+                ctx.fillStyle='#284862';ctx.fillRect(x+14,806,cardW-28,1);
             }
 
-            // Rodapé: sem URL na imagem. O link continua disponível no texto
-            // do compartilhamento do WhatsApp.
-            ctx.fillStyle = '#18B8FF';
-            ctx.font = '800 20px Inter, Arial, sans-serif';
-            ctx.fillText('MCO GAMES', 60, 530);
-
-            ctx.fillStyle = '#8c96a3';
-            ctx.font = '500 18px Inter, Arial, sans-serif';
-            ctx.fillText('Confira esta categoria completa no site MCO GAMES', 60, 558);
-
-            ctx.fillStyle = '#66717e';
-            ctx.font = '500 14px Inter, Arial, sans-serif';
-            ctx.fillText('Atualizado automaticamente a partir do catálogo MCO GAMES', 60, 592);
-
+            // Rodapé e CTA, mantendo o endereço clicável no texto da mensagem.
+            ctx.fillStyle='#64d0ff';ctx.font='900 28px Inter, Arial, sans-serif';
+            ctx.fillText('MCO GAMES',32,887);
+            ctx.fillStyle='#c4d8e9';ctx.font='600 17px Inter, Arial, sans-serif';
+            ctx.fillText('Escolha seu próximo jogo. Confira a categoria completa.',32,918);
+            ctx.textAlign='right';ctx.fillStyle='#96bdda';ctx.font='700 18px Inter, Arial, sans-serif';
+            ctx.fillText('mcogames.github.io/store/',1168,909);
+            ctx.textAlign='left';
             return canvas;
         }
 
@@ -10032,13 +10079,13 @@ async function copyShareText(text) {
 
             const message =
                 `🎮 *MCO GAMES — ${displayName}*\n\n` +
-                `Confira ${categoryGames.length} jogo${categoryGames.length === 1 ? '' : 's'} dessa categoria.\n\n` +
+                `Veja o banner e jogos em destaque da categoria (${categoryGames.length} no total).\n\n` +
                 `👉 ${shareUrl}`;
 
             const desktopCopyPromise = !isMobileDevice() ? copyShareText(message) : null;
 
             try {
-                showCategoryShareStatus('Preparando a capa para compartilhar…');
+                showCategoryShareStatus('Montando o banner e os jogos…');
 
                 const canvas = await buildCategoryShareCanvas(category);
                 const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
@@ -10112,7 +10159,7 @@ async function copyShareText(text) {
                 );
             } catch (error) {
                 console.error('Erro ao compartilhar categoria:', error);
-                showCategoryShareStatus('Não foi possível preparar a capa.');
+                showCategoryShareStatus('Não foi possível gerar a imagem da categoria.');
             }
         }
 
@@ -10640,6 +10687,25 @@ async function copyShareText(text) {
                     <h3>${label}</h3>
                     <span>${filteredGames.length} jogo(s) encontrado(s)</span>
                 </div>`;
+
+            // 2M.2.41: compartilhar também a partir da página da categoria,
+            // inclusive Catálogo. Não muda o menu/filtro exclusivo do celular.
+            const shareCategory = !searchVal && MCO_HOME_CATEGORIES.find(
+                item => categoryKey(item.category) === categoryKey(catVal)
+            );
+            if (shareCategory) {
+                const header = catalogContainer.querySelector('.search-results-title');
+                if (header) {
+                    const button = document.createElement('button');
+                    button.type = 'button';
+                    button.className = 'category-share-btn';
+                    button.title = 'Compartilhar ' + shareCategory.title;
+                    button.setAttribute('aria-label',button.title);
+                    button.innerHTML = '<span class="share-mini-icon">↗</span><span class="share-mini-label">Compartilhar categoria</span>';
+                    button.addEventListener('click', () => shareCategoryOffer(shareCategory.category));
+                    header.append(button);
+                }
+            }
 
             const grid = document.createElement('div');
             grid.className = 'category-grid';
