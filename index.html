@@ -825,6 +825,10 @@
             line-height:1.45;
         }
         .platform-btn[title*="retrocompatibilidade"] {border-color:#54bce9;}
+        @media (max-width: 800px) {
+            .mco-retro-compat-note { display:none !important; }
+            .platform-btn[title*="retrocompatibilidade"] {border-color:inherit;}
+        }
 
         .discount-badge {
             position: absolute;
@@ -7733,7 +7737,6 @@ async function copyShareText(text) {
                 });
 
                 const game = parsedGames[parsedGames.length - 1];
-                game.platform = getGamePlatformsDisplayText(game) || 'Plataforma não informada';
                 const onlyPlatform = platforms.length === 1 ? platforms[0] : null;
 
                 if (onlyPlatform === 'PS4') {
@@ -9624,7 +9627,8 @@ async function copyShareText(text) {
                     <div class="platform-heading">Plataforma</div>
                     <div class="platform-selector" aria-label="Escolha a plataforma">
                         ${platformList.map(platform => {
-                            const displayLabel = getPlatformDisplayLabel(game, platform);
+                            const displayLabel = window.matchMedia('(max-width: 800px)').matches
+                                ? platform : getPlatformDisplayLabel(game, platform);
                             const title = isPs4RetroOnPs5(game) && platform === 'PS5'
                                 ? 'Versão PS4 executada no PS5 por retrocompatibilidade; não é edição nativa PS5.'
                                 : 'Selecionar plataforma ' + platform;
@@ -9640,7 +9644,7 @@ async function copyShareText(text) {
             } else if (platformList.length === 1) {
                 platformHtml = `
                     <div class="platform-heading">Plataforma</div>
-                    <div class="platform-single">${escapeHtml(getPlatformDisplayLabel(game, platformList[0]))}</div>`;
+                    <div class="platform-single">${escapeHtml(window.matchMedia('(max-width: 800px)').matches ? platformList[0] : getPlatformDisplayLabel(game, platformList[0]))}</div>`;
             }
 
             const primaryPriced = data.primary > 0;
@@ -11912,10 +11916,7 @@ async function copyShareText(text) {
                             );
 
                             button.textContent =
-                                getPlatformDisplayLabel(game, platform);
-                            if (isPs4RetroOnPs5(game) && platform === 'PS5') {
-                                button.title = 'Versão PS4 executada no PS5 por retrocompatibilidade; não é edição nativa PS5.';
-                            }
+                                platform;
 
                             button.addEventListener(
                                 'click',
@@ -11951,18 +11952,12 @@ async function copyShareText(text) {
 
                     single.textContent =
                         platformList.length
-                            ? getPlatformDisplayLabel(game, platformList[0])
+                            ? platformList[0]
                             : 'Não informada';
 
                     platformContent.appendChild(
                         single
                     );
-                }
-                if (isPs4RetroOnPs5(game) || game.isPs4OnlyException) {
-                    const retroNote = document.createElement('small');
-                    retroNote.className = 'mco-retro-compat-note';
-                    retroNote.textContent = game.isPs4OnlyException ? 'PS4 apenas · a Sony lista este título como não compatível com PS5.' : 'Versão PS4 · jogável no PS5 por retrocompatibilidade. Não é edição nativa PS5.';
-                    platformContent.appendChild(retroNote);
                 }
             }
 
