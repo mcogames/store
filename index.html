@@ -5945,7 +5945,7 @@ async function copyShareText(text) {
             const platforms=document.createElement('span');platforms.className='mco-chome-platforms';platforms.textContent=getGamePlatformsDisplayText(game)||game.platform||'PS4 / PS5';
             const price=document.createElement('span');price.className='mco-chome-price';
             const value=Number(getGameMainPriceForCurrentFilter(game)||0);
-            price.textContent=value>0?'A partir de '+value.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}):'Ver opções';
+            price.textContent=value>0?'A partir de '+mcoWholeMoney(value):'Ver opções';
             info.append(title,platforms,price);card.append(cover,info);return card;
         }
         function mcoHomeRender(){
@@ -6423,6 +6423,11 @@ async function copyShareText(text) {
         let expandedFeatureCategories = new Set();
         const carouselIntervals = new Map();
 
+        // 2M.2.40 — Preco efetivo de venda publicado e cobrado ao cliente.
+        // Truncar os centavos (287,90 -> 287), sem reescrever as planilhas.
+        // Os precos oficiais da Sony sao mantidos integrais na origem.
+        function mcoPriceInt(value){const n=Number(value);return Number.isFinite(n)&&n>0?Math.trunc(n):0;}
+        function mcoWholeMoney(value){return 'R$ '+mcoPriceInt(value).toLocaleString('pt-BR');}
         function parsePrice(val) {
             if (!val) return 0;
             let clean = val.toString().replace(/[^\d,\.]/g, '').replace(',', '.');
@@ -7518,6 +7523,8 @@ async function copyShareText(text) {
                 return Number.isFinite(n) ? n : 0;
             };
 
+            const saleMoney = value => mcoPriceInt(money(value));
+
             const stock = value => {
                 if (value === null || value === undefined || String(value).trim() === '') return 0;
                 const n = parseInt(String(value).replace(/[^\d-]/g, ''), 10);
@@ -7560,10 +7567,10 @@ async function copyShareText(text) {
                 const comboNames = isCombo ? arrayField(row[C.comboNames]) : [];
                 const comboCovers = isCombo ? arrayField(row[C.comboCovers]) : [];
 
-                let ps4Primary = money(row[C.ps4Primary]);
-                let ps4Secondary = money(row[C.ps4Secondary]);
-                let ps5Primary = money(row[C.ps5Primary]);
-                let ps5Secondary = money(row[C.ps5Secondary]);
+                let ps4Primary = saleMoney(row[C.ps4Primary]);
+                let ps4Secondary = saleMoney(row[C.ps4Secondary]);
+                let ps5Primary = saleMoney(row[C.ps5Primary]);
+                let ps5Secondary = saleMoney(row[C.ps5Secondary]);
 
                 const stockPs4Primary = stock(row[C.stockPs4Primary]);
                 const stockPs4Secondary = stock(row[C.stockPs4Secondary]);
@@ -7573,25 +7580,25 @@ async function copyShareText(text) {
                 const offerUntil = text(row[C.offerUntil]);
                 const offerConfig = {
                     ps5Primaria: {
-                        price: money(row[C.offerPs5PrimaryPrice]),
+                        price: saleMoney(row[C.offerPs5PrimaryPrice]),
                         qty: stock(row[C.offerPs5PrimaryQty]),
                         baseStock: stock(row[C.offerPs5PrimaryBase]),
                         stockFilled: String(row[C.stockPs5Primary] ?? '').trim() !== ''
                     },
                     ps5Secundaria: {
-                        price: money(row[C.offerPs5SecondaryPrice]),
+                        price: saleMoney(row[C.offerPs5SecondaryPrice]),
                         qty: stock(row[C.offerPs5SecondaryQty]),
                         baseStock: stock(row[C.offerPs5SecondaryBase]),
                         stockFilled: String(row[C.stockPs5Secondary] ?? '').trim() !== ''
                     },
                     ps4Primaria: {
-                        price: money(row[C.offerPs4PrimaryPrice]),
+                        price: saleMoney(row[C.offerPs4PrimaryPrice]),
                         qty: stock(row[C.offerPs4PrimaryQty]),
                         baseStock: stock(row[C.offerPs4PrimaryBase]),
                         stockFilled: String(row[C.stockPs4Primary] ?? '').trim() !== ''
                     },
                     ps4Secundaria: {
-                        price: money(row[C.offerPs4SecondaryPrice]),
+                        price: saleMoney(row[C.offerPs4SecondaryPrice]),
                         qty: stock(row[C.offerPs4SecondaryQty]),
                         baseStock: stock(row[C.offerPs4SecondaryBase]),
                         stockFilled: String(row[C.stockPs4Secondary] ?? '').trim() !== ''
@@ -8227,7 +8234,7 @@ async function copyShareText(text) {
             document.getElementById('purchaseConfirmProduct').innerText = game.name;
             const purchasePlatformLabel = getPlatformDisplayLabel(game, cartItem.platform);
             document.getElementById('purchaseConfirmChoice').innerText =
-                `Conta ${cartItem.type} • ${purchasePlatformLabel} • R$ ${cartItem.price.toFixed(2).replace('.', ',')}`;
+                `Conta ${cartItem.type} • ${purchasePlatformLabel} • ${mcoWholeMoney(cartItem.price)}`;
             const requiresCheck = !isCategory(game, 'Promoção') && game.hasStockInfo && currentStock <= 0;
             const message = document.getElementById('purchaseConfirmAvailabilityNote');
             if (message) message.textContent = requiresCheck
@@ -8506,7 +8513,7 @@ async function copyShareText(text) {
                 infoY += 126;
             }
 
-            const moneyText = value => `R$ ${Number(value).toFixed(2).replace('.', ',')}`;
+            const moneyText = value => `${mcoWholeMoney(Number(value))}`;
             const options = [];
             if (Number(game.ps5Primary) > 0) options.push({ label: isPs4RetroOnPs5(game) ? 'PS4 NO PS5 PRIMÁRIA' : 'PS5 PRIMÁRIA', platform: 'PS5', value: Number(game.ps5Primary) });
             if (Number(game.ps5Secondary) > 0) options.push({ label: isPs4RetroOnPs5(game) ? 'PS4 NO PS5 SECUNDÁRIA' : 'PS5 SECUNDÁRIA', platform: 'PS5', value: Number(game.ps5Secondary) });
@@ -8737,7 +8744,7 @@ async function copyShareText(text) {
                     : '';
 
             const platformDescription = isPs4RetroOnPs5(game) ? 'versão PS4, jogável no PS5 por retrocompatibilidade (não é edição nativa PS5)' : (game.platform || 'PlayStation');
-            const description = `${game.name} para ${platformDescription} na MCO GAMES${comboDescription}${price > 0 ? ` A partir de R$ ${price.toFixed(2).replace('.', ',')}.` : '.'}`;
+            const description = `${game.name} para ${platformDescription} na MCO GAMES${comboDescription}${price > 0 ? ` A partir de ${mcoWholeMoney(price)}.` : '.'}`;
 
             document.title = `${game.name} | MCO GAMES`;
             setMetaTag('meta[name="description"]', 'name', 'description', description);
@@ -8772,7 +8779,7 @@ async function copyShareText(text) {
                 "offers": {
                     "@type": "AggregateOffer",
                     "priceCurrency": "BRL",
-                    "lowPrice": price > 0 ? price.toFixed(2) : undefined,
+                    "lowPrice": price > 0 ? mcoPriceInt(price) : undefined,
                     "offerCount": [game.ps4Primary, game.ps4Secondary, game.ps5Primary, game.ps5Secondary].filter(v => v > 0).length,
                     "availability": available ? "https://schema.org/InStock" : undefined, // Zero: disponibilidade a confirmar, sem falso InStock/OutOfStock.
                     "url": directUrl
@@ -8990,7 +8997,7 @@ async function copyShareText(text) {
 
         function buildSharePlatformOptionLines(game, platforms) {
             const selected = normalizeSharePlatforms(game, platforms);
-            const moneyText = value => `R$ ${Number(value).toFixed(2).replace('.', ',')}`;
+            const moneyText = value => `${mcoWholeMoney(Number(value))}`;
             const lines = [];
             const lineFor = (label, value, offer) => {
                 if (offer?.active) {
@@ -9658,9 +9665,9 @@ async function copyShareText(text) {
                 const formatTypePrice = (label, value, stockValue, offer) => {
                     const stockLabel = ''; // Quantidade interna nunca aparece na vitrine.
                     if (offer?.active) {
-                        return `<span class="media-label">${label}${stockLabel}</span><span class="mco-special-mini">🔥 Oferta especial</span><br><span class="mco-special-old">R$ ${Number(offer.normalPrice).toFixed(2).replace('.', ',')}</span><span class="media-price mco-special-price">R$ ${Number(value).toFixed(2).replace('.', ',')}</span>`;
+                        return `<span class="media-label">${label}${stockLabel}</span><span class="mco-special-mini">🔥 Oferta especial</span><br><span class="mco-special-old">${mcoWholeMoney(Number(offer.normalPrice))}</span><span class="media-price mco-special-price">${mcoWholeMoney(Number(value))}</span>`;
                     }
-                    return `<span class="media-label">${label}${stockLabel}</span><br><span class="media-price">R$ ${Number(value).toFixed(2).replace('.', ',')}</span>`;
+                    return `<span class="media-label">${label}${stockLabel}</span><br><span class="media-price">${mcoWholeMoney(Number(value))}</span>`;
                 };
                 const primaryTxt = primaryPriced
                     ? formatTypePrice('Primária', data.primary, data.stockPrimary, data.offerPrimary)
@@ -9719,9 +9726,9 @@ async function copyShareText(text) {
                     <span class="availability-chip ${availability.className}">${escapeHtml(availability.label)}</span>
                     <div class="price-vip-row">
                         <div class="price-container">
-                            ${game.oldPrice > displayMainPrice ? `<span class="old-price">R$ ${game.oldPrice.toFixed(2).replace('.', ',')}</span>` : ''}
+                            ${game.oldPrice > displayMainPrice ? `<span class="old-price">${mcoWholeMoney(game.oldPrice)}</span>` : ''}
                             <div class="current-price-row">
-                                <span class="current-price">A partir de R$ ${displayMainPrice.toFixed(2).replace('.', ',')}</span>
+                                <span class="current-price">A partir de ${mcoWholeMoney(displayMainPrice)}</span>
                                 ${discount > 0 ? `<span class="discount-inline">-${discount}%</span>` : ''}
                             </div>
                             ${specialMainNoteHtml}
@@ -10437,7 +10444,7 @@ async function copyShareText(text) {
                     <span class="mco-search-suggestion-meta">
                         ${game.isCombo ? `${game.comboCount || 0} jogos • ` : ''}${escapeHtml(isCategory(game, 'Promoção') ? mcoPromoCampaignLabel() : game.category)} • ${escapeHtml(game.platform)}
                     </span>
-                    <span class="mco-search-suggestion-price">R$ ${getGameMainPriceForCurrentFilter(game).toFixed(2).replace('.', ',')}</span>
+                    <span class="mco-search-suggestion-price">${mcoWholeMoney(getGameMainPriceForCurrentFilter(game))}</span>
                 </button>
             `).join('');
 
@@ -12041,7 +12048,7 @@ async function copyShareText(text) {
                                 `${type}${stockText}` +
                                 `</span><br>` +
                                 `<span class="media-price">` +
-                                `R$ ${Number(price).toFixed(2).replace('.', ',')}` +
+                                `${mcoWholeMoney(Number(price))}` +
                                 `</span>`;
 
                             button.addEventListener(
@@ -13129,7 +13136,7 @@ async function copyShareText(text) {
 
             if (selectedCart.length > 0) {
                 countText.innerText = `${selectedCart.length} item(ns) selecionado(s)`;
-                totalText.innerText = `Total: R$ ${total.toFixed(2).replace('.', ',')}`;
+                totalText.innerText = `Total: ${mcoWholeMoney(total)}`;
                 bottomBar.classList.add('active');
             } else {
                 bottomBar.classList.remove('active');
@@ -13140,18 +13147,18 @@ async function copyShareText(text) {
             return selectedCart.map((item, index) => {
                 const game = games.find(g => g.id === item.gameId);
                 const platformLabel = getPlatformDisplayLabel(game, item.platform);
-                return `${index + 1}. ${item.name} (${platformLabel}) - [${item.type}] — R$ ${item.price.toFixed(2).replace('.', ',')}`;
+                return `${index + 1}. ${item.name} (${platformLabel}) - [${item.type}] — ${mcoWholeMoney(item.price)}`;
             }).join('\n');
         }
 
         function buildWhatsAppOrderMessage(paymentMethod = 'PIX') {
             const total = calculateTotal();
             const paymentLine = paymentMethod === 'PIX'
-                ? `💳 *Pagamento:* PIX\n💰 *Valor total:* R$ ${total.toFixed(2).replace('.', ',')}\n\n` +
+                ? `💳 *Pagamento:* PIX\n💰 *Valor total:* ${mcoWholeMoney(total)}\n\n` +
                   `✅ Pagamento realizado via PIX.\n` +
                   `📎 Segue o comprovante de pagamento.`
                 : `💳 *Pagamento:* Cartão de crédito\n` +
-                  `💰 *Valor no PIX:* R$ ${total.toFixed(2).replace('.', ',')}\n` +
+                  `💰 *Valor no PIX:* ${mcoWholeMoney(total)}\n` +
                   `⚠️ O valor final do cartão terá a taxa da máquina.\n\n` +
                   `Pode gerar a cobrança do cartão para mim, por favor?`;
 
@@ -13184,14 +13191,14 @@ async function copyShareText(text) {
                 cardEl.innerHTML = `
                     <div>
                         <h5>${escapeHtml(item.name)}</h5>
-                        <p>${escapeHtml(item.type)} — R$ ${item.price.toFixed(2).replace('.', ',')}</p>
+                        <p>${escapeHtml(item.type)} — ${mcoWholeMoney(item.price)}</p>
                     </div>
                     <span class="remove-item" onclick="event.stopPropagation(); toggleSelectType('${item.gameId}', '${item.type}'); openModal();">✕</span>
                 `;
                 drawerList.appendChild(cardEl);
             });
 
-            totalPriceEl.innerText = `R$ ${total.toFixed(2).replace('.', ',')}`;
+            totalPriceEl.innerText = `${mcoWholeMoney(total)}`;
 
             closePaymentModal();
             modalOverlay.classList.add('active');
@@ -13206,7 +13213,7 @@ async function copyShareText(text) {
             }
 
             const total = calculateTotal();
-            document.getElementById('paymentTotalValue').innerText = `R$ ${total.toFixed(2).replace('.', ',')}`;
+            document.getElementById('paymentTotalValue').innerText = `${mcoWholeMoney(total)}`;
             document.getElementById('paymentChoiceStep').style.display = 'block';
             document.getElementById('pixStep').classList.remove('active');
             document.getElementById('pixCopiedStatus').innerText = '';
@@ -13236,7 +13243,7 @@ async function copyShareText(text) {
 
             document.getElementById('paymentChoiceStep').style.display = 'none';
             document.getElementById('pixStep').classList.add('active');
-            document.getElementById('paymentTotalValue').innerText = `R$ ${calculateTotal().toFixed(2).replace('.', ',')}`;
+            document.getElementById('paymentTotalValue').innerText = `${mcoWholeMoney(calculateTotal())}`;
             document.getElementById('pixCopiedStatus').innerText = '';
         }
 
@@ -15303,7 +15310,7 @@ async function buildMcoSharePoster(
 
     const money =
         value =>
-            `R$ ${Number(value).toFixed(2).replace('.', ',')}`;
+            `${mcoWholeMoney(Number(value))}`;
 
     const referencePriceForShare =
         specialReferencePrice > currentPrice
@@ -15770,5 +15777,15 @@ document.addEventListener('DOMContentLoaded', () => {
 }, { once: true });
 </script>
 
+
+<style id="mco-240-price-hierarchy">
+/* Apenas tipografia de PRECOS; nao muda navegacao, controles nem ordem mobile. */
+.card-info .old-price{font-size:1.1rem!important;font-weight:750!important;line-height:1.18!important;color:#cedae8!important;text-decoration:line-through!important}
+.card-info .current-price{font-size:.91rem!important;font-weight:750!important;line-height:1.2!important;color:#70d8ff!important}
+@media(max-width:800px){
+ .ig-post .old-price{font-size:clamp(.78rem,2.7vw,.92rem)!important;line-height:1.13!important}
+ .ig-post .current-price{font-size:clamp(.76rem,2.6vw,.88rem)!important;line-height:1.1!important}
+}
+</style>
 </body>
 </html>
