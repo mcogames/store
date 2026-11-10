@@ -6,6 +6,7 @@
     <meta name="mco-mobile-engine" content="vertical-feed-normal-psn-discount-v9-stock-internal-v217">
     <meta name="mco-promo-priority-version" content="NEXUS-2M.2.23-PRODUCT-EDITION-PROMO-FIRST">
     <meta name="mco-campaign-dynamic-version" content="NEXUS-2M.2.24-CAMPAIGN-DYNAMIC">
+    <meta name="mco-share-copy-version" content="SITE-2M.2.42-COMPARTILHAMENTO-COMERCIAL">
     <meta name="mco-home-category-version" content="NEXUS-2M.2.31-UNIFIED-BANNER-LEFT">
     <meta name="mco-share-category-version" content="NEXUS-2M.2.41-BANNER-PLUS-FOUR-GAMES">
     <meta name="mco-retro-ps5-version" content="NEXUS-2M.2.38-PS4-RETRO-LABEL">
@@ -9010,7 +9011,7 @@ async function copyShareText(text) {
             if (selected.includes('PS5')) {
                 const data = getPlatformData(game, 'PS5');
                 if (Number(data.primary || 0) > 0 || Number(data.secondary || 0) > 0) {
-                    lines.push(`🟪 *PS5*`);
+                    lines.push(`🎮 *${getPlatformDisplayLabel(game, 'PS5')}*`);
                     if (Number(data.primary || 0) > 0) lines.push(lineFor('Primária', data.primary, data.offerPrimary));
                     if (Number(data.secondary || 0) > 0) lines.push(lineFor('Secundária', data.secondary, data.offerSecondary));
                 }
@@ -9026,6 +9027,25 @@ async function copyShareText(text) {
             }
 
             return lines;
+        }
+
+        function buildGameShareMessage(game, sharePlatforms, optionLines, comboLines, directUrl) {
+            const retroShareNote =
+                sharePlatforms.includes('PS5') && isPs4RetroOnPs5(game)
+                    ? 'ℹ️ Esta é a versão PS4, jogável no PS5 por retrocompatibilidade. Não é uma edição nativa PS5.\n\n'
+                    : '';
+
+            return (
+                `🎮 *MCO GAMES | OFERTA ESPECIAL*\n\n` +
+                `${game.isCombo ? '🎁 Confira este combo especial para sua próxima jogatina.' : '🔥 Uma ótima escolha para sua próxima experiência no PlayStation.'}\n\n` +
+                `${game.isCombo ? '🎁' : '🕹️'} *${game.name}*\n\n` +
+                comboLines +
+                retroShareNote +
+                `💰 *OPÇÕES DISPONÍVEIS:*\n${optionLines.join('\n')}\n\n` +
+                `📲 Gostou? Fale com nossa equipe pelo WhatsApp e consulte as condições para garantir o seu.\n\n` +
+                `👉 *VEJA OS DETALHES:* ${directUrl}\n\n` +
+                `*MCO GAMES — Grandes jogos, grandes experiências!*`
+            );
         }
 
         function chooseSharePlatforms(game) {
@@ -9358,13 +9378,13 @@ async function copyShareText(text) {
                     ? `🎁 *COMBO com ${game.comboNames.length} jogos:*\n${game.comboNames.map(name => `• ${name}`).join('\n')}\n\n`
                     : '';
 
-            const message =
-                `🎮 *MCO GAMES*\n\n` +
-                `Confira esta oferta:\n` +
-                `${game.isCombo ? '🎁' : '🕹️'} *${game.name}*\n\n` +
-                comboLines +
-                `${optionLines.join('\n')}\n\n` +
-                `🔗 Ver ${game.isCombo ? 'este combo' : 'este jogo'}:\n${getGameDirectUrl(game)}`;
+            const message = buildGameShareMessage(
+                game,
+                sharePlatforms,
+                optionLines,
+                comboLines,
+                getGameDirectUrl(game)
+            );
 
             const desktop = !isMobileDevice();
             const platformSuffix = sharePlatforms.length === 1 ? `_${sharePlatforms[0]}` : '';
@@ -9803,6 +9823,34 @@ async function copyShareText(text) {
             return `${SHARE_URL}?categoria=${encodeURIComponent(key)}`;
         }
 
+        function buildCategoryShareMessage(category, total, shareUrl, displayName = getCategoryDisplayName(category)) {
+            let hook;
+            let body;
+
+            if (isCategory({ category }, 'Promoção')) {
+                hook = '🔥 Ofertas especiais esperando por você!';
+                body = `Confira nossa seleção de ${total} jogos e encontre seu próximo título com preços especiais.`;
+            } else if (isCategory({ category }, 'Lançamento em Oferta')) {
+                hook = '🚀 Os grandes lançamentos chegaram!';
+                body = `Conheça ${total} títulos em destaque e descubra sua próxima aventura.`;
+            } else if (isCategory({ category }, 'Pré Venda')) {
+                hook = '⏳ Antecipe-se aos próximos lançamentos!';
+                body = `Confira ${total} títulos em pré-venda e consulte as condições para reservar o seu.`;
+            } else {
+                hook = '🎮 Encontre seu próximo jogo!';
+                body = `Explore nosso catálogo com ${total} títulos e escolha a próxima aventura da sua coleção.`;
+            }
+
+            return (
+                `🎮 *MCO GAMES | ${displayName}*\n\n` +
+                `${hook}\n\n` +
+                `${body}\n\n` +
+                `📲 Gostou de algum? Fale com nossa equipe pelo WhatsApp.\n\n` +
+                `👉 *ACESSE E CONFIRA:* ${shareUrl}\n\n` +
+                `*MCO GAMES — Seu próximo jogo está aqui!*`
+            );
+        }
+
         function showCategoryShareStatus(text) {
             const el = document.getElementById('categoryShareStatus');
             if (!el) return;
@@ -10066,6 +10114,9 @@ async function copyShareText(text) {
             return canvas;
         }
 
+        /* SITE 2M.2.42 — mensagens comerciais de categoria e jogo.
+         * Mantém links, preços inteiros, geração de imagem e navegação mobile.
+         */
         async function shareCategoryOffer(category) {
             const categoryGames = games.filter(game => isCategory(game, category));
 
@@ -10077,10 +10128,12 @@ async function copyShareText(text) {
             const shareUrl = getCategoryShareUrl(category);
             const displayName = getCategoryDisplayName(category);
 
-            const message =
-                `🎮 *MCO GAMES — ${displayName}*\n\n` +
-                `Veja o banner e jogos em destaque da categoria (${categoryGames.length} no total).\n\n` +
-                `👉 ${shareUrl}`;
+            const message = buildCategoryShareMessage(
+                category,
+                categoryGames.length,
+                shareUrl,
+                displayName
+            );
 
             const desktopCopyPromise = !isMobileDevice() ? copyShareText(message) : null;
 
