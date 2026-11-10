@@ -6,7 +6,7 @@
     <meta name="mco-mobile-engine" content="vertical-feed-normal-psn-discount-v9-stock-internal-v217">
     <meta name="mco-promo-priority-version" content="NEXUS-2M.2.23-PRODUCT-EDITION-PROMO-FIRST">
     <meta name="mco-campaign-dynamic-version" content="NEXUS-2M.2.24-CAMPAIGN-DYNAMIC">
-    <meta name="mco-share-copy-version" content="SITE-2M.2.42-COMPARTILHAMENTO-COMERCIAL">
+    <meta name="mco-share-copy-version" content="SITE-2M.2.43-COMPARTILHAR-DOIS-JOGOS-PC">
     <meta name="mco-home-category-version" content="NEXUS-2M.2.31-UNIFIED-BANNER-LEFT">
     <meta name="mco-share-category-version" content="NEXUS-2M.2.41-BANNER-PLUS-FOUR-GAMES">
     <meta name="mco-retro-ps5-version" content="NEXUS-2M.2.38-PS4-RETRO-LABEL">
@@ -1994,6 +1994,79 @@
                 min-height: 58px;
             }
         }
+
+
+/* MCO GAMES 2M.2.43 — seleção de dois jogos para anúncio conjunto no PC.
+   Os controles são ocultos integralmente no mobile; nenhuma navegação mobile é alterada. */
+@media (min-width: 801px) {
+  .mco-bulk-share-pick {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    z-index: 12;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 34px;
+    padding: 7px 11px;
+    border: 1px solid rgba(117,207,255,.72);
+    border-radius: 999px;
+    background: rgba(4,18,29,.94);
+    color: #dff5ff;
+    font-size: 11px;
+    font-weight: 900;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0,0,0,.34);
+  }
+  .mco-bulk-share-pick:hover { background: #075d91; border-color: #75cfff; }
+  .mco-bulk-share-pick[aria-pressed="true"] {
+    background: linear-gradient(135deg,#087fff,#18bfff);
+    color: #03111b;
+    border-color: #75cfff;
+  }
+  .card.mco-bulk-share-selected {
+    border-color: #18bfff !important;
+    box-shadow: 0 0 0 2px rgba(24,191,255,.17), 0 0 20px rgba(24,191,255,.15);
+  }
+  .mco-bulk-share-bar {
+    position: fixed;
+    right: 24px;
+    bottom: 18px;
+    z-index: 120;
+    display: none;
+    align-items: center;
+    gap: 16px;
+    max-width: min(680px, calc(100vw - 48px));
+    padding: 13px 16px;
+    border: 1px solid rgba(68,190,245,.48);
+    border-radius: 16px;
+    background: linear-gradient(135deg,rgba(7,24,38,.98),rgba(12,35,51,.98));
+    box-shadow: 0 14px 42px rgba(0,0,0,.48);
+    backdrop-filter: blur(12px);
+  }
+  .mco-bulk-share-bar.is-visible { display: flex; }
+  .mco-bulk-share-copy { min-width: 190px; }
+  .mco-bulk-share-title { color: #fff; font-size: 13px; font-weight: 900; }
+  .mco-bulk-share-subtitle { margin-top: 3px; color: #a9bdcc; font-size: 11px; line-height: 1.4; }
+  .mco-bulk-share-actions { display: flex; align-items: center; gap: 8px; }
+  .mco-bulk-share-clear, .mco-bulk-share-send {
+    min-height: 38px;
+    padding: 9px 13px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 900;
+    cursor: pointer;
+  }
+  .mco-bulk-share-clear { border: 1px solid #405264; background: #14202b; color: #dce8f1; }
+  .mco-bulk-share-send { border: 1px solid #1fae62; background: #25d366; color: #062713; }
+  .mco-bulk-share-send:disabled { opacity: .42; cursor: not-allowed; }
+  body.mco-cart-bar-active .mco-bulk-share-bar { bottom: 132px; }
+}
+@media (max-width: 800px) {
+  .mco-bulk-share-pick, .mco-bulk-share-bar { display: none !important; }
+}
+
 </style>
 
 <script>
@@ -5351,6 +5424,7 @@ async function copyShareText(text) {
   .mco-chome-banner{height:40vw;min-height:40vw;max-height:40vw}
 }
 </style>
+    <meta name="mco-desktop-multi-share-version" content="SITE-2M.2.43-DESKTOP-TWO-GAMES-WHATSAPP">
 </head>
 <body>
 
@@ -5997,6 +6071,8 @@ async function copyShareText(text) {
         ];
 
         let games = [];
+        // Seleção temporária de até dois jogos para um único anúncio no WhatsApp (somente PC).
+        const mcoBulkShareSelectedIds = new Set();
         // Mantém a lista original carregada das quatro abas.
         // `games` contém somente os jogos que devem aparecer no site.
         let sourceGames = [];
@@ -9648,6 +9724,10 @@ async function copyShareText(text) {
             const comboItemsHtml = game.isCombo && Array.isArray(game.comboNames) && game.comboNames.length
                 ? `<div class="combo-items-summary"><strong>Inclui:</strong> ${game.comboNames.map(escapeHtml).join(' • ')}</div>`
                 : '';
+            const bulkShareSelected = mcoBulkShareSelectedIds.has(String(game.id));
+            const bulkSharePickHtml = window.matchMedia('(min-width: 801px)').matches
+                ? `<button type="button" class="mco-bulk-share-pick" data-mco-bulk-share-game="${escapeHtml(game.id)}" aria-pressed="${bulkShareSelected ? 'true' : 'false'}">${bulkShareSelected ? '✓ Selecionado' : '+ Anúncio conjunto'}</button>`
+                : '';
 
             let platformHtml = '';
             if (platformList.length > 1) {
@@ -9739,6 +9819,7 @@ async function copyShareText(text) {
                     ${timerHtml}
                     ${stockBadgeHtml}
                     ${specialBadgeHtml}
+                    ${bulkSharePickHtml}
                     ${getComboCoverMarkup(game)}
                 </div>
                 <div class="card-info">
@@ -9779,6 +9860,18 @@ async function copyShareText(text) {
                                 aria-label="Abrir categorias">☰ Categorias</button>
                     </div>
                 </div>`;
+
+            if (bulkSharePickHtml) {
+                const bulkPickButton = card.querySelector('[data-mco-bulk-share-game]');
+                if (bulkPickButton) {
+                    bulkPickButton.addEventListener('click', event => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        mcoToggleBulkShare(game.id);
+                    });
+                }
+            }
+            if (bulkShareSelected) card.classList.add('mco-bulk-share-selected');
 
             if (
                 window.matchMedia(
@@ -13407,6 +13500,301 @@ async function copyShareText(text) {
             document.getElementById('modalOverlay').classList.remove('active');
             document.getElementById('modalDrawer').classList.remove('active');
             closePaymentModal();
+        }
+
+        /* MCO GAMES 2M.2.43 — anúncio conjunto de exatamente dois jogos no PC. */
+        function mcoIsDesktopBulkShare() {
+            return !isMobileDevice() && window.matchMedia('(min-width: 801px)').matches;
+        }
+
+        function mcoEnsureBulkShareUi() {
+            if (!mcoIsDesktopBulkShare()) return null;
+            let bar = document.getElementById('mcoBulkShareBar');
+            if (!bar) {
+                bar = document.createElement('section');
+                bar.id = 'mcoBulkShareBar';
+                bar.className = 'mco-bulk-share-bar';
+                bar.setAttribute('aria-label', 'Compartilhar dois jogos em um anúncio');
+                bar.innerHTML = `
+                    <div class="mco-bulk-share-copy">
+                        <div class="mco-bulk-share-title" id="mcoBulkShareTitle">Anúncio conjunto · 0/2 jogos</div>
+                        <div class="mco-bulk-share-subtitle" id="mcoBulkShareSubtitle">Selecione dois jogos para criar uma única divulgação.</div>
+                    </div>
+                    <div class="mco-bulk-share-actions">
+                        <button type="button" class="mco-bulk-share-clear" id="mcoBulkShareClear">Limpar</button>
+                        <button type="button" class="mco-bulk-share-send" id="mcoBulkShareSend" disabled>↗ Compartilhar no WhatsApp</button>
+                    </div>`;
+                document.body.appendChild(bar);
+                bar.querySelector('#mcoBulkShareClear').addEventListener('click', mcoClearBulkShareSelection);
+                bar.querySelector('#mcoBulkShareSend').addEventListener('click', mcoShareTwoGamesOnWhatsApp);
+            }
+            return bar;
+        }
+
+        function mcoUpdateBulkShareUi() {
+            const bar = mcoEnsureBulkShareUi();
+            if (!bar) return;
+            const selected = [...mcoBulkShareSelectedIds]
+                .map(id => games.find(game => String(game.id) === String(id)))
+                .filter(Boolean)
+                .slice(0, 2);
+            const count = selected.length;
+            bar.classList.toggle('is-visible', count > 0);
+            const title = bar.querySelector('#mcoBulkShareTitle');
+            const subtitle = bar.querySelector('#mcoBulkShareSubtitle');
+            const send = bar.querySelector('#mcoBulkShareSend');
+            if (title) title.textContent = `Anúncio conjunto · ${count}/2 jogos`;
+            if (subtitle) {
+                subtitle.textContent = count === 0
+                    ? 'Selecione dois jogos para criar uma única divulgação.'
+                    : count === 1
+                        ? `${selected[0].name} · escolha mais um jogo.`
+                        : `${selected[0].name} + ${selected[1].name} · pronto para compartilhar.`;
+            }
+            if (send) send.disabled = count !== 2;
+
+            document.querySelectorAll('.card[data-game-id]').forEach(card => {
+                const chosen = mcoBulkShareSelectedIds.has(String(card.dataset.gameId));
+                card.classList.toggle('mco-bulk-share-selected', chosen);
+                const button = card.querySelector('[data-mco-bulk-share-game]');
+                if (button) {
+                    button.setAttribute('aria-pressed', chosen ? 'true' : 'false');
+                    button.textContent = chosen ? '✓ Selecionado' : '+ Anúncio conjunto';
+                }
+            });
+        }
+
+        function mcoToggleBulkShare(gameId) {
+            if (!mcoIsDesktopBulkShare()) return;
+            const id = String(gameId || '');
+            if (!id || !games.some(game => String(game.id) === id)) return;
+            if (mcoBulkShareSelectedIds.has(id)) {
+                mcoBulkShareSelectedIds.delete(id);
+            } else {
+                if (mcoBulkShareSelectedIds.size >= 2) {
+                    showShareStatus('Este anúncio comporta dois jogos. Remova um para escolher outro.');
+                    return;
+                }
+                mcoBulkShareSelectedIds.add(id);
+            }
+            mcoUpdateBulkShareUi();
+        }
+
+        function mcoClearBulkShareSelection() {
+            mcoBulkShareSelectedIds.clear();
+            mcoUpdateBulkShareUi();
+        }
+
+        function mcoGetCardForGame(game) {
+            return [...document.querySelectorAll('.card[data-game-id]')]
+                .find(card => String(card.dataset.gameId) === String(game.id)) || null;
+        }
+
+        function mcoBuildTwoGameShareMessage(entries) {
+            const blocks = entries.map((entry, index) => {
+                const game = entry.game;
+                const platforms = entry.platforms;
+                const optionLines = buildSharePlatformOptionLines(game, platforms);
+                const comboLines = game.isCombo && Array.isArray(game.comboNames) && game.comboNames.length
+                    ? `🎁 *Inclui ${game.comboNames.length} jogos:*\n${game.comboNames.map(name => `• ${name}`).join('\n')}\n`
+                    : '';
+                const retroNote = platforms.includes('PS5') && isPs4RetroOnPs5(game)
+                    ? 'ℹ️ Versão PS4 jogável no PS5 por retrocompatibilidade; não é edição nativa PS5.\n'
+                    : game.isPs4OnlyException
+                        ? 'ℹ️ Este título é exclusivo de PS4 e não é compatível com PS5.\n'
+                        : '';
+                return `${index + 1}. ${game.isCombo ? '🎁' : '🕹️'} *${game.name}*\n` +
+                    `${optionLines.length ? optionLines.join('\n') : `💰 A partir de ${mcoWholeMoney(Number(game.mainPrice || 0))}`}\n` +
+                    `${comboLines}${retroNote}` +
+                    `🔗 ${getGameDirectUrl(game)}`;
+            });
+            return `🎮 *MCO GAMES | DUAS OFERTAS PARA VOCÊ*\n\n` +
+                `Separamos dois jogos para sua próxima jogatina. Confira as opções:\n\n` +
+                `${blocks.join('\n\n')}` +
+                `\n\n📲 Gostou de algum? Fale com nossa equipe pelo WhatsApp e consulte as condições para garantir o seu.\n\n` +
+                `*MCO GAMES — Grandes jogos, grandes experiências!*`;
+        }
+
+        async function mcoBuildTwoGamePoster(entries) {
+            if (!Array.isArray(entries) || entries.length !== 2) throw new Error('Selecione exatamente dois jogos.');
+            const W = 1200, H = 1500;
+            const canvas = document.createElement('canvas');
+            canvas.width = W; canvas.height = H;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) throw new Error('Canvas não disponível.');
+
+            const bg = ctx.createLinearGradient(0, 0, W, H);
+            bg.addColorStop(0, '#07111b'); bg.addColorStop(.58, '#03111d'); bg.addColorStop(1, '#02070c');
+            ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+            drawSharePosterRoundedRect(ctx, 20, 20, W - 40, H - 40, 30, '', '#0e76ab', 3);
+
+            const logo = await getSharePosterLogoImage();
+            if (logo) {
+                const scale = Math.min(430 / logo.naturalWidth, 88 / logo.naturalHeight);
+                const lw = logo.naturalWidth * scale, lh = logo.naturalHeight * scale;
+                ctx.drawImage(logo, 48, 38 + (88 - lh) / 2, lw, lh);
+            } else {
+                drawSharePosterLogoFallback(ctx, 48, 45);
+            }
+            ctx.textAlign = 'right'; ctx.fillStyle = '#75cfff'; ctx.font = '800 22px Arial, sans-serif';
+            ctx.fillText('DUAS OFERTAS EM DESTAQUE', W - 50, 68);
+            ctx.fillStyle = '#91a5b5'; ctx.font = '600 18px Arial, sans-serif';
+            ctx.fillText('mcogames.github.io/store', W - 50, 98);
+            ctx.textAlign = 'center'; ctx.fillStyle = '#ffffff'; ctx.font = '900 34px Arial, sans-serif';
+            ctx.fillText('ESCOLHA SEUS PRÓXIMOS JOGOS', W / 2, 190);
+            ctx.fillStyle = '#91a5b5'; ctx.font = '500 20px Arial, sans-serif';
+            ctx.fillText('Duas ofertas selecionadas especialmente para você', W / 2, 225);
+            ctx.textAlign = 'left';
+
+            const cardY = 270, cardH = 1080, cardW = 540, gap = 32;
+            const xs = [44, 44 + cardW + gap];
+            for (let i = 0; i < 2; i++) {
+                const { game, platforms } = entries[i];
+                const x = xs[i];
+                drawSharePosterRoundedRect(ctx, x, cardY, cardW, cardH, 24, '#0b1722', '#24465d', 2);
+                const imageX = x + 20, imageY = cardY + 20, imageW = cardW - 40, imageH = 500;
+                drawSharePosterRoundedRect(ctx, imageX, imageY, imageW, imageH, 18, '#07111b', '#24465d', 1);
+                ctx.save(); ctx.beginPath(); ctx.roundRect(imageX, imageY, imageW, imageH, 18); ctx.clip();
+                let image = null;
+                try { image = await getSharePosterGameImage(game, mcoGetCardForGame(game)); } catch (_) {}
+                if (game.isCombo) {
+                    let comboImages = [];
+                    try { comboImages = await getSharePosterComboImages(game); } catch (_) {}
+                    if (comboImages.length) drawSharePosterComboMosaic(ctx, comboImages, imageX + 4, imageY + 4, imageW - 8, imageH - 8);
+                    else if (image) drawSharePosterImageCover(ctx, image, imageX + 4, imageY + 4, imageW - 8, imageH - 8);
+                } else if (image) {
+                    drawSharePosterImageCover(ctx, image, imageX + 4, imageY + 4, imageW - 8, imageH - 8);
+                }
+                if (!image && !game.isCombo) {
+                    ctx.fillStyle = '#132534'; ctx.fillRect(imageX, imageY, imageW, imageH);
+                    ctx.fillStyle = '#9ab8ca'; ctx.font = '800 22px Arial, sans-serif'; ctx.textAlign = 'center';
+                    ctx.fillText('MCO GAMES', imageX + imageW / 2, imageY + imageH / 2); ctx.textAlign = 'left';
+                }
+                ctx.restore();
+
+                const platformLabel = platforms.length
+                    ? platforms.map(platform => getPlatformDisplayLabel(game, platform)).join(' / ')
+                    : (game.platform || 'PLAYSTATION');
+                drawSharePosterRoundedRect(ctx, imageX + 14, imageY + 14, Math.min(340, ctx.measureText(platformLabel).width + 46), 48, 12, 'rgba(0,0,0,.84)', 'rgba(255,255,255,.18)', 1);
+                ctx.fillStyle = '#ffffff'; ctx.font = '800 20px Arial, sans-serif';
+                ctx.fillText(platformLabel, imageX + 34, imageY + 45, imageW - 64);
+
+                let y = cardY + 565;
+                ctx.fillStyle = '#ffffff'; ctx.font = '900 34px Arial, sans-serif';
+                y = drawSharePosterWrappedText(ctx, String(game.name || 'Jogo'), x + 24, y, cardW - 48, 42, 2) + 16;
+
+                const availability = getAvailabilityState(game);
+                const status = String(availability.label || 'Consulte disponibilidade');
+                ctx.font = '800 17px Arial, sans-serif';
+                const statusW = Math.min(cardW - 48, ctx.measureText(status).width + 32);
+                drawSharePosterRoundedRect(ctx, x + 24, y, statusW, 38, 19, 'rgba(6,63,43,.46)', '#159c68', 1);
+                ctx.fillStyle = '#74eab1'; ctx.fillText(status, x + 40, y + 25);
+                y += 72;
+
+                const price = Number(getSharePlatformPrice(game, platforms) || game.mainPrice || 0);
+                ctx.fillStyle = '#18bfff'; ctx.font = '900 39px Arial, sans-serif';
+                ctx.fillText(price > 0 ? `A partir de ${mcoWholeMoney(price)}` : 'Consulte o preço', x + 24, y);
+                y += 48;
+
+                ctx.fillStyle = '#a9bac8'; ctx.font = '600 17px Arial, sans-serif';
+                const detailLines = [];
+                platforms.forEach(platform => {
+                    const data = getPlatformData(game, platform);
+                    const parts = [];
+                    if (Number(data.primary || 0) > 0) parts.push(`Primária ${mcoWholeMoney(Number(data.primary))}`);
+                    if (Number(data.secondary || 0) > 0) parts.push(`Secundária ${mcoWholeMoney(Number(data.secondary))}`);
+                    if (parts.length) detailLines.push(`${getPlatformDisplayLabel(game, platform)}: ${parts.join(' · ')}`);
+                });
+                detailLines.slice(0, 3).forEach(line => {
+                    y = drawSharePosterWrappedText(ctx, line, x + 24, y, cardW - 48, 25, 1) + 6;
+                });
+                if (isPs4RetroOnPs5(game) && platforms.includes('PS5')) {
+                    ctx.fillStyle = '#9bdfff'; ctx.font = '700 15px Arial, sans-serif';
+                    y = drawSharePosterWrappedText(ctx, 'Versão PS4 jogável no PS5 por retrocompatibilidade; não é edição nativa PS5.', x + 24, y + 4, cardW - 48, 21, 2) + 4;
+                } else if (game.isPs4OnlyException) {
+                    ctx.fillStyle = '#9bdfff'; ctx.font = '700 15px Arial, sans-serif';
+                    y = drawSharePosterWrappedText(ctx, 'PS4 apenas · não compatível com PS5.', x + 24, y + 4, cardW - 48, 21, 2) + 4;
+                }
+                if (game.isCombo && Array.isArray(game.comboNames) && game.comboNames.length) {
+                    ctx.fillStyle = '#a9bac8'; ctx.font = '600 15px Arial, sans-serif';
+                    drawSharePosterWrappedText(ctx, `Inclui: ${game.comboNames.slice(0, 3).join(' · ')}`, x + 24, Math.min(y + 2, cardY + cardH - 75), cardW - 48, 20, 2);
+                }
+            }
+
+            ctx.strokeStyle = 'rgba(24,191,255,.28)'; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(50, 1400); ctx.lineTo(W - 50, 1400); ctx.stroke();
+            ctx.fillStyle = '#8ea4b5'; ctx.font = '700 20px Arial, sans-serif';
+            ctx.fillText('Peça pelo WhatsApp · MCO GAMES — Grandes jogos, grandes experiências!', 50, 1440);
+            return canvas;
+        }
+
+        async function mcoShareTwoGamesOnWhatsApp() {
+            if (!mcoIsDesktopBulkShare()) return;
+            const selected = [...mcoBulkShareSelectedIds]
+                .map(id => games.find(game => String(game.id) === String(id)))
+                .filter(Boolean)
+                .slice(0, 2);
+            if (selected.length !== 2) {
+                showShareStatus('Selecione exatamente dois jogos para montar o anúncio.');
+                return;
+            }
+
+            // Abre a aba no gesto do clique para evitar bloqueio de pop-up após a geração do PNG.
+            let whatsappTab = null;
+            try { whatsappTab = window.open('about:blank', '_blank'); } catch (_) {}
+            const entries = selected.map(game => ({ game, platforms: getAvailableSharePlatforms(game) }));
+            const message = mcoBuildTwoGameShareMessage(entries);
+            const sendButton = document.getElementById('mcoBulkShareSend');
+            if (sendButton) { sendButton.disabled = true; sendButton.textContent = 'Preparando anúncio…'; }
+
+            try {
+                showShareStatus('Montando a arte com os dois jogos…');
+                const canvas = await mcoBuildTwoGamePoster(entries);
+                const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+                if (!blob) throw new Error('Não foi possível gerar a imagem do anúncio.');
+
+                const fileName = 'MCO_GAMES_DUAS_OFERTAS.png';
+                const objectUrl = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = objectUrl; link.download = fileName; link.style.display = 'none';
+                document.body.appendChild(link); link.click(); link.remove();
+                setTimeout(() => URL.revokeObjectURL(objectUrl), 15000);
+
+                const copied = await copyShareText(message);
+                const waUrl = `https://web.whatsapp.com/send?text=${encodeURIComponent(message)}`;
+                if (whatsappTab && !whatsappTab.closed) whatsappTab.location.href = waUrl;
+                else {
+                    try { window.open(waUrl, '_blank'); } catch (_) {}
+                }
+
+                showShareStatus(copied
+                    ? 'Imagem baixada e mensagem pronta no WhatsApp Web. Anexe MCO_GAMES_DUAS_OFERTAS.png antes de enviar.'
+                    : 'Imagem baixada. O WhatsApp Web será aberto; copie a mensagem e anexe MCO_GAMES_DUAS_OFERTAS.png.');
+            } catch (error) {
+                if (whatsappTab && !whatsappTab.closed) whatsappTab.close();
+                console.error('Falha no anúncio conjunto:', error);
+                showShareStatus(error?.message || 'Não foi possível preparar o anúncio conjunto.');
+            } finally {
+                if (sendButton) { sendButton.disabled = mcoBulkShareSelectedIds.size !== 2; sendButton.textContent = '↗ Compartilhar no WhatsApp'; }
+            }
+        }
+
+        function mcoRefreshBulkShareLayout() {
+            const desktop = mcoIsDesktopBulkShare();
+            const bar = document.getElementById('mcoBulkShareBar');
+            if (bar) bar.style.display = desktop && mcoBulkShareSelectedIds.size ? 'flex' : '';
+            if (!desktop && bar) bar.classList.remove('is-visible');
+        }
+
+        if (mcoIsDesktopBulkShare()) {
+            mcoEnsureBulkShareUi();
+            mcoUpdateBulkShareUi();
+            const cartBar = document.getElementById('bottomBar');
+            if (cartBar && window.MutationObserver) {
+                new MutationObserver(() => document.body.classList.toggle('mco-cart-bar-active', cartBar.classList.contains('active')))
+                    .observe(cartBar, { attributes: true, attributeFilter: ['class'] });
+            }
+            window.addEventListener('resize', mcoRefreshBulkShareLayout, { passive: true });
         }
 
         brandAssetsReady = loadBrandAssetsFromSheet();
