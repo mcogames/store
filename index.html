@@ -10,6 +10,7 @@
     <meta name="mco-home-category-version" content="NEXUS-2M.2.31-UNIFIED-BANNER-LEFT">
     <meta name="mco-share-category-version" content="NEXUS-2M.2.41-BANNER-PLUS-FOUR-GAMES">
     <meta name="mco-retro-ps5-version" content="NEXUS-2M.2.38-PS4-RETRO-LABEL">
+    <meta name="mco-theme-version" content="SITE-2M.2.44-THEME-ENGINE">
     <title>MCO GAMES | Sua Loja Digital</title>
     <!-- Favicon oficial MCO GAMES -->
     <link rel="icon" type="image/png" sizes="64x64" href="./favicon-mco.png">
@@ -5425,6 +5426,50 @@ async function copyShareText(text) {
 }
 </style>
     <meta name="mco-desktop-multi-share-version" content="SITE-2M.2.43-DESKTOP-TWO-GAMES-WHATSAPP">
+
+<style id="mco-theme-engine-244">
+/* Tema GTA VI / Vice City: muda apenas a identidade visual. Feed, navegação,
+   dados comerciais, regras de preço e layout móvel permanecem intactos. */
+.mco-theme-hero[hidden]{display:none!important}
+.mco-theme-hero{position:relative;isolation:isolate;display:block;overflow:hidden;width:100%;aspect-ratio:2400/350;min-height:150px;border:1px solid #8d4a80;border-radius:18px;background:linear-gradient(110deg,#251126,#10253a);box-shadow:0 18px 42px #17051d66}
+.mco-theme-hero picture,.mco-theme-hero picture img{position:absolute;inset:0;display:block;width:100%;height:100%;line-height:0}
+.mco-theme-hero picture img{object-fit:cover;object-position:center center}
+.mco-theme-hero:after{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(90deg,rgba(13,7,24,.91) 0%,rgba(20,8,29,.78) 31%,rgba(22,9,30,.34) 58%,rgba(13,7,24,.04) 100%)}
+.mco-theme-hero-copy{position:relative;z-index:2;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:7px;width:min(58%,760px);height:100%;padding:18px clamp(20px,4vw,48px);color:#fff}
+.mco-theme-kicker{font-size:10px;font-weight:950;letter-spacing:.19em;color:#7de8f5;text-transform:uppercase}
+.mco-theme-hero-copy h1{font-size:clamp(23px,3.2vw,42px);font-weight:950;line-height:1.02;letter-spacing:-.045em;color:#fff;text-shadow:0 3px 14px #000b}
+.mco-theme-hero-copy p{font-size:clamp(11px,1.15vw,15px);line-height:1.4;color:#f5dced;text-shadow:0 2px 8px #000a}
+.mco-theme-hero-cta{display:inline-flex;align-items:center;gap:12px;margin-top:3px;padding:8px 13px;border:1px solid #f58dc8;border-radius:9px;background:linear-gradient(110deg,#e64c9a,#0babc7);color:#fff!important;text-decoration:none!important;font-size:11px;font-weight:950;box-shadow:0 5px 18px #07061170;transition:transform .18s,filter .18s}
+.mco-theme-hero-cta:hover{transform:translateY(-2px);filter:brightness(1.1)}
+.mco-theme-signature{position:absolute;z-index:2;right:4%;top:5%;font-size:clamp(46px,8vw,105px);font-weight:950;letter-spacing:-.1em;color:#fff;opacity:.10;pointer-events:none}
+html[data-mco-theme="gta6"]{--bg-color:#0d0a16;--card-bg:#171323;--accent-green:#ff62ad;--accent-green-dark:#05b8d2;--border-color:#49304f;--text-main:#fff;--text-muted:#b9a9c8;--badge-discount:#ff4d91}
+html[data-mco-theme="gta6"] body{background:radial-gradient(1000px 520px at 85% -8%,#69295b35,transparent 62%),radial-gradient(850px 520px at 0% 20%,#0b9eb51a,transparent 60%),#0d0a16;color:#fff}
+html[data-mco-theme="gta6"] header{background:linear-gradient(105deg,#110d1cf7,#211020f5 62%,#101c29f5);border-bottom-color:#593452;box-shadow:0 7px 28px #0905108c}
+html[data-mco-theme="gta6"] .brand-subtitle{color:#ff79bb}
+html[data-mco-theme="gta6"] .controls{background:linear-gradient(135deg,#171121ed,#101d2bed);border-color:#513652;box-shadow:0 10px 28px #0005}
+html[data-mco-theme="gta6"] .search-input,html[data-mco-theme="gta6"] .category-select{background:#100e1a;border-color:#523653;color:#fff}
+html[data-mco-theme="gta6"] .search-input:focus,html[data-mco-theme="gta6"] .category-select:focus{border-color:#ff78bd;box-shadow:0 0 0 3px #ff63b51f}
+html[data-mco-theme="gta6"] .ig-post{border-color:#56395e;background:linear-gradient(155deg,#171323,#0d1724);box-shadow:0 0 22px #f34caa13}
+html[data-mco-theme="gta6"] .ig-post .card-img{background:#0c0b14}
+html[data-mco-theme="gta6"] .ig-topline{background:linear-gradient(90deg,#251329,#102433)!important}
+html[data-mco-theme="gta6"] .current-price,html[data-mco-theme="gta6"] .mco-chome-price{color:#ff83c2!important}
+html[data-mco-theme="gta6"] .old-price{color:#d6c6dc!important}
+html[data-mco-theme="gta6"] .platform-btn.active,html[data-mco-theme="gta6"] .type-btn.active{border-color:#ff72b9!important;background:linear-gradient(110deg,#562448,#12394b)!important;color:#fff!important;box-shadow:0 0 0 2px #ff6db51a}
+html[data-mco-theme="gta6"] .btn-buy-direct{background:linear-gradient(110deg,#e84b98,#079eb9)!important;border-color:#ff8bc4!important;color:#fff!important}
+html[data-mco-theme="gta6"] .mco-chome-banner{border-color:#75476f;box-shadow:0 14px 34px #1c0a255c}
+html[data-mco-theme="gta6"] .mco-chome-banner::after,html[data-mco-theme="gta6"] .mco-chome-banner.has-artwork::after{background:linear-gradient(90deg,rgba(14,7,24,.95) 0%,rgba(20,8,30,.84) 32%,rgba(20,8,30,.56) 62%,rgba(13,7,24,.18) 100%)}
+html[data-mco-theme="gta6"] .mco-chome-banner .mco-chome-kicker{color:#8ce8f0}
+html[data-mco-theme="gta6"] .mco-chome-banner .mco-chome-go{border-color:#f18ac2;background:linear-gradient(110deg,#74335f,#12536a);color:#fff}
+html[data-mco-theme="gta6"] .mco-chome-game{border-color:#48334f;background:linear-gradient(160deg,#191424,#101c28)}
+html[data-mco-theme="gta6"] .mco-chome-game:hover{border-color:#ff7bbd;box-shadow:0 10px 24px #ff58b51a}
+html[data-mco-theme="gta6"] .mco-chome-more{color:#ff9bcd}
+html[data-mco-theme="gta6"] .mco-chome-feed-button,html[data-mco-theme="gta6"] .mco-chome-feed-back,html[data-mco-theme="gta6"] .mco-chome-back{border-color:#8c4b80;background:linear-gradient(110deg,#482143,#12384b);color:#ffe8f5}
+html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
+@media(max-width:800px){.mco-theme-hero{aspect-ratio:1200/480;min-height:0;border-radius:14px}.mco-theme-hero-copy{width:76%;padding:10px 14px;gap:5px}.mco-theme-hero-copy h1{font-size:clamp(18px,4.5vw,25px)}.mco-theme-hero-copy p{font-size:11px}.mco-theme-kicker{font-size:8px}.mco-theme-hero-cta{padding:6px 9px;font-size:10px}.mco-theme-signature{right:3%;top:4%;font-size:clamp(38px,12vw,70px)}}
+@media(max-width:420px){.mco-theme-hero-copy{width:78%;padding:9px 11px}.mco-theme-hero-copy h1{font-size:19px}.mco-theme-hero-copy p{font-size:10px;max-width:94%}.mco-theme-signature{font-size:43px}}
+@media(prefers-reduced-motion:reduce){.mco-theme-hero-cta{transition:none}}
+</style>
+
 </head>
 <body>
 
@@ -5570,6 +5615,19 @@ async function copyShareText(text) {
             </select>
 
             <section id="mcoCategoryHome" aria-label="Vitrine de categorias MCO GAMES" hidden>
+                <section id="mcoThemeHero" class="mco-theme-hero" aria-label="Tema especial GTA VI — Vice City" hidden>
+                    <picture>
+                        <source media="(max-width:800px)" srcset="./tema-gta6-mobile.jpg">
+                        <img src="./tema-gta6-desktop.jpg" alt="Cenário costeiro tropical ao pôr do sol, com palmeiras, luzes neon e carro esportivo">
+                    </picture>
+                    <div class="mco-theme-hero-copy">
+                        <span class="mco-theme-kicker">TEMA ESPECIAL · VICE CITY</span>
+                        <h1>GRAND THEFT AUTO VI</h1>
+                        <p>O clima de Vice City tomou conta da MCO GAMES.</p>
+                        <a href="#mcoCategoryHomeSections" class="mco-theme-hero-cta">Explorar a loja <span aria-hidden="true">→</span></a>
+                    </div>
+                    <span class="mco-theme-signature" aria-hidden="true">VI</span>
+                </section>
                 <div class="mco-chome-head"><div><h2>Escolha sua próxima aventura</h2><p>Confira os destaques de cada categoria. Os jogos mudam a cada atualização.</p></div><button type="button" class="mco-chome-feed-button" onclick="mcoOpenFeedMode()">Explorar em tela cheia →</button></div>
                 <div id="mcoCategoryHomeSections"></div>
             </section>
@@ -16294,5 +16352,36 @@ document.addEventListener('DOMContentLoaded', () => {
  .ig-post .current-price{font-size:clamp(.76rem,2.6vw,.88rem)!important;line-height:1.1!important}
 }
 </style>
+
+<script id="mco-theme-engine-runtime-244">
+(function(){
+  'use strict';
+  const allowed=new Set(['default','gta6']);
+  function applyTheme(raw){
+    const theme=allowed.has(String(raw||'').toLowerCase())?String(raw).toLowerCase():'default';
+    document.documentElement.dataset.mcoTheme=theme;
+    const hero=document.getElementById('mcoThemeHero');
+    if(hero)hero.hidden=theme!=='gta6';
+    const meta=document.querySelector('meta[name="theme-color"]');
+    if(meta)meta.content=theme==='gta6'?'#140d20':'#07121d';
+    document.documentElement.dataset.mcoThemeReady='true';
+  }
+  async function loadTheme(){
+    const params=new URLSearchParams(location.search);
+    const preview=params.get('preview-theme');
+    if(allowed.has(String(preview||'').toLowerCase())){applyTheme(preview);return;}
+    try{
+      const response=await fetch('./tema-loja.json?v='+Date.now(),{cache:'no-store'});
+      if(!response.ok){applyTheme('default');return;}
+      const config=await response.json();
+      if(!config||config.version!==1||!allowed.has(String(config.theme||'').toLowerCase())){applyTheme('default');return;}
+      applyTheme(config.theme);
+    }catch(error){console.warn('Tema visual indisponível; mantendo o tema padrão.',error);applyTheme('default');}
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',loadTheme,{once:true});
+  else loadTheme();
+})();
+</script>
+
 </body>
 </html>
