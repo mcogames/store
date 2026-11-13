@@ -11,6 +11,7 @@
     <meta name="mco-share-category-version" content="NEXUS-2M.2.41-BANNER-PLUS-FOUR-GAMES">
     <meta name="mco-retro-ps5-version" content="NEXUS-2M.2.38-PS4-RETRO-LABEL">
     <meta name="mco-theme-version" content="SITE-2M.2.44-THEME-ENGINE">
+    <meta name="mco-mobile-vertical-feed-fix" content="SITE-2M.2.45-MOBILE-FIRST-IG-FEED">
     <title>MCO GAMES | Sua Loja Digital</title>
     <!-- Favicon oficial MCO GAMES -->
     <link rel="icon" type="image/png" sizes="64x64" href="./favicon-mco.png">
@@ -13274,7 +13275,16 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
 
             // O endereço ?categoria=... é uma página exclusiva, nunca uma rolagem ao carrossel.
             const matchedCategory=mcoCategoryRoute?MCO_HOME_CATEGORIES.find(c=>c.key===mcoCategoryRoute):null;
-            if(matchedCategory && !selectedSearchGameId && !searchVal){
+            // SITE 2M.2.45: no celular, qualquer categoria abre no feed
+            // vertical; páginas de vitrine por categoria são exclusivas do PC.
+            // Mantém o parâmetro ?categoria=... e a filtragem por categoria.
+            if(!desktopMode && matchedCategory && !selectedSearchGameId && !searchVal){
+                if(categoryKey(instagramCategory)!==categoryKey(matchedCategory.category)){
+                    instagramCategory=matchedCategory.category;
+                    instagramIndex=0;
+                }
+            }
+            if(desktopMode && matchedCategory && !selectedSearchGameId && !searchVal){
                 mcoHomeSetVisibility(false,true);
                 mcoHomeRenderCategoryLanding(matchedCategory,mcoHomeConfig(matchedCategory));
                 if(layout)layout.style.display='none';
@@ -13283,7 +13293,7 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
                 renderFilteredResults(matches,'',matchedCategory.category,platformVal);
                 return;
             }
-            const showHome=!selectedSearchGameId&&!searchVal&&catVal==='ALL'&&!mcoCategoryRoute&&!mcoHomeFeedMode;
+            const showHome=desktopMode&&!selectedSearchGameId&&!searchVal&&catVal==='ALL'&&!mcoCategoryRoute&&!mcoHomeFeedMode;
             if(showHome){
                 mcoHomeSetVisibility(true,false);
                 if(layout)layout.style.display='none';
