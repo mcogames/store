@@ -10,7 +10,7 @@
     <meta name="mco-home-category-version" content="NEXUS-2M.2.31-UNIFIED-BANNER-LEFT">
     <meta name="mco-share-category-version" content="NEXUS-2M.2.41-BANNER-PLUS-FOUR-GAMES">
     <meta name="mco-retro-ps5-version" content="NEXUS-2M.2.38-PS4-RETRO-LABEL">
-    <meta name="mco-share-video-version" content="MCO-2M.2.59-IMPACTO-15S-FULLHD-60FPS">
+    <meta name="mco-share-video-version" content="MCO-2M.2.60-OFERTA-DESMONTA-REMONTADA-15S-FULLHD-60FPS">
     <meta name="mco-theme-version" content="SITE-2M.2.44-THEME-ENGINE">
     <meta name="mco-mobile-vertical-feed-fix" content="SITE-2M.2.45-MOBILE-FIRST-IG-FEED">
     <meta name="mco-share-poster-version" content="SITE-2M.2.56-SQUARE-COVER-PRESERVA-TEMA-GTA6">
@@ -9563,129 +9563,233 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
             };
         }
 
-        // MCO GAMES 2M.2.59 — abertura com impacto no texto, frase montada até 3 s e oferta com movimento vivo até 15 s.
-        // O primeiro quadro já mostra a oferta completa.
-        // Canvas Full HD 9:16. 60 FPS solicitado quando o dispositivo comporta;
-        // fallback automático de captura para 30 FPS em aparelhos modestos.
+        // MCO GAMES 2M.2.60 — 1s oferta completa, desmontagem por elementos,
+        // tela escura com chamada, reconstrução em camadas e oferta viva até 15s.
         function mcoVideoDrawFrame(ctx,poster,t,game,W,H){
-            const c=ctx.canvas;
-            const u=W/1080;
             const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
             const smooth=(v)=>{v=clamp(v);return v*v*(3-2*v);};
             const lerp=(a,b,p)=>a+(b-a)*p;
+            const easeOutCubic=(x)=>1-Math.pow(1-clamp(x),3);
             const easeOutBack=(x)=>{const c1=1.70158,c3=c1+1;return 1+c3*Math.pow(x-1,3)+c1*Math.pow(x-1,2);};
-            let assets=c.__mco259;
-            if(!assets || assets.w!==W || assets.h!==H){
+            let assets=poster.__mco260;
+            if(!assets){
                 const make=()=>document.createElement('canvas');
-                const background=make();background.width=W;background.height=H;
-                const b=background.getContext('2d',{alpha:false});
-                const bg=b.createLinearGradient(0,0,W,H);
-                bg.addColorStop(0,'#090820');bg.addColorStop(.55,'#12082c');bg.addColorStop(1,'#050f24');
-                b.fillStyle=bg;b.fillRect(0,0,W,H);
-                const halo=b.createRadialGradient(W*.50,H*.45,0,W*.50,H*.45,W*.90);
-                halo.addColorStop(0,'rgba(88,20,166,.44)');halo.addColorStop(1,'rgba(0,0,0,0)');
-                b.fillStyle=halo;b.fillRect(0,0,W,H);
-                const makeLabel=(text,color1,color2,maxWidth=900)=>{
-                    const p=make();p.width=960;p.height=240;
-                    const x=p.getContext('2d');
-                    const grad=x.createLinearGradient(0,0,p.width,0);
-                    grad.addColorStop(0,color1);grad.addColorStop(1,color2||color1);
-                    x.textAlign='center';x.textBaseline='middle';
-                    x.font='900 116px Inter, Arial, sans-serif';
-                    x.lineJoin='round';x.miterLimit=2;
-                    x.shadowBlur=26;x.shadowColor=color2||color1;
-                    x.lineWidth=8;x.strokeStyle='rgba(2,7,18,.88)';
-                    x.strokeText(text,p.width/2,p.height/2,maxWidth);
-                    x.fillStyle=grad;x.fillText(text,p.width/2,p.height/2,maxWidth);
-                    x.shadowBlur=0;
-                    return p;
+                const meta=poster.__mcoPosterLayerMeta||{
+                    header:{x:30,y:28,w:1020,h:120},cover:{x:66,y:160,w:948,h:948},
+                    title:{x:50,y:1135,w:980,h:150},oldPrice:{x:50,y:1252,w:980,h:70},
+                    priceCard:{x:66,y:1336,w:948,h:121,r:25},footer:{x:50,y:1480,w:980,h:160}
                 };
-                const labels=[
-                    makeLabel('SUA PRÓXIMA AVENTURA','#f8fbff','#07dbff',930),
-                    makeLabel('COMEÇA AQUI','#ffffff','#ff59e8',900),
-                    makeLabel('MCO GAMES','#07dbff','#7d6bff',860)
-                ];
-                assets={w:W,h:H,background,labels};c.__mco259=assets;
-            }
-            ctx.setTransform(1,0,0,1,0,0);
-            ctx.globalAlpha=1;
-            ctx.drawImage(assets.background,0,0,W,H);
-            const pw=W*.965;
-            const ph=pw*(poster.height/poster.width);
-            const px=(W-pw)/2,py=(H-ph)/2;
-            const livePhase=Math.max(0,t-3000);
-            const floatY=livePhase>0?(Math.sin(livePhase/1700)*6+Math.sin(livePhase/3100)*3)*u:0;
-            const sway=livePhase>0?Math.sin(livePhase/2400)*0.0045:0;
-            const breathe=1+(livePhase>0?Math.sin(livePhase/2600)*0.0035:0);
-            ctx.save();
-            ctx.translate(W/2,H/2+floatY);
-            ctx.rotate(sway);
-            ctx.scale(breathe,breathe);
-            ctx.translate(-W/2,-H/2);
-            ctx.drawImage(poster,px,py,pw,ph);
-            ctx.restore();
-            if(livePhase>0){
-                const glow=.12+.06*(Math.sin(livePhase/1800)+1)/2;
-                ctx.save();
-                ctx.globalAlpha=glow;
-                const shine=ctx.createLinearGradient(0,H*.12,W,H*.88);
-                shine.addColorStop(0,'rgba(5,219,255,.0)');
-                shine.addColorStop(.5,'rgba(5,219,255,.55)');
-                shine.addColorStop(1,'rgba(255,89,232,.0)');
-                ctx.fillStyle=shine;
-                ctx.fillRect(px,py,pw,ph);
-                ctx.restore();
-            }
-            const textFadeOut=1-smooth((t-2700)/430);
-            if(textFadeOut>0.001){
-                const veil=.10+.18*textFadeOut;
-                ctx.save();ctx.globalAlpha=veil;ctx.fillStyle='#05091b';ctx.fillRect(0,0,W,H);ctx.restore();
-                const lineDefs=[
-                    {start:120,finalY:480*u,impactY:720*u,finalScale:.62,holdText:assets.labels[0]},
-                    {start:920,finalY:630*u,impactY:920*u,finalScale:.64,holdText:assets.labels[1]},
-                    {start:1720,finalY:780*u,impactY:1120*u,finalScale:.67,holdText:assets.labels[2]}
-                ];
-                lineDefs.forEach((item,idx)=>{
-                    const progress=clamp((t-item.start)/1120);
-                    if(progress<=0)return;
-                    let y,scale;
-                    if(progress<.36){
-                        const q=easeOutBack(progress/.36);
-                        y=lerp(-260*u,item.impactY,q);
-                        scale=lerp(2.15,1.05,q);
-                    }else{
-                        const q=smooth((progress-.36)/.64);
-                        y=lerp(item.impactY,item.finalY,q);
-                        scale=lerp(1.05,item.finalScale,q);
+                const roundClip=(c,w,h,r)=>{c.beginPath();c.roundRect(0,0,w,h,r);c.clip();};
+                const cropLayer=(box,opts={})=>{
+                    if(!box)return null;
+                    const c=make();c.width=Math.max(1,Math.round(box.w));c.height=Math.max(1,Math.round(box.h));
+                    const x=c.getContext('2d',{willReadFrequently:!!opts.keyBackground});
+                    if(opts.radius)roundClip(x,c.width,c.height,opts.radius);
+                    x.drawImage(poster,box.x,box.y,box.w,box.h,0,0,c.width,c.height);
+                    if(opts.holes&&opts.holes.length){
+                        x.save();x.globalCompositeOperation='destination-out';
+                        opts.holes.forEach(h=>{
+                            x.beginPath();x.roundRect(h.x-box.x,h.y-box.y,h.w,h.h,h.r||12);x.fill();
+                        });
+                        x.restore();
                     }
-                    const a=clamp((progress/.10))*textFadeOut;
-                    const label=item.holdText;
-                    const ww=Math.min(W*.92,label.width*scale);
-                    const hh=ww*label.height/label.width;
-                    const x=W/2;
-                    ctx.save();
-                    ctx.globalAlpha=a;
-                    ctx.shadowBlur=36*u;ctx.shadowColor=idx===1?'rgba(255,89,232,.45)':'rgba(7,219,255,.36)';
-                    ctx.drawImage(label,x-ww/2,y-hh/2,ww,hh);
-                    ctx.restore();
-                });
-            }
-            if(t>3250){
-                const a=smooth((t-3250)/650);
-                const pulse=1+((Math.sin((t-3250)/1250)+1)/2)*0.018;
-                const bx=W*.09,by=H-142*u,bw=W*.82,bh=102*u;
-                ctx.save();ctx.globalAlpha=.88*a;
-                ctx.fillStyle='#120b35';
-                ctx.beginPath();ctx.roundRect(bx,by,bw,bh,22*u);ctx.fill();
-                ctx.lineWidth=4*u;ctx.strokeStyle='#fa51eb';ctx.stroke();
-                ctx.translate(W/2,by+bh/2);ctx.scale(pulse,pulse);ctx.translate(-W/2,-(by+bh/2));
-                ctx.fillStyle='#fff';ctx.textAlign='center';ctx.textBaseline='middle';
-                ctx.font=`900 ${52*u}px Inter, Arial, sans-serif`;
-                ctx.fillText('ACESSE AGORA',W/2,by+bh/2,bw*.90);
-                ctx.restore();
-            }
-        }
+                    if(opts.keyBackground){
+                        const image=x.getImageData(0,0,c.width,c.height),d=image.data;
+                        for(let i=0;i<d.length;i+=4){
+                            const r=d[i],g=d[i+1],b=d[i+2];
+                            const lum=.2126*r+.7152*g+.0722*b;
+                            const chroma=Math.max(r,g,b)-Math.min(r,g,b);
+                            const strength=Math.max(lum,chroma*.88);
+                            let a=clamp((strength-24)/58);
+                            if(lum<24&&chroma<20)a=0;
+                            d[i+3]=Math.round(d[i+3]*a);
+                        }
+                        x.putImageData(image,0,0);
+                    }
+                    return {canvas:c,x:box.x,y:box.y,w:box.w,h:box.h,id:opts.id||'layer',kind:opts.kind||'normal'};
+                };
+                const coverHoles=[meta.platformBadge,meta.categoryBadge,meta.statusBadge,meta.comboBadge].filter(Boolean);
+                const layers=[];
+                const add=(layer,extra={})=>{if(layer)layers.push({...layer,...extra});};
+                add(cropLayer(meta.cover,{holes:coverHoles,id:'cover',kind:'cover'}),{out:{dx:0,dy:74},enter:{dx:0,dy:115},hold:'cover'});
+                add(cropLayer(meta.header,{keyBackground:true,id:'header'}),{out:{dx:0,dy:-65},enter:{dx:0,dy:-90},hold:'header'});
+                add(cropLayer(meta.platformBadge,{radius:meta.platformBadge?.r||14,id:'platform'}),{out:{dx:-75,dy:-15},enter:{dx:-100,dy:-24},hold:'badge'});
+                add(cropLayer(meta.categoryBadge,{radius:meta.categoryBadge?.r||12,id:'category'}),{out:{dx:78,dy:-16},enter:{dx:100,dy:-24},hold:'badge'});
+                add(cropLayer(meta.statusBadge,{radius:meta.statusBadge?.r||28,id:'availability'}),{out:{dx:90,dy:35},enter:{dx:115,dy:45},hold:'badge'});
+                add(cropLayer(meta.comboBadge,{radius:meta.comboBadge?.r||15,id:'combo'}),{out:{dx:-80,dy:42},enter:{dx:-100,dy:45},hold:'badge'});
+                add(cropLayer(meta.title,{keyBackground:true,id:'title'}),{out:{dx:-60,dy:15},enter:{dx:-90,dy:28},hold:'title'});
+                add(cropLayer(meta.oldPrice,{keyBackground:true,id:'oldprice'}),{out:{dx:70,dy:-18},enter:{dx:100,dy:-22},hold:'price'});
+                add(cropLayer(meta.priceCard,{radius:meta.priceCard?.r||25,id:'pricecard'}),{out:{dx:0,dy:75},enter:{dx:0,dy:100},hold:'price'});
+                add(cropLayer(meta.footer,{keyBackground:true,id:'footer'}),{out:{dx:0,dy:70},enter:{dx:0,dy:82},hold:'footer'});
 
+                // CTA inferior separado para também sair e voltar como uma peça independente.
+                const cta=make();cta.width=900;cta.height=112;
+                const q=cta.getContext('2d');
+                q.save();q.shadowColor='#d83cff';q.shadowBlur=22;
+                q.fillStyle='#100b2b';q.strokeStyle='#e448ef';q.lineWidth=4;
+                q.beginPath();q.roundRect(7,7,886,98,23);q.fill();q.stroke();q.restore();
+                q.fillStyle='#f7f2ff';q.font='900 48px Inter, Arial, sans-serif';q.textAlign='center';q.textBaseline='middle';
+                q.fillText('ACESSE AGORA',450,56);
+                add({canvas:cta,x:90,y:1767,w:900,h:112,id:'cta',kind:'cta',out:{dx:0,dy:95},enter:{dx:0,dy:110},hold:'cta'});
+
+                // Base reconstruída: preserva moldura e fundo, deixando os componentes em camadas.
+                const base=make();base.width=poster.width;base.height=poster.height;
+                const b=base.getContext('2d');b.drawImage(poster,0,0);
+                const fillMask=(box,alpha=1)=>{
+                    if(!box)return;
+                    const grad=b.createLinearGradient(box.x,box.y,box.x+box.w,box.y+box.h);
+                    grad.addColorStop(0,`rgba(8,10,30,${alpha})`);
+                    grad.addColorStop(.55,`rgba(7,11,27,${alpha})`);
+                    grad.addColorStop(1,`rgba(8,9,25,${alpha})`);
+                    b.fillStyle=grad;b.fillRect(box.x,box.y,box.w,box.h);
+                };
+                fillMask(meta.header,.99);
+                if(meta.cover){
+                    b.save();b.beginPath();b.rect(meta.cover.x,meta.cover.y,meta.cover.w,meta.cover.h);b.clip();
+                    b.filter='blur(27px) brightness(.28) saturate(1.2)';
+                    b.drawImage(poster,meta.cover.x,meta.cover.y,meta.cover.w,meta.cover.h,meta.cover.x-30,meta.cover.y-30,meta.cover.w+60,meta.cover.h+60);
+                    b.filter='none';b.fillStyle='rgba(5,8,24,.30)';b.fillRect(meta.cover.x,meta.cover.y,meta.cover.w,meta.cover.h);b.restore();
+                }
+                fillMask(meta.title,.99);fillMask(meta.oldPrice,.99);fillMask(meta.priceCard,.99);fillMask(meta.footer,.99);
+
+                // Fundo escuro independente para a frase: nenhuma parte do anúncio fica visível.
+                const dark=make();dark.width=W;dark.height=H;
+                const d=dark.getContext('2d');
+                const dg=d.createLinearGradient(0,0,W,H);
+                dg.addColorStop(0,'#07091d');dg.addColorStop(.52,'#100725');dg.addColorStop(1,'#040b1a');
+                d.fillStyle=dg;d.fillRect(0,0,W,H);
+                const halo=d.createRadialGradient(W*.5,H*.48,0,W*.5,H*.48,W*.78);
+                halo.addColorStop(0,'rgba(93,26,170,.34)');halo.addColorStop(.65,'rgba(20,12,65,.13)');halo.addColorStop(1,'rgba(0,0,0,0)');
+                d.fillStyle=halo;d.fillRect(0,0,W,H);
+                d.strokeStyle='rgba(0,205,255,.48)';d.lineWidth=4;d.beginPath();d.roundRect(22,22,W-44,H-44,32);d.stroke();
+
+                const makeText=(label,size,c1,c2)=>{
+                    const c=make();c.width=1000;c.height=230;const x=c.getContext('2d');
+                    const g=x.createLinearGradient(0,30,1000,190);g.addColorStop(0,c1);g.addColorStop(1,c2);
+                    x.textAlign='center';x.textBaseline='middle';x.font=`900 ${size}px Inter, Arial, sans-serif`;
+                    x.lineJoin='round';x.lineWidth=9;x.strokeStyle='rgba(0,2,15,.88)';
+                    x.shadowColor=c2;x.shadowBlur=32;x.strokeText(label,500,115,960);
+                    x.fillStyle=g;x.fillText(label,500,115,960);x.shadowBlur=0;
+                    return c;
+                };
+                const textLines=[
+                    {canvas:makeText('SUA PRÓXIMA AVENTURA',82,'#ffffff','#11dcff'),start:2600,y:735},
+                    {canvas:makeText('COMEÇA AQUI',112,'#ffffff','#ff55e8'),start:3350,y:960},
+                    {canvas:makeText('MCO GAMES',118,'#14dcff','#9b65ff'),start:4100,y:1185}
+                ];
+                assets={base,dark,layers,textLines,meta};poster.__mco260=assets;
+            }
+
+            const scale=W*.965/1080;
+            const drawPosterFull=()=>{
+                const pw=W*.965,ph=pw*(poster.height/poster.width),px=(W-pw)/2,py=(H-ph)/2;
+                ctx.drawImage(poster,px,py,pw,ph);
+                const cta=assets.layers.find(l=>l.id==='cta');
+                if(cta)drawLayer(cta,0,0,1,1,0);
+            };
+            const px=(W-W*.965)/2,py=(H-(W*.965)*(poster.height/poster.width))/2;
+            function drawLayer(layer,dx=0,dy=0,alpha=1,scaleFactor=1,rotation=0){
+                if(!layer||alpha<=.001)return;
+                const isScreenLayer=layer.kind==='cta';
+                const x=(isScreenLayer?layer.x*W/1080:px+layer.x*scale)+dx;
+                const y=(isScreenLayer?layer.y*H/1920:py+layer.y*scale)+dy;
+                const w=(isScreenLayer?layer.w*W/1080:layer.w*scale)*scaleFactor;
+                const h=(isScreenLayer?layer.h*H/1920:layer.h*scale)*scaleFactor;
+                ctx.save();ctx.globalAlpha=clamp(alpha);
+                ctx.translate(x+w/2,y+h/2);if(rotation)ctx.rotate(rotation);ctx.drawImage(layer.canvas,-w/2,-h/2,w,h);ctx.restore();
+            }
+            function drawComposite(time,mode){
+                const pw=W*.965,ph=pw*(poster.height/poster.width);
+                ctx.drawImage(assets.base,px,py,pw,ph);
+                const list=assets.layers;
+                if(mode==='exit'){
+                    list.forEach((layer,i)=>{
+                        const start=1200+i*90,duration=340;
+                        const p=clamp((time-start)/duration);
+                        const gone=smooth(p);
+                        const dir=layer.out||{dx:0,dy:60};
+                        drawLayer(layer,dir.dx*gone,dir.dy*gone,1-gone,1+.035*gone,0);
+                    });
+                }else if(mode==='enter'){
+                    list.forEach((layer,i)=>{
+                        const start=5600+i*285,duration=620;
+                        const p=clamp((time-start)/duration);
+                        if(p<=0)return;
+                        const e=easeOutBack(p),dir=layer.enter||{dx:0,dy:80};
+                        const scaleFactor=lerp(.86,1,e);
+                        drawLayer(layer,dir.dx*(1-e),dir.dy*(1-e),smooth(p/.20),scaleFactor,0);
+                    });
+                }else{
+                    list.forEach((layer,i)=>{
+                        const phase=(time-9800)/1000;
+                        let dx=0,dy=0,sc=1,rot=0;
+                        if(layer.hold==='cover'){
+                            dy=Math.sin(phase*.78)*2.3;rot=Math.sin(phase*.58)*.0018;sc=1+Math.sin(phase*.62)*.0018;
+                        }else if(layer.hold==='price'){
+                            dy=Math.sin(phase*.95+i)*.8;sc=1+Math.sin(phase*.9)*.0028;
+                        }else if(layer.hold==='badge'){
+                            dy=Math.sin(phase*1.05+i*.8)*.85;dx=Math.cos(phase*.7+i)*.45;
+                        }else if(layer.hold==='title'){
+                            dy=Math.sin(phase*.8)*.65;
+                        }else if(layer.hold==='header'){
+                            dy=Math.sin(phase*.6)*.45;
+                        }else if(layer.hold==='footer'){
+                            dy=Math.sin(phase*.7)*.4;
+                        }else if(layer.hold==='cta'){
+                            sc=1+Math.sin(phase*.85)*.006;
+                        }
+                        drawLayer(layer,dx,dy,1,sc,rot);
+                    });
+                }
+            }
+
+            ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=1;
+            if(t<=1000){
+                drawPosterFull();
+                return;
+            }
+            if(t<1200){
+                drawPosterFull();
+                ctx.save();ctx.globalAlpha=smooth((t-1000)/200);drawComposite(t,'exit');ctx.restore();
+                return;
+            }
+            if(t<2600){
+                drawComposite(t,'exit');
+                const darken=.10+.22*smooth((t-1200)/1400);
+                ctx.fillStyle=`rgba(2,4,15,${darken})`;ctx.fillRect(0,0,W,H);
+                return;
+            }
+            if(t<5600){
+                ctx.drawImage(assets.dark,0,0,W,H);
+                const textFade=1-smooth((t-5300)/300);
+                assets.textLines.forEach((item,index)=>{
+                    const duration=760,p=clamp((t-item.start)/duration);
+                    if(p<=0)return;
+                    let y,sc;
+                    if(p<.58){
+                        const q=easeOutCubic(p/.58);
+                        y=lerp(-270,item.y+78,q);sc=lerp(1.95,.82,q);
+                    }else{
+                        const q=easeOutBack((p-.58)/.42);
+                        y=lerp(item.y+78,item.y,q);sc=lerp(.82,.70,q);
+                    }
+                    const alpha=smooth(p/.10)*textFade;
+                    const w=1000*scale*sc,h=230*scale*sc;
+                    ctx.save();ctx.globalAlpha=alpha;ctx.shadowColor=index===1?'rgba(255,75,230,.45)':'rgba(0,205,255,.42)';ctx.shadowBlur=36;
+                    ctx.drawImage(item.canvas,(W-w)/2,y-h/2,w,h);ctx.restore();
+                });
+                return;
+            }
+            if(t<9800){
+                drawComposite(t,'enter');
+                // Uma leve luz de contorno acompanha a reconstrução, sem cobrir a capa.
+                const glow=.05+.05*Math.sin(t/360);
+                ctx.save();ctx.globalAlpha=glow;ctx.strokeStyle='#22d8ff';ctx.lineWidth=5;
+                ctx.beginPath();ctx.roundRect(px+8,py+8,W*.965-16,(W*.965)*(poster.height/poster.width)-16,28);ctx.stroke();ctx.restore();
+                return;
+            }
+            drawComposite(t,'hold');
+        }
         function mcoChooseVideoCaptureFPS(){
             // 60 FPS onde possível, com fallback automático 30 FPS em dispositivos limitados.
             const cores=Number(navigator.hardwareConcurrency)||0;
@@ -15618,6 +15722,12 @@ async function buildMcoSharePoster(game, cardEl, sharePlatforms = null) {
 
     // A CAPA É EXATAMENTE 1:1: 948 × 948 px. A imagem-fonte nunca sofre crop.
     const coverX=66,coverY=160,coverSize=948;
+    const posterLayerMeta={
+        header:{x:30,y:28,w:1020,h:120},
+        cover:{x:coverX,y:coverY,w:coverSize,h:coverSize},
+        platformBadge:null,categoryBadge:null,statusBadge:null,comboBadge:null,
+        title:null,oldPrice:null,priceCard:null,footer:{x:50,y:1480,w:980,h:160}
+    };
     ctx.save();ctx.shadowColor='#17d4ff';ctx.shadowBlur=27;
     rrect(coverX,coverY,coverSize,coverSize,28,'#070c19','#28c9ff',5);
     ctx.restore();
@@ -15651,6 +15761,7 @@ async function buildMcoSharePoster(game, cardEl, sharePlatforms = null) {
     const platformLabel=platformList.length?platformList.map(platform=>getPlatformDisplayLabel(game,platform)).join(' / '):String(game.platform||'PLAYSTATION');
     ctx.font='900 29px Arial, sans-serif';
     const platformWidth=Math.min(420,ctx.measureText(platformLabel).width+55);
+    posterLayerMeta.platformBadge={x:coverX+22,y:coverY+20,w:platformWidth,h:61,r:14};
     rrect(coverX+22,coverY+20,platformWidth,61,14,'rgba(6,8,22,.90)','#5676d8',2);
     ctx.fillStyle='#fff';ctx.fillText(platformLabel,coverX+45,coverY+62,platformWidth-42);
 
@@ -15663,6 +15774,7 @@ async function buildMcoSharePoster(game, cardEl, sharePlatforms = null) {
     const statusWidth=Math.min(630,ctx.measureText(statusText).width+85);
     const statusX=coverX+coverSize-statusWidth-22;
     const statusY=coverY+coverSize-85;
+    posterLayerMeta.statusBadge={x:statusX,y:statusY,w:statusWidth,h:66,r:28};
     const statusColor=consult?'#f2bd6a':'#7dffc5';
     ctx.save();ctx.shadowColor=consult?'#f29d3f':'#16ee98';ctx.shadowBlur=18;
     rrect(statusX,statusY,statusWidth,66,28,consult?'#3c2c0c':'#073626',consult?'#eab44b':'#27f2a5',3);
@@ -15681,6 +15793,7 @@ async function buildMcoSharePoster(game, cardEl, sharePlatforms = null) {
     if(categoryLabel){
         ctx.font='900 22px Arial, sans-serif';
         const badgeW=Math.min(320,ctx.measureText(categoryLabel).width+40);
+        posterLayerMeta.categoryBadge={x:coverX+coverSize-badgeW-20,y:coverY+22,w:badgeW,h:52,r:12};
         rrect(coverX+coverSize-badgeW-20,coverY+22,badgeW,52,12,'rgba(14,12,32,.92)','#ac7dff',2);
         ctx.fillStyle='#f4deff';ctx.textAlign='center';
         ctx.fillText(categoryLabel,coverX+coverSize-badgeW/2-20,coverY+56,badgeW-26);
@@ -15692,6 +15805,7 @@ async function buildMcoSharePoster(game, cardEl, sharePlatforms = null) {
         const comboText=count>0?`COMBO · ${count} JOGOS`:'COMBO';
         ctx.font='900 25px Arial, sans-serif';
         const comboWidth=Math.min(380,ctx.measureText(comboText).width+55);
+        posterLayerMeta.comboBadge={x:coverX+22,y:coverY+coverSize-84,w:comboWidth,h:59,r:15};
         rrect(coverX+22,coverY+coverSize-84,comboWidth,59,15,'rgba(18,14,31,.92)','#c7a0ff',2);
         ctx.fillStyle='#e6c8ff';ctx.fillText(comboText,coverX+45,coverY+coverSize-45,comboWidth-40);
     }
@@ -15703,6 +15817,7 @@ async function buildMcoSharePoster(game, cardEl, sharePlatforms = null) {
     if (ctx.measureText(title).width>950) {fontSize=43;ctx.font=`900 ${fontSize}px Arial, sans-serif`;}
     ctx.fillStyle='#f9f6ff';ctx.shadowColor='rgba(66,84,190,.4)';ctx.shadowBlur=8;
     const titleEnd=drawSharePosterWrappedText(ctx,title,66,1190,950,fontSize+10,2);
+    posterLayerMeta.title={x:50,y:1135,w:980,h:Math.max(140,Math.min(250,titleEnd-1135+42))};
     ctx.shadowBlur=0;
 
     const currentPrice=Number(getSharePlatformPrice(game,selectedSharePlatforms)||0);
@@ -15718,6 +15833,7 @@ async function buildMcoSharePoster(game, cardEl, sharePlatforms = null) {
     const referencePrice=referenceSpecial>currentPrice?referenceSpecial:oldPrice;
     const discount=referencePrice>currentPrice&&currentPrice>0?Math.round((1-currentPrice/referencePrice)*100):0;
     const oldY=Math.max(1304,titleEnd+16);
+    posterLayerMeta.oldPrice={x:50,y:oldY-52,w:980,h:70};
     if(referencePrice>currentPrice&&currentPrice>0){
         const oldText=money(referencePrice);
         ctx.fillStyle='#a5aabb';ctx.font='600 35px Arial, sans-serif';
@@ -15736,6 +15852,7 @@ async function buildMcoSharePoster(game, cardEl, sharePlatforms = null) {
         ctx.textAlign='left';
     }
     const priceY=oldY+32;
+    posterLayerMeta.priceCard={x:66,y:priceY,w:W-132,h:121,r:25};
     ctx.save();ctx.shadowColor='#1acfff';ctx.shadowBlur=16;
     rrect(66,priceY,W-132,121,25,'#07172a','#19d2ff',4);
     ctx.restore();
@@ -15770,6 +15887,7 @@ async function buildMcoSharePoster(game, cardEl, sharePlatforms = null) {
     ctx.fillText('Confira esta e outras ofertas na',72,H-62);
     ctx.fillStyle='#27d7ff';ctx.font='900 27px Arial, sans-serif';
     ctx.fillText('MCO GAMES',525,H-62,460);
+    canvas.__mcoPosterLayerMeta=posterLayerMeta;
     return canvas;
 }
 
