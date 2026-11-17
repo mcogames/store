@@ -10,7 +10,7 @@
     <meta name="mco-home-category-version" content="NEXUS-2M.2.31-UNIFIED-BANNER-LEFT">
     <meta name="mco-share-category-version" content="NEXUS-2M.2.41-BANNER-PLUS-FOUR-GAMES">
     <meta name="mco-retro-ps5-version" content="NEXUS-2M.2.38-PS4-RETRO-LABEL">
-    <meta name="mco-share-video-version" content="MCO-2M.2.57-MP4-WEBM-NEON-INTRO-7S">
+    <meta name="mco-share-video-version" content="MCO-2M.2.58-ZOOM-CONTINUO-FULLHD-60FPS">
     <meta name="mco-theme-version" content="SITE-2M.2.44-THEME-ENGINE">
     <meta name="mco-mobile-vertical-feed-fix" content="SITE-2M.2.45-MOBILE-FIRST-IG-FEED">
     <meta name="mco-share-poster-version" content="SITE-2M.2.56-SQUARE-COVER-PRESERVA-TEMA-GTA6">
@@ -9510,16 +9510,16 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
                 dialog.setAttribute('aria-label','Formato do compartilhamento');
                 dialog.innerHTML=`
                     <h3>🎮 Compartilhar oferta</h3>
-                    <p>Escolha como divulgar este jogo. A imagem tradicional continua disponível.</p>
+                    <p>Gostou deste jogo? Compartilhe com seus amigos!</p>
                     <div class="mco-media-choice-grid">
-                      <button type="button" class="mco-media-choice-button" data-mode="png"><strong>🖼 Imagem PNG</strong><small>Capa 1:1, preço e desconto. Compartilhamento atual.</small></button>
-                      <button type="button" class="mco-media-choice-button video" data-mode="video"><strong>▶ Vídeo animado</strong><small>7 segundos com faixas neon, chamadas e oferta.</small></button>
+                      <button type="button" class="mco-media-choice-button" data-mode="png"><strong>🖼 Compartilhar imagem</strong><small>Uma imagem especial com a oferta do jogo.</small></button>
+                      <button type="button" class="mco-media-choice-button video" data-mode="video"><strong>▶ Compartilhar vídeo</strong><small>Um vídeo animado para surpreender seus amigos.</small></button>
                     </div>
                     <button type="button" class="mco-media-choice-cancel">Cancelar</button>`;
                 const videoButton=dialog.querySelector('[data-mode="video"]');
                 if (!mcoCanRecordShareVideo()) {
                     videoButton.disabled=true;
-                    videoButton.querySelector('small').textContent='Navegador sem gravação de vídeo. Use a imagem PNG.';
+                    videoButton.querySelector('small').textContent='Vídeo não disponível neste aparelho. Compartilhe a imagem.';
                 }
                 const finish=(value)=>{
                     document.removeEventListener('keydown',handleKey);
@@ -9543,11 +9543,11 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
             const overlay=document.createElement('div');
             overlay.className='mco-media-choice-overlay';
             overlay.innerHTML=`<div class="mco-media-choice-dialog" role="dialog" aria-modal="true" aria-label="Gerando vídeo da oferta">
-                <h3>🎬 Preparando vídeo animado</h3>
+                <h3>🎬 Preparando seu vídeo</h3>
                 <p class="mco-video-game-name"></p>
                 <div class="mco-video-progress-shell"><div class="mco-video-progress-bar"></div></div>
-                <div class="mco-video-progress-caption" role="status" aria-live="polite">Carregando capa e informações…</div>
-                <button type="button" class="mco-media-choice-cancel">Cancelar geração</button>
+                <div class="mco-video-progress-caption" role="status" aria-live="polite">Preparando sua oferta…</div>
+                <button type="button" class="mco-media-choice-cancel">Cancelar</button>
             </div>`;
             overlay.querySelector('.mco-video-game-name').textContent=String(gameName||'Oferta MCO GAMES');
             const controller=new AbortController();
@@ -9563,100 +9563,149 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
             };
         }
 
-        // Para não prejudicar aparelhos modestos, HD no celular e Full HD no computador.
-        // A capa do poster é mantida 1:1: o poster é desenhado inteiro, nunca com cover/crop.
-        function mcoVideoDrawFrame(ctx, poster, t, game, width, height) {
-            const W=width,H=height;
-            const unit=W/1080;
-            const clamp=v=>Math.max(0,Math.min(1,v));
-            const ease=v=>1-Math.pow(1-clamp(v),3);
-            const fill=(color,x,y,w,h)=>{ctx.fillStyle=color;ctx.fillRect(x,y,w,h);};
-            ctx.setTransform(1,0,0,1,0,0);
-            ctx.clearRect(0,0,W,H);
-            const bg=ctx.createLinearGradient(0,0,W,H);
-            bg.addColorStop(0,'#080b27');bg.addColorStop(.5,'#111035');bg.addColorStop(1,'#050c1c');
-            fill(bg,0,0,W,H);
-            const glow=ctx.createRadialGradient(W*.55,H*.48,W*.07,W*.55,H*.48,W*.88);
-            glow.addColorStop(0,'rgba(142,36,234,.40)');glow.addColorStop(1,'rgba(0,0,0,0)');
-            fill(glow,0,0,W,H);
-            ctx.save();ctx.translate(W*.5,H*.5);ctx.rotate(-.22);
-            const bandShift=Math.sin(t*.0012)*W*.035;
-            for(let i=-2;i<7;i++){
-                const y=(i-2)*H*.235+bandShift;
-                const color=i%3===0?'#00dcff':(i%3===1?'#872dff':'#ef38d1');
-                ctx.shadowColor=color;ctx.shadowBlur=28*unit;
-                fill(color,-W*1.4,y,W*2.8,Math.max(14*unit,48*unit));
-                ctx.shadowBlur=0;
-                fill('rgba(255,255,255,.22)',-W*1.4,y+3*unit,W*2.8,3*unit);
+        // MCO GAMES 2M.2.58 — primeiro quadro é a oferta real, sem faixas sobre a capa.
+        // Na sequência, textos neon cruzam um mesmo eixo de profundidade em zoom contínuo.
+        // Canvas sempre Full HD 9:16. 60 FPS solicitado quando o dispositivo comporta;
+        // fallback automático de captura para 30 FPS em aparelhos modestos.
+        function mcoVideoDrawFrame(ctx,poster,t,game,W,H){
+            const c=ctx.canvas;
+            const u=W/1080;
+            const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
+            const smooth=(v)=>{v=clamp(v);return v*v*(3-2*v);};
+            let assets=c.__mco258;
+            if(!assets || assets.w!==W || assets.h!==H){
+                const make=()=>document.createElement('canvas');
+                const background=make();background.width=W;background.height=H;
+                const b=background.getContext('2d',{alpha:false});
+                const bg=b.createLinearGradient(0,0,W,H);
+                bg.addColorStop(0,'#090820');bg.addColorStop(.55,'#12082c');bg.addColorStop(1,'#050f24');
+                b.fillStyle=bg;b.fillRect(0,0,W,H);
+                const halo=b.createRadialGradient(W*.50,H*.45,0,W*.50,H*.45,W*.90);
+                halo.addColorStop(0,'rgba(88,20,166,.44)');halo.addColorStop(1,'rgba(0,0,0,0)');
+                b.fillStyle=halo;b.fillRect(0,0,W,H);
+                // Placas de texto ficam pré-renderizadas: reduz uso de CPU na gravação em 60 FPS.
+                const titles=[
+                    ['OS MELHORES','JOGOS'],
+                    ['SÓ AQUI NA','MCO GAMES'],
+                    ['OFERTAS PARA','PS4 E PS5']
+                ];
+                const panels=titles.map((lines,index)=>{
+                    const p=make();p.width=980;p.height=520;
+                    const x=p.getContext('2d');
+                    // Faixas largas, sem competir com a imagem do jogo no primeiro quadro.
+                    const grad=x.createLinearGradient(0,0,980,520);
+                    grad.addColorStop(0,'rgba(5,15,40,.97)');grad.addColorStop(.5,'rgba(25,9,56,.98)');grad.addColorStop(1,'rgba(6,19,42,.97)');
+                    x.fillStyle=grad;x.beginPath();x.roundRect(10,25,960,470,45);x.fill();
+                    x.lineWidth=8;x.strokeStyle='#0cd6ff';x.stroke();
+                    x.fillStyle=index===1?'#e64afa':'#07d5ff';x.fillRect(45,28,890,18);
+                    x.fillStyle=index===1?'#07d5ff':'#e64afa';x.fillRect(45,470,890,18);
+                    const draw=(label,y,size,color)=>{
+                        x.textAlign='center';x.textBaseline='middle';
+                        x.font=`900 ${size}px Inter, Arial, sans-serif`;
+                        x.lineJoin='round';x.lineWidth=4;
+                        x.strokeStyle='rgba(1,5,14,.82)';x.strokeText(label,490,y,870);
+                        x.fillStyle=color;x.fillText(label,490,y,870);
+                    };
+                    draw(lines[0],205,76,'#f6faff');
+                    draw(lines[1],330,index===1?112:136,index===1?'#ff66e9':'#02e5ff');
+                    return p;
+                });
+                assets={w:W,h:H,background,panels};c.__mco258=assets;
             }
+            // Início da gravação: a capa, preço e desconto estão completamente visíveis.
+            ctx.setTransform(1,0,0,1,0,0);
+            ctx.globalAlpha=1;
+            ctx.drawImage(assets.background,0,0,W,H);
+            const pw=W*.965;
+            const ph=pw*(poster.height/poster.width);
+            const px=(W-pw)/2,py=(H-ph)/2;
+            const posterMotion=t<900?0:Math.min(.009,Math.max(0,t-4100)*.000003);
+            const z=1+posterMotion;
+            ctx.save();
+            ctx.translate(W/2,H/2);ctx.scale(z,z);ctx.translate(-W/2,-H/2);
+            ctx.drawImage(poster,px,py,pw,ph);
             ctx.restore();
-            const text=(line,x,y,size,color='#fff',maxWidth=W*.9)=>{
-                ctx.font=`950 ${size*unit}px Arial, sans-serif`;
-                ctx.textAlign='center';ctx.textBaseline='middle';
-                ctx.lineWidth=3*unit;ctx.strokeStyle='rgba(0,0,0,.45)';
-                ctx.shadowColor=color;ctx.shadowBlur=18*unit;
-                ctx.strokeText(line,x,y,maxWidth);ctx.fillStyle=color;
-                ctx.fillText(line,x,y,maxWidth);ctx.shadowBlur=0;
-            };
-            if(t<1500){
-                const p=ease(t/440),pull=(1-p)*(-W);
-                ctx.save();ctx.translate(pull,0);
-                fill('rgba(4,9,32,.88)',W*.04,H*.31,W*.92,H*.36);
-                fill('#00d5ff',W*.04,H*.31,W*.92,8*unit);
-                fill('#e64bfa',W*.04,H*.67-8*unit,W*.92,8*unit);
-                text('MCO GAMES',W*.5,H*.24,91,'#e9faff');
-                text('OS MELHORES',W*.5,H*.40,84,'#ffffff');
-                text('JOGOS',W*.5,H*.495,160,'#00e1ff');
-                text('SÓ AQUI NA',W*.5,H*.568,70,'#ffffff');
-                text('MCO GAMES',W*.5,H*.627,84,'#ff66e8');
+            // Abertura só começa depois de a oferta permanecer legível no vídeo.
+            const introA=smooth((t-900)/220)*(1-smooth((t-3720)/500));
+            if(introA>0.001){
+                ctx.save();ctx.globalAlpha=introA*.86;
+                ctx.fillStyle='#070b23';ctx.fillRect(0,0,W,H);
                 ctx.restore();
-            } else if(t<2900){
-                const p=ease((t-1500)/420),pull=(1-p)*W;
-                ctx.save();ctx.translate(pull,0);
-                fill('rgba(5,9,29,.92)',W*.04,H*.30,W*.92,H*.40);
-                fill('#ef31cf',W*.04,H*.30,W*.92,9*unit);
-                fill('#00d9ff',W*.04,H*.70-9*unit,W*.92,9*unit);
-                text('OFERTAS',W*.5,H*.42,122,'#ffffff');
-                text('PARA',W*.5,H*.50,98,'#ffffff');
-                fill('#00e4ff',W*.08,H*.555,W*.84,H*.095);
-                text('PS4 E PS5',W*.5,H*.604,110,'#061428');
+                // Faixas neon diagonais, grossas e com movimento de profundidade.
+                ctx.save();
+                ctx.globalAlpha=introA;
+                ctx.translate(W*.5,H*.5);ctx.rotate(-.22);
+                const travel=((t-900)*.00016)%1;
+                const stripes=[-620,-130,350,820];
+                stripes.forEach((offset,i)=>{
+                    const y=(offset+travel*490)*u;
+                    const col=['#00d8ff','#b23cff','#f146d0','#00d8ff'][i];
+                    ctx.fillStyle=col;
+                    ctx.fillRect(-W*1.25,y,W*2.5,30*u);
+                    ctx.fillStyle='rgba(255,255,255,.23)';
+                    ctx.fillRect(-W*1.25,y, W*2.5,3*u);
+                });
                 ctx.restore();
-            } else {
-                const p=ease((t-2900)/650),alpha=clamp(p),zoom=.96+.04*p;
-                ctx.save();ctx.globalAlpha=alpha;
-                const pw=W*.963*zoom;
-                const ph=pw*(poster.height/poster.width);
-                const px=(W-pw)/2;
-                const py=(H-ph)/2;
-                ctx.shadowColor='#1ce1ff';ctx.shadowBlur=25*unit;
-                ctx.drawImage(poster,px,py,pw,ph);
-                ctx.restore();
-                if(t>5450){
-                    const a=ease((t-5450)/480);
+                // Cada frase atravessa a lente, e a próxima surge pela mesma perspectiva.
+                const shots=[
+                    {start:940,end:1930,panel:0},
+                    {start:1840,end:2860,panel:1},
+                    {start:2780,end:3920,panel:2}
+                ];
+                shots.forEach(s=>{
+                    if(t<s.start||t>s.end)return;
+                    const p=clamp((t-s.start)/(s.end-s.start));
+                    const scale=.60*Math.pow(4.65,p); // zoom progressivo, sem reset aparente
+                    const fadeIn=smooth(p/.17);
+                    const fadeOut=1-smooth((p-.65)/.35);
+                    const a=clamp(fadeIn*fadeOut*introA);
+                    if(a<.001)return;
+                    const panel=assets.panels[s.panel];
+                    const x=W*.5,y=H*.49;
+                    const ww=W*.88*scale;
+                    const hh=ww*panel.height/panel.width;
                     ctx.save();ctx.globalAlpha=a;
-                    const barW=W*.88,barH=105*unit,x=(W-barW)/2,y=H-132*unit;
-                    ctx.shadowColor='#ff48e8';ctx.shadowBlur=(12+4*Math.sin(t*.013))*unit;
-                    ctx.fillStyle='rgba(13,8,39,.94)';ctx.beginPath();ctx.roundRect(x,y,barW,barH,25*unit);ctx.fill();
-                    ctx.lineWidth=4*unit;ctx.strokeStyle='#ff5cef';ctx.stroke();ctx.shadowBlur=0;
-                    text('ACESSE AGORA',W*.5,y+barH*.50,54,'#fff',barW*.91);
+                    ctx.drawImage(panel,x-ww/2,y-hh/2,ww,hh);
                     ctx.restore();
-                }
+                });
+            }
+            // Rodapé com CTA sobre a oferta, depois do zoom final.
+            if(t>4780){
+                const a=smooth((t-4780)/620);
+                const bx=W*.09,by=H-139*u,bw=W*.82,bh=100*u;
+                ctx.save();ctx.globalAlpha=a;
+                ctx.fillStyle='#120b35';
+                ctx.beginPath();ctx.roundRect(bx,by,bw,bh,22*u);ctx.fill();
+                ctx.lineWidth=4*u;ctx.strokeStyle='#fa51eb';ctx.stroke();
+                ctx.fillStyle='#fff';ctx.textAlign='center';ctx.textBaseline='middle';
+                ctx.font=`900 ${52*u}px Inter, Arial, sans-serif`;
+                ctx.fillText('ACESSE AGORA',W/2,by+bh/2,bw*.90);
+                ctx.restore();
             }
         }
 
-        async function mcoRecordAnimatedOffer(poster,game,onProgress,signal) {
-            if(!mcoCanRecordShareVideo())throw new Error('Este navegador não oferece gravação de vídeo.');
-            const mobile=isMobileDevice();
-            const W=mobile?720:1080, H=mobile?1280:1920;
+        function mcoChooseVideoCaptureFPS(){
+            // 60 FPS onde possível, com fallback automático 30 FPS em dispositivos limitados.
+            const cores=Number(navigator.hardwareConcurrency)||0;
+            const memory=Number(navigator.deviceMemory)||0;
+            return ((cores>0&&cores<4)||(memory>0&&memory<=2))?30:60;
+        }
+
+        async function mcoRecordAnimatedOffer(poster,game,onProgress,signal){
+            if(!mcoCanRecordShareVideo())throw new Error('Este aparelho não oferece gravação de vídeo.');
+            const W=1080,H=1920;
             const canvas=document.createElement('canvas');canvas.width=W;canvas.height=H;
-            const ctx=canvas.getContext('2d',{alpha:false});
+            const ctx=canvas.getContext('2d',{alpha:false,desynchronized:true});
             if(!ctx)throw new Error('Não foi possível preparar o vídeo.');
-            const fps=24,duration=7000;
+            const fps=mcoChooseVideoCaptureFPS(),duration=7000;
+            // O primeiro quadro contém toda a oferta e já está renderizado ao iniciar gravação.
             mcoVideoDrawFrame(ctx,poster,0,game,W,H);
             const stream=canvas.captureStream(fps);
             const codecs=[
-                'video/mp4;codecs="avc1.42E01E"',
+                'video/mp4;codecs="avc1.64002A"',
+                'video/mp4;codecs="avc1.42E028"',
                 'video/mp4',
+                'video/webm;codecs=vp9',
                 'video/webm;codecs=vp8',
                 'video/webm'
             ];
@@ -9664,12 +9713,12 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
             for(const candidate of codecs){
                 try{
                     if(!MediaRecorder.isTypeSupported(candidate))continue;
-                    const proposed=new MediaRecorder(stream,{mimeType:candidate,videoBitsPerSecond:mobile?3000000:4500000});
-                    proposed.start(300);
+                    const proposed=new MediaRecorder(stream,{mimeType:candidate,videoBitsPerSecond:fps===60?9500000:6500000});
+                    proposed.start(200);
                     recorder=proposed;chosen=candidate;break;
-                }catch(e){console.warn('Codec não disponível:',candidate,e);}
+                }catch(e){console.warn('Codec de vídeo não disponível:',candidate,e);}
             }
-            if(!recorder){stream.getTracks().forEach(track=>track.stop());throw new Error('Este navegador não possui um codec de vídeo compatível.');}
+            if(!recorder){stream.getTracks().forEach(track=>track.stop());throw new Error('Este aparelho não conseguiu iniciar a gravação.');}
             return await new Promise((resolve,reject)=>{
                 let raf=0,timer=0,settled=false;const chunks=[];
                 const clean=()=>{
@@ -9687,32 +9736,32 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
                 };
                 if(signal?.aborted){abort();return;}
                 signal?.addEventListener('abort',abort,{once:true});
-                recorder.addEventListener('dataavailable',e=>{if(e.data && e.data.size)chunks.push(e.data);});
-                recorder.addEventListener('error',e=>finish(new Error('Falha na codificação do vídeo.')));
+                recorder.addEventListener('dataavailable',e=>{if(e.data&&e.data.size)chunks.push(e.data);});
+                recorder.addEventListener('error',()=>finish(new Error('Não foi possível salvar o vídeo.')));
                 recorder.addEventListener('stop',()=>{
                     if(settled)return;
                     const type=recorder.mimeType||chosen;
                     const isMp4=/mp4/i.test(type);
                     const blob=new Blob(chunks,{type:isMp4?'video/mp4':'video/webm'});
-                    if(blob.size<2048){finish(new Error('O navegador não conseguiu finalizar o vídeo.'));return;}
-                    finish(null,{blob,extension:isMp4?'mp4':'webm',width:W,height:H});
+                    if(blob.size<2048){finish(new Error('O vídeo não pôde ser finalizado.'));return;}
+                    finish(null,{blob,extension:isMp4?'mp4':'webm',width:W,height:H,fpsRequested:fps});
                 });
                 const start=performance.now();
-                const step=(now)=>{
-                    if(settled || signal?.aborted)return;
+                const step=now=>{
+                    if(settled||signal?.aborted)return;
                     const elapsed=Math.min(duration,now-start);
                     mcoVideoDrawFrame(ctx,poster,elapsed,game,W,H);
-                    if(onProgress)onProgress(20+Math.round(elapsed/duration*77));
+                    onProgress?.(20+Math.round(elapsed/duration*77));
                     if(elapsed<duration)raf=requestAnimationFrame(step);
                 };
                 raf=requestAnimationFrame(step);
                 timer=setTimeout(()=>{
                     if(settled)return;
                     mcoVideoDrawFrame(ctx,poster,duration,game,W,H);
-                    if(onProgress)onProgress(99);
+                    onProgress?.(99);
                     try{if(recorder.state==='recording')recorder.stop();}
                     catch(e){finish(e);}
-                },duration+140);
+                },duration+160);
             });
         }
 
@@ -9729,10 +9778,10 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
             try{
                 const poster=await buildCurrentMobileScreenShare(cardEl,game,sharePlatforms);
                 if(progress.signal.aborted)return;
-                progress.setProgress(20,'Animando abertura, faixas neon e oferta…');
-                const video=await mcoRecordAnimatedOffer(poster,game,p=>progress.setProgress(p,`Gravando vídeo de 7 segundos… ${p}%`),progress.signal);
+                progress.setProgress(20,'Dando vida à sua oferta…');
+                const video=await mcoRecordAnimatedOffer(poster,game,p=>progress.setProgress(p,`Preparando seu vídeo… ${p}%`),progress.signal);
                 if(progress.signal.aborted)return;
-                progress.setProgress(100,'Vídeo finalizado.');
+                progress.setProgress(100,'Seu vídeo está pronto!');
                 const name=mcoShareFileName(game.name).replace(/\.png$/i,`_ANIMADO.${video.extension}`);
                 const file=new File([video.blob],name,{type:video.blob.type,lastModified:Date.now()});
                 // A maioria dos navegadores não permite compartilhar arquivos após 7 s de
