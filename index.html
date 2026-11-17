@@ -10,6 +10,7 @@
     <meta name="mco-home-category-version" content="NEXUS-2M.2.31-UNIFIED-BANNER-LEFT">
     <meta name="mco-share-category-version" content="NEXUS-2M.2.41-BANNER-PLUS-FOUR-GAMES">
     <meta name="mco-retro-ps5-version" content="NEXUS-2M.2.38-PS4-RETRO-LABEL">
+    <meta name="mco-share-video-version" content="MCO-2M.2.57-MP4-WEBM-NEON-INTRO-7S">
     <meta name="mco-theme-version" content="SITE-2M.2.44-THEME-ENGINE">
     <meta name="mco-mobile-vertical-feed-fix" content="SITE-2M.2.45-MOBILE-FIRST-IG-FEED">
     <meta name="mco-share-poster-version" content="SITE-2M.2.56-SQUARE-COVER-PRESERVA-TEMA-GTA6">
@@ -5472,6 +5473,28 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
 @media(prefers-reduced-motion:reduce){.mco-theme-hero-cta{transition:none}}
 </style>
 
+
+<style id="mco-share-video-neon-257">
+/* 2M.2.57 — Somente seletor da mídia e progresso. Não altera tema/vitrine. */
+.mco-media-choice-overlay {position:fixed;inset:0;z-index:100050;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(2,5,14,.82);backdrop-filter:blur(9px)}
+.mco-media-choice-dialog{width:min(475px,100%);border:1px solid #3c81be;border-radius:22px;padding:24px;background:linear-gradient(160deg,#0d1b32,#11102b 70%,#0a1427);box-shadow:0 28px 90px #000b,0 0 32px #128ce02c;color:#fff}
+.mco-media-choice-dialog h3{font-size:1.25rem;font-weight:900;line-height:1.25;margin:0 0 7px;color:#fff}
+.mco-media-choice-dialog p{font-size:.84rem;line-height:1.5;margin:0 0 18px;color:#a9c5dd}
+.mco-media-choice-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.mco-media-choice-button{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:5px;min-height:115px;border-radius:15px;padding:14px;text-align:left;color:#fff;background:#101d34;border:1px solid #37516b;cursor:pointer;font-family:inherit}
+.mco-media-choice-button strong{font-size:1.04rem;font-weight:900}
+.mco-media-choice-button small{font-size:.7rem;line-height:1.35;color:#acc9db}
+.mco-media-choice-button:hover,.mco-media-choice-button:focus-visible{outline:2px solid #44cfff;outline-offset:2px;box-shadow:0 0 21px #1fbdf43d}
+.mco-media-choice-button.video{background:linear-gradient(135deg,#392052,#10294b);border-color:#8752c8}
+.mco-media-choice-button:disabled{opacity:.45;cursor:not-allowed}
+.mco-media-choice-cancel{margin-top:15px;min-height:38px;width:100%;border:0;border-radius:11px;background:#202b3a;color:#d7e7f3;cursor:pointer;font-weight:800}
+.mco-video-progress-shell{height:8px;background:#1d2c40;border-radius:999px;overflow:hidden;margin:13px 0 10px}
+.mco-video-progress-bar{height:100%;width:0;background:linear-gradient(90deg,#00d4ff,#b458ff,#f34dca);border-radius:999px;transition:width .15s linear}
+.mco-video-progress-caption{font-size:.76rem;color:#afd4ed;line-height:1.5}
+@media(max-width:370px){.mco-media-choice-dialog{padding:17px}.mco-media-choice-grid{gap:8px}.mco-media-choice-button{padding:10px;min-height:112px}}
+@media(prefers-reduced-motion:reduce){.mco-video-progress-bar{transition:none}}
+</style>
+
 </head>
 <body>
 
@@ -9468,6 +9491,274 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
             );
         }
 
+
+        // MCO GAMES 2M.2.57 — Compartilhamento animado, independente do PNG anterior.
+        function mcoCanRecordShareVideo() {
+            return typeof MediaRecorder !== 'undefined' &&
+                   typeof document.createElement('canvas').captureStream === 'function';
+        }
+
+        function mcoChooseShareMediaMode() {
+            return new Promise(resolve => {
+                document.querySelector('.mco-media-choice-overlay')?.remove();
+                const overlay=document.createElement('div');
+                overlay.className='mco-media-choice-overlay';
+                const dialog=document.createElement('div');
+                dialog.className='mco-media-choice-dialog';
+                dialog.setAttribute('role','dialog');
+                dialog.setAttribute('aria-modal','true');
+                dialog.setAttribute('aria-label','Formato do compartilhamento');
+                dialog.innerHTML=`
+                    <h3>🎮 Compartilhar oferta</h3>
+                    <p>Escolha como divulgar este jogo. A imagem tradicional continua disponível.</p>
+                    <div class="mco-media-choice-grid">
+                      <button type="button" class="mco-media-choice-button" data-mode="png"><strong>🖼 Imagem PNG</strong><small>Capa 1:1, preço e desconto. Compartilhamento atual.</small></button>
+                      <button type="button" class="mco-media-choice-button video" data-mode="video"><strong>▶ Vídeo animado</strong><small>7 segundos com faixas neon, chamadas e oferta.</small></button>
+                    </div>
+                    <button type="button" class="mco-media-choice-cancel">Cancelar</button>`;
+                const videoButton=dialog.querySelector('[data-mode="video"]');
+                if (!mcoCanRecordShareVideo()) {
+                    videoButton.disabled=true;
+                    videoButton.querySelector('small').textContent='Navegador sem gravação de vídeo. Use a imagem PNG.';
+                }
+                const finish=(value)=>{
+                    document.removeEventListener('keydown',handleKey);
+                    overlay.remove();
+                    resolve(value);
+                };
+                const handleKey=(event)=>{if(event.key==='Escape'){event.preventDefault();finish(null);}};
+                dialog.querySelectorAll('[data-mode]').forEach(btn=>{
+                    btn.addEventListener('click',()=>{if(!btn.disabled)finish(btn.dataset.mode);});
+                });
+                dialog.querySelector('.mco-media-choice-cancel').addEventListener('click',()=>finish(null));
+                overlay.addEventListener('click',event=>{if(event.target===overlay)finish(null);});
+                document.addEventListener('keydown',handleKey);
+                overlay.append(dialog);
+                document.body.append(overlay);
+                dialog.querySelector('[data-mode="png"]').focus();
+            });
+        }
+
+        function mcoVideoProgressDialog(gameName) {
+            const overlay=document.createElement('div');
+            overlay.className='mco-media-choice-overlay';
+            overlay.innerHTML=`<div class="mco-media-choice-dialog" role="dialog" aria-modal="true" aria-label="Gerando vídeo da oferta">
+                <h3>🎬 Preparando vídeo animado</h3>
+                <p class="mco-video-game-name"></p>
+                <div class="mco-video-progress-shell"><div class="mco-video-progress-bar"></div></div>
+                <div class="mco-video-progress-caption" role="status" aria-live="polite">Carregando capa e informações…</div>
+                <button type="button" class="mco-media-choice-cancel">Cancelar geração</button>
+            </div>`;
+            overlay.querySelector('.mco-video-game-name').textContent=String(gameName||'Oferta MCO GAMES');
+            const controller=new AbortController();
+            overlay.querySelector('button').addEventListener('click',()=>controller.abort());
+            document.body.append(overlay);
+            return {
+                signal: controller.signal,
+                setProgress(p, message) {
+                    overlay.querySelector('.mco-video-progress-bar').style.width=`${Math.max(0,Math.min(100,p))}%`;
+                    if(message)overlay.querySelector('.mco-video-progress-caption').textContent=message;
+                },
+                close(){overlay.remove();}
+            };
+        }
+
+        // Para não prejudicar aparelhos modestos, HD no celular e Full HD no computador.
+        // A capa do poster é mantida 1:1: o poster é desenhado inteiro, nunca com cover/crop.
+        function mcoVideoDrawFrame(ctx, poster, t, game, width, height) {
+            const W=width,H=height;
+            const unit=W/1080;
+            const clamp=v=>Math.max(0,Math.min(1,v));
+            const ease=v=>1-Math.pow(1-clamp(v),3);
+            const fill=(color,x,y,w,h)=>{ctx.fillStyle=color;ctx.fillRect(x,y,w,h);};
+            ctx.setTransform(1,0,0,1,0,0);
+            ctx.clearRect(0,0,W,H);
+            const bg=ctx.createLinearGradient(0,0,W,H);
+            bg.addColorStop(0,'#080b27');bg.addColorStop(.5,'#111035');bg.addColorStop(1,'#050c1c');
+            fill(bg,0,0,W,H);
+            const glow=ctx.createRadialGradient(W*.55,H*.48,W*.07,W*.55,H*.48,W*.88);
+            glow.addColorStop(0,'rgba(142,36,234,.40)');glow.addColorStop(1,'rgba(0,0,0,0)');
+            fill(glow,0,0,W,H);
+            ctx.save();ctx.translate(W*.5,H*.5);ctx.rotate(-.22);
+            const bandShift=Math.sin(t*.0012)*W*.035;
+            for(let i=-2;i<7;i++){
+                const y=(i-2)*H*.235+bandShift;
+                const color=i%3===0?'#00dcff':(i%3===1?'#872dff':'#ef38d1');
+                ctx.shadowColor=color;ctx.shadowBlur=28*unit;
+                fill(color,-W*1.4,y,W*2.8,Math.max(14*unit,48*unit));
+                ctx.shadowBlur=0;
+                fill('rgba(255,255,255,.22)',-W*1.4,y+3*unit,W*2.8,3*unit);
+            }
+            ctx.restore();
+            const text=(line,x,y,size,color='#fff',maxWidth=W*.9)=>{
+                ctx.font=`950 ${size*unit}px Arial, sans-serif`;
+                ctx.textAlign='center';ctx.textBaseline='middle';
+                ctx.lineWidth=3*unit;ctx.strokeStyle='rgba(0,0,0,.45)';
+                ctx.shadowColor=color;ctx.shadowBlur=18*unit;
+                ctx.strokeText(line,x,y,maxWidth);ctx.fillStyle=color;
+                ctx.fillText(line,x,y,maxWidth);ctx.shadowBlur=0;
+            };
+            if(t<1500){
+                const p=ease(t/440),pull=(1-p)*(-W);
+                ctx.save();ctx.translate(pull,0);
+                fill('rgba(4,9,32,.88)',W*.04,H*.31,W*.92,H*.36);
+                fill('#00d5ff',W*.04,H*.31,W*.92,8*unit);
+                fill('#e64bfa',W*.04,H*.67-8*unit,W*.92,8*unit);
+                text('MCO GAMES',W*.5,H*.24,91,'#e9faff');
+                text('OS MELHORES',W*.5,H*.40,84,'#ffffff');
+                text('JOGOS',W*.5,H*.495,160,'#00e1ff');
+                text('SÓ AQUI NA',W*.5,H*.568,70,'#ffffff');
+                text('MCO GAMES',W*.5,H*.627,84,'#ff66e8');
+                ctx.restore();
+            } else if(t<2900){
+                const p=ease((t-1500)/420),pull=(1-p)*W;
+                ctx.save();ctx.translate(pull,0);
+                fill('rgba(5,9,29,.92)',W*.04,H*.30,W*.92,H*.40);
+                fill('#ef31cf',W*.04,H*.30,W*.92,9*unit);
+                fill('#00d9ff',W*.04,H*.70-9*unit,W*.92,9*unit);
+                text('OFERTAS',W*.5,H*.42,122,'#ffffff');
+                text('PARA',W*.5,H*.50,98,'#ffffff');
+                fill('#00e4ff',W*.08,H*.555,W*.84,H*.095);
+                text('PS4 E PS5',W*.5,H*.604,110,'#061428');
+                ctx.restore();
+            } else {
+                const p=ease((t-2900)/650),alpha=clamp(p),zoom=.96+.04*p;
+                ctx.save();ctx.globalAlpha=alpha;
+                const pw=W*.963*zoom;
+                const ph=pw*(poster.height/poster.width);
+                const px=(W-pw)/2;
+                const py=(H-ph)/2;
+                ctx.shadowColor='#1ce1ff';ctx.shadowBlur=25*unit;
+                ctx.drawImage(poster,px,py,pw,ph);
+                ctx.restore();
+                if(t>5450){
+                    const a=ease((t-5450)/480);
+                    ctx.save();ctx.globalAlpha=a;
+                    const barW=W*.88,barH=105*unit,x=(W-barW)/2,y=H-132*unit;
+                    ctx.shadowColor='#ff48e8';ctx.shadowBlur=(12+4*Math.sin(t*.013))*unit;
+                    ctx.fillStyle='rgba(13,8,39,.94)';ctx.beginPath();ctx.roundRect(x,y,barW,barH,25*unit);ctx.fill();
+                    ctx.lineWidth=4*unit;ctx.strokeStyle='#ff5cef';ctx.stroke();ctx.shadowBlur=0;
+                    text('ACESSE AGORA',W*.5,y+barH*.50,54,'#fff',barW*.91);
+                    ctx.restore();
+                }
+            }
+        }
+
+        async function mcoRecordAnimatedOffer(poster,game,onProgress,signal) {
+            if(!mcoCanRecordShareVideo())throw new Error('Este navegador não oferece gravação de vídeo.');
+            const mobile=isMobileDevice();
+            const W=mobile?720:1080, H=mobile?1280:1920;
+            const canvas=document.createElement('canvas');canvas.width=W;canvas.height=H;
+            const ctx=canvas.getContext('2d',{alpha:false});
+            if(!ctx)throw new Error('Não foi possível preparar o vídeo.');
+            const fps=24,duration=7000;
+            mcoVideoDrawFrame(ctx,poster,0,game,W,H);
+            const stream=canvas.captureStream(fps);
+            const codecs=[
+                'video/mp4;codecs="avc1.42E01E"',
+                'video/mp4',
+                'video/webm;codecs=vp8',
+                'video/webm'
+            ];
+            let recorder=null,chosen='';
+            for(const candidate of codecs){
+                try{
+                    if(!MediaRecorder.isTypeSupported(candidate))continue;
+                    const proposed=new MediaRecorder(stream,{mimeType:candidate,videoBitsPerSecond:mobile?3000000:4500000});
+                    proposed.start(300);
+                    recorder=proposed;chosen=candidate;break;
+                }catch(e){console.warn('Codec não disponível:',candidate,e);}
+            }
+            if(!recorder){stream.getTracks().forEach(track=>track.stop());throw new Error('Este navegador não possui um codec de vídeo compatível.');}
+            return await new Promise((resolve,reject)=>{
+                let raf=0,timer=0,settled=false;const chunks=[];
+                const clean=()=>{
+                    cancelAnimationFrame(raf);clearTimeout(timer);
+                    stream.getTracks().forEach(track=>track.stop());
+                    signal?.removeEventListener('abort',abort);
+                };
+                const finish=(error,output)=>{
+                    if(settled)return;settled=true;clean();
+                    if(error)reject(error);else resolve(output);
+                };
+                const abort=()=>{
+                    try{if(recorder.state!=='inactive')recorder.stop();}catch(_){}
+                    finish(new DOMException('Cancelado','AbortError'));
+                };
+                if(signal?.aborted){abort();return;}
+                signal?.addEventListener('abort',abort,{once:true});
+                recorder.addEventListener('dataavailable',e=>{if(e.data && e.data.size)chunks.push(e.data);});
+                recorder.addEventListener('error',e=>finish(new Error('Falha na codificação do vídeo.')));
+                recorder.addEventListener('stop',()=>{
+                    if(settled)return;
+                    const type=recorder.mimeType||chosen;
+                    const isMp4=/mp4/i.test(type);
+                    const blob=new Blob(chunks,{type:isMp4?'video/mp4':'video/webm'});
+                    if(blob.size<2048){finish(new Error('O navegador não conseguiu finalizar o vídeo.'));return;}
+                    finish(null,{blob,extension:isMp4?'mp4':'webm',width:W,height:H});
+                });
+                const start=performance.now();
+                const step=(now)=>{
+                    if(settled || signal?.aborted)return;
+                    const elapsed=Math.min(duration,now-start);
+                    mcoVideoDrawFrame(ctx,poster,elapsed,game,W,H);
+                    if(onProgress)onProgress(20+Math.round(elapsed/duration*77));
+                    if(elapsed<duration)raf=requestAnimationFrame(step);
+                };
+                raf=requestAnimationFrame(step);
+                timer=setTimeout(()=>{
+                    if(settled)return;
+                    mcoVideoDrawFrame(ctx,poster,duration,game,W,H);
+                    if(onProgress)onProgress(99);
+                    try{if(recorder.state==='recording')recorder.stop();}
+                    catch(e){finish(e);}
+                },duration+140);
+            });
+        }
+
+        function mcoDownloadVideoFile(file){
+            const url=URL.createObjectURL(file);
+            const a=document.createElement('a');
+            a.href=url;a.download=file.name;a.style.display='none';
+            document.body.appendChild(a);a.click();a.remove();
+            setTimeout(()=>URL.revokeObjectURL(url),30000);
+        }
+
+        async function mcoShareGameOfferVideo(game,cardEl,sharePlatforms,message){
+            const progress=mcoVideoProgressDialog(game.name);
+            try{
+                const poster=await buildCurrentMobileScreenShare(cardEl,game,sharePlatforms);
+                if(progress.signal.aborted)return;
+                progress.setProgress(20,'Animando abertura, faixas neon e oferta…');
+                const video=await mcoRecordAnimatedOffer(poster,game,p=>progress.setProgress(p,`Gravando vídeo de 7 segundos… ${p}%`),progress.signal);
+                if(progress.signal.aborted)return;
+                progress.setProgress(100,'Vídeo finalizado.');
+                const name=mcoShareFileName(game.name).replace(/\.png$/i,`_ANIMADO.${video.extension}`);
+                const file=new File([video.blob],name,{type:video.blob.type,lastModified:Date.now()});
+                // A maioria dos navegadores não permite compartilhar arquivos após 7 s de
+                // renderização, sem ativação do usuário. Primeiro tentamos e, se falhar,
+                // entregamos download preservando o arquivo e copiamos a mensagem.
+                progress.close();
+                if(isMobileDevice() && navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
+                    try{
+                        await navigator.share({files:[file],text:message,title:`Oferta MCO GAMES — ${game.name}`});
+                        showShareStatus('Vídeo compartilhado.');return;
+                    }catch(e){if(e?.name==='AbortError')return;console.warn('Envio nativo não disponível:',e);}
+                }
+                mcoDownloadVideoFile(file);
+                const copied=await copyShareText(message);
+                showShareStatus(copied
+                    ? `Vídeo ${video.extension.toUpperCase()} salvo e texto copiado. Envie pelo WhatsApp ou Stories.`
+                    : `Vídeo ${video.extension.toUpperCase()} salvo. Anexe-o no WhatsApp ou Stories.`);
+                // WebM só é usado quando o navegador não suporta MP4.
+                if(video.extension==='webm')console.info('O navegador exportou WebM. Para compatibilidade ampla com WhatsApp, prefira MP4.');
+            }catch(error){
+                if(error?.name==='AbortError'){showShareStatus('Geração de vídeo cancelada.');return;}
+                console.error('Vídeo animado:',error);
+                showShareStatus(`Não foi possível gerar o vídeo: ${error?.message||'Tente novamente.'} A imagem PNG permanece disponível.`);
+            }finally{progress.close();}
+        }
+
         async function shareGameOffer(event, gameId) {
             event.stopPropagation();
 
@@ -9502,6 +9793,9 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
                 return;
             }
 
+            const mediaMode=await mcoChooseShareMediaMode();
+            if(!mediaMode)return;
+
             const sharePlatforms = await chooseSharePlatforms(game);
             if (!sharePlatforms || !sharePlatforms.length) {
                 return;
@@ -9521,6 +9815,11 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
                 comboLines,
                 getGameDirectUrl(game)
             );
+
+            if(mediaMode==='video'){
+                await mcoShareGameOfferVideo(game,cardEl,sharePlatforms,message);
+                return;
+            }
 
             const desktop = !isMobileDevice();
             const platformSuffix = sharePlatforms.length === 1 ? `_${sharePlatforms[0]}` : '';
