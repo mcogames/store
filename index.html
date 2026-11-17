@@ -10,7 +10,7 @@
     <meta name="mco-home-category-version" content="NEXUS-2M.2.31-UNIFIED-BANNER-LEFT">
     <meta name="mco-share-category-version" content="NEXUS-2M.2.41-BANNER-PLUS-FOUR-GAMES">
     <meta name="mco-retro-ps5-version" content="NEXUS-2M.2.38-PS4-RETRO-LABEL">
-    <meta name="mco-share-video-version" content="MCO-2M.2.58-ZOOM-CONTINUO-FULLHD-60FPS">
+    <meta name="mco-share-video-version" content="MCO-2M.2.59-IMPACTO-15S-FULLHD-60FPS">
     <meta name="mco-theme-version" content="SITE-2M.2.44-THEME-ENGINE">
     <meta name="mco-mobile-vertical-feed-fix" content="SITE-2M.2.45-MOBILE-FIRST-IG-FEED">
     <meta name="mco-share-poster-version" content="SITE-2M.2.56-SQUARE-COVER-PRESERVA-TEMA-GTA6">
@@ -9563,16 +9563,18 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
             };
         }
 
-        // MCO GAMES 2M.2.58 — primeiro quadro é a oferta real, sem faixas sobre a capa.
-        // Na sequência, textos neon cruzam um mesmo eixo de profundidade em zoom contínuo.
-        // Canvas sempre Full HD 9:16. 60 FPS solicitado quando o dispositivo comporta;
+        // MCO GAMES 2M.2.59 — abertura com impacto no texto, frase montada até 3 s e oferta com movimento vivo até 15 s.
+        // O primeiro quadro já mostra a oferta completa.
+        // Canvas Full HD 9:16. 60 FPS solicitado quando o dispositivo comporta;
         // fallback automático de captura para 30 FPS em aparelhos modestos.
         function mcoVideoDrawFrame(ctx,poster,t,game,W,H){
             const c=ctx.canvas;
             const u=W/1080;
             const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
             const smooth=(v)=>{v=clamp(v);return v*v*(3-2*v);};
-            let assets=c.__mco258;
+            const lerp=(a,b,p)=>a+(b-a)*p;
+            const easeOutBack=(x)=>{const c1=1.70158,c3=c1+1;return 1+c3*Math.pow(x-1,3)+c1*Math.pow(x-1,2);};
+            let assets=c.__mco259;
             if(!assets || assets.w!==W || assets.h!==H){
                 const make=()=>document.createElement('canvas');
                 const background=make();background.width=W;background.height=H;
@@ -9583,100 +9585,100 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
                 const halo=b.createRadialGradient(W*.50,H*.45,0,W*.50,H*.45,W*.90);
                 halo.addColorStop(0,'rgba(88,20,166,.44)');halo.addColorStop(1,'rgba(0,0,0,0)');
                 b.fillStyle=halo;b.fillRect(0,0,W,H);
-                // Placas de texto ficam pré-renderizadas: reduz uso de CPU na gravação em 60 FPS.
-                const titles=[
-                    ['OS MELHORES','JOGOS'],
-                    ['SÓ AQUI NA','MCO GAMES'],
-                    ['OFERTAS PARA','PS4 E PS5']
-                ];
-                const panels=titles.map((lines,index)=>{
-                    const p=make();p.width=980;p.height=520;
+                const makeLabel=(text,color1,color2,maxWidth=900)=>{
+                    const p=make();p.width=960;p.height=240;
                     const x=p.getContext('2d');
-                    // Faixas largas, sem competir com a imagem do jogo no primeiro quadro.
-                    const grad=x.createLinearGradient(0,0,980,520);
-                    grad.addColorStop(0,'rgba(5,15,40,.97)');grad.addColorStop(.5,'rgba(25,9,56,.98)');grad.addColorStop(1,'rgba(6,19,42,.97)');
-                    x.fillStyle=grad;x.beginPath();x.roundRect(10,25,960,470,45);x.fill();
-                    x.lineWidth=8;x.strokeStyle='#0cd6ff';x.stroke();
-                    x.fillStyle=index===1?'#e64afa':'#07d5ff';x.fillRect(45,28,890,18);
-                    x.fillStyle=index===1?'#07d5ff':'#e64afa';x.fillRect(45,470,890,18);
-                    const draw=(label,y,size,color)=>{
-                        x.textAlign='center';x.textBaseline='middle';
-                        x.font=`900 ${size}px Inter, Arial, sans-serif`;
-                        x.lineJoin='round';x.lineWidth=4;
-                        x.strokeStyle='rgba(1,5,14,.82)';x.strokeText(label,490,y,870);
-                        x.fillStyle=color;x.fillText(label,490,y,870);
-                    };
-                    draw(lines[0],205,76,'#f6faff');
-                    draw(lines[1],330,index===1?112:136,index===1?'#ff66e9':'#02e5ff');
+                    const grad=x.createLinearGradient(0,0,p.width,0);
+                    grad.addColorStop(0,color1);grad.addColorStop(1,color2||color1);
+                    x.textAlign='center';x.textBaseline='middle';
+                    x.font='900 116px Inter, Arial, sans-serif';
+                    x.lineJoin='round';x.miterLimit=2;
+                    x.shadowBlur=26;x.shadowColor=color2||color1;
+                    x.lineWidth=8;x.strokeStyle='rgba(2,7,18,.88)';
+                    x.strokeText(text,p.width/2,p.height/2,maxWidth);
+                    x.fillStyle=grad;x.fillText(text,p.width/2,p.height/2,maxWidth);
+                    x.shadowBlur=0;
                     return p;
-                });
-                assets={w:W,h:H,background,panels};c.__mco258=assets;
+                };
+                const labels=[
+                    makeLabel('SUA PRÓXIMA AVENTURA','#f8fbff','#07dbff',930),
+                    makeLabel('COMEÇA AQUI','#ffffff','#ff59e8',900),
+                    makeLabel('MCO GAMES','#07dbff','#7d6bff',860)
+                ];
+                assets={w:W,h:H,background,labels};c.__mco259=assets;
             }
-            // Início da gravação: a capa, preço e desconto estão completamente visíveis.
             ctx.setTransform(1,0,0,1,0,0);
             ctx.globalAlpha=1;
             ctx.drawImage(assets.background,0,0,W,H);
             const pw=W*.965;
             const ph=pw*(poster.height/poster.width);
             const px=(W-pw)/2,py=(H-ph)/2;
-            const posterMotion=t<900?0:Math.min(.009,Math.max(0,t-4100)*.000003);
-            const z=1+posterMotion;
+            const livePhase=Math.max(0,t-3000);
+            const floatY=livePhase>0?(Math.sin(livePhase/1700)*6+Math.sin(livePhase/3100)*3)*u:0;
+            const sway=livePhase>0?Math.sin(livePhase/2400)*0.0045:0;
+            const breathe=1+(livePhase>0?Math.sin(livePhase/2600)*0.0035:0);
             ctx.save();
-            ctx.translate(W/2,H/2);ctx.scale(z,z);ctx.translate(-W/2,-H/2);
+            ctx.translate(W/2,H/2+floatY);
+            ctx.rotate(sway);
+            ctx.scale(breathe,breathe);
+            ctx.translate(-W/2,-H/2);
             ctx.drawImage(poster,px,py,pw,ph);
             ctx.restore();
-            // Abertura só começa depois de a oferta permanecer legível no vídeo.
-            const introA=smooth((t-900)/220)*(1-smooth((t-3720)/500));
-            if(introA>0.001){
-                ctx.save();ctx.globalAlpha=introA*.86;
-                ctx.fillStyle='#070b23';ctx.fillRect(0,0,W,H);
-                ctx.restore();
-                // Faixas neon diagonais, grossas e com movimento de profundidade.
+            if(livePhase>0){
+                const glow=.12+.06*(Math.sin(livePhase/1800)+1)/2;
                 ctx.save();
-                ctx.globalAlpha=introA;
-                ctx.translate(W*.5,H*.5);ctx.rotate(-.22);
-                const travel=((t-900)*.00016)%1;
-                const stripes=[-620,-130,350,820];
-                stripes.forEach((offset,i)=>{
-                    const y=(offset+travel*490)*u;
-                    const col=['#00d8ff','#b23cff','#f146d0','#00d8ff'][i];
-                    ctx.fillStyle=col;
-                    ctx.fillRect(-W*1.25,y,W*2.5,30*u);
-                    ctx.fillStyle='rgba(255,255,255,.23)';
-                    ctx.fillRect(-W*1.25,y, W*2.5,3*u);
-                });
+                ctx.globalAlpha=glow;
+                const shine=ctx.createLinearGradient(0,H*.12,W,H*.88);
+                shine.addColorStop(0,'rgba(5,219,255,.0)');
+                shine.addColorStop(.5,'rgba(5,219,255,.55)');
+                shine.addColorStop(1,'rgba(255,89,232,.0)');
+                ctx.fillStyle=shine;
+                ctx.fillRect(px,py,pw,ph);
                 ctx.restore();
-                // Cada frase atravessa a lente, e a próxima surge pela mesma perspectiva.
-                const shots=[
-                    {start:940,end:1930,panel:0},
-                    {start:1840,end:2860,panel:1},
-                    {start:2780,end:3920,panel:2}
+            }
+            const textFadeOut=1-smooth((t-2700)/430);
+            if(textFadeOut>0.001){
+                const veil=.10+.18*textFadeOut;
+                ctx.save();ctx.globalAlpha=veil;ctx.fillStyle='#05091b';ctx.fillRect(0,0,W,H);ctx.restore();
+                const lineDefs=[
+                    {start:120,finalY:480*u,impactY:720*u,finalScale:.62,holdText:assets.labels[0]},
+                    {start:920,finalY:630*u,impactY:920*u,finalScale:.64,holdText:assets.labels[1]},
+                    {start:1720,finalY:780*u,impactY:1120*u,finalScale:.67,holdText:assets.labels[2]}
                 ];
-                shots.forEach(s=>{
-                    if(t<s.start||t>s.end)return;
-                    const p=clamp((t-s.start)/(s.end-s.start));
-                    const scale=.60*Math.pow(4.65,p); // zoom progressivo, sem reset aparente
-                    const fadeIn=smooth(p/.17);
-                    const fadeOut=1-smooth((p-.65)/.35);
-                    const a=clamp(fadeIn*fadeOut*introA);
-                    if(a<.001)return;
-                    const panel=assets.panels[s.panel];
-                    const x=W*.5,y=H*.49;
-                    const ww=W*.88*scale;
-                    const hh=ww*panel.height/panel.width;
-                    ctx.save();ctx.globalAlpha=a;
-                    ctx.drawImage(panel,x-ww/2,y-hh/2,ww,hh);
+                lineDefs.forEach((item,idx)=>{
+                    const progress=clamp((t-item.start)/1120);
+                    if(progress<=0)return;
+                    let y,scale;
+                    if(progress<.36){
+                        const q=easeOutBack(progress/.36);
+                        y=lerp(-260*u,item.impactY,q);
+                        scale=lerp(2.15,1.05,q);
+                    }else{
+                        const q=smooth((progress-.36)/.64);
+                        y=lerp(item.impactY,item.finalY,q);
+                        scale=lerp(1.05,item.finalScale,q);
+                    }
+                    const a=clamp((progress/.10))*textFadeOut;
+                    const label=item.holdText;
+                    const ww=Math.min(W*.92,label.width*scale);
+                    const hh=ww*label.height/label.width;
+                    const x=W/2;
+                    ctx.save();
+                    ctx.globalAlpha=a;
+                    ctx.shadowBlur=36*u;ctx.shadowColor=idx===1?'rgba(255,89,232,.45)':'rgba(7,219,255,.36)';
+                    ctx.drawImage(label,x-ww/2,y-hh/2,ww,hh);
                     ctx.restore();
                 });
             }
-            // Rodapé com CTA sobre a oferta, depois do zoom final.
-            if(t>4780){
-                const a=smooth((t-4780)/620);
-                const bx=W*.09,by=H-139*u,bw=W*.82,bh=100*u;
-                ctx.save();ctx.globalAlpha=a;
+            if(t>3250){
+                const a=smooth((t-3250)/650);
+                const pulse=1+((Math.sin((t-3250)/1250)+1)/2)*0.018;
+                const bx=W*.09,by=H-142*u,bw=W*.82,bh=102*u;
+                ctx.save();ctx.globalAlpha=.88*a;
                 ctx.fillStyle='#120b35';
                 ctx.beginPath();ctx.roundRect(bx,by,bw,bh,22*u);ctx.fill();
                 ctx.lineWidth=4*u;ctx.strokeStyle='#fa51eb';ctx.stroke();
+                ctx.translate(W/2,by+bh/2);ctx.scale(pulse,pulse);ctx.translate(-W/2,-(by+bh/2));
                 ctx.fillStyle='#fff';ctx.textAlign='center';ctx.textBaseline='middle';
                 ctx.font=`900 ${52*u}px Inter, Arial, sans-serif`;
                 ctx.fillText('ACESSE AGORA',W/2,by+bh/2,bw*.90);
@@ -9697,7 +9699,7 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
             const canvas=document.createElement('canvas');canvas.width=W;canvas.height=H;
             const ctx=canvas.getContext('2d',{alpha:false,desynchronized:true});
             if(!ctx)throw new Error('Não foi possível preparar o vídeo.');
-            const fps=mcoChooseVideoCaptureFPS(),duration=7000;
+            const fps=mcoChooseVideoCaptureFPS(),duration=15000;
             // O primeiro quadro contém toda a oferta e já está renderizado ao iniciar gravação.
             mcoVideoDrawFrame(ctx,poster,0,game,W,H);
             const stream=canvas.captureStream(fps);
