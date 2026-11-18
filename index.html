@@ -13,7 +13,7 @@
     <meta name="mco-share-video-version" content="MCO-2M.2.61-LIMPEZA-ARTEFATOS-15S-FULLHD-60FPS">
     <meta name="mco-theme-version" content="SITE-2M.2.44-THEME-ENGINE">
     <meta name="mco-mobile-vertical-feed-fix" content="SITE-2M.2.45-MOBILE-FIRST-IG-FEED">
-    <meta name="mco-share-poster-version" content="SITE-2M.2.56-SQUARE-COVER-PRESERVA-TEMA-GTA6">
+    <meta name="mco-share-poster-version" content="SITE-2M.2.57-SHARE-POSTER-SQUARE-TWO-COLUMN">
     <title>MCO GAMES | Sua Loja Digital</title>
     <!-- Favicon oficial MCO GAMES -->
     <link rel="icon" type="image/png" sizes="64x64" href="./favicon-mco.png">
@@ -9420,7 +9420,7 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
         }
 
         function getMobileShareStateKey(game, cardEl, sharePlatforms = null) {
-            const sharePosterVersion = 'poster-v4-square-2M256';
+            const sharePosterVersion = 'poster-v5-square-two-column-2M257';
             const selected = getSelectedItem(game.id);
             const countText = document.querySelector('#igViewer .ig-count')?.textContent || '';
             const categoryText = document.querySelector('#igViewer .ig-category-label')?.textContent || '';
@@ -15830,220 +15830,237 @@ function drawSharePosterComboMosaic(
 
 async function buildMcoSharePoster(game, cardEl, sharePlatforms = null) {
     if (!game) throw new Error('Não encontrei o jogo para compartilhar.');
-    const W = 1080, H = 1650;
+
+    // Novo layout quadrado: capa 1:1 à esquerda e informações à direita.
+    // A função continua isolada do fluxo de compra, vídeo e compartilhamento.
+    const W = 1200, H = 1200;
     const canvas = document.createElement('canvas');
     canvas.width = W; canvas.height = H;
     const ctx = canvas.getContext('2d');
     if (!ctx) throw new Error('Canvas não disponível.');
-    const rrect = (x,y,w,h,r,fill,stroke='',lineWidth=1) => {
-        drawSharePosterRoundedRect(ctx,x,y,w,h,r,fill,stroke,lineWidth);
-    };
-    const money = value => {
-        const n = Number(value) || 0;
-        return 'R$ ' + n.toLocaleString('pt-BR', {
-            minimumFractionDigits: Number.isInteger(n) ? 0 : 2,
-            maximumFractionDigits: 2
-        });
-    };
-    const linear = ctx.createLinearGradient(0,0,W,H);
-    linear.addColorStop(0,'#090d27');
-    linear.addColorStop(.52,'#070c1a');
-    linear.addColorStop(1,'#090c25');
-    ctx.fillStyle=linear; ctx.fillRect(0,0,W,H);
-    // Pontos de luz nos cantos, discretos, sem ocultar informações.
-    for (const [x,y,color] of [[8,8,'rgba(157,42,243,.33)'],[W-8,H-8,'rgba(132,50,243,.23)']]) {
-        const glow=ctx.createRadialGradient(x,y,20,x,y,390);
-        glow.addColorStop(0,color); glow.addColorStop(1,'rgba(0,0,0,0)');
-        ctx.fillStyle=glow; ctx.fillRect(0,0,W,H);
-    }
-    ctx.save();ctx.shadowColor='#8e3dff';ctx.shadowBlur=25;
-    rrect(23,22,W-46,H-44,36,'','rgba(176,79,255,.8)',3);
-    ctx.restore();
-    rrect(29,28,W-58,H-56,30,'','rgba(26,194,255,.7)',2);
-    // Marca e loja (usa o logo atual, com fallback já existente).
-    const logo = await getSharePosterLogoImage();
-    if (logo && logo.naturalWidth && logo.naturalHeight) {
-        const scale=Math.min(440/logo.naturalWidth,101/logo.naturalHeight);
-        const lw=logo.naturalWidth*scale,lh=logo.naturalHeight*scale;
-        ctx.drawImage(logo,58,45+(97-lh)/2,lw,lh);
-    } else {
-        drawSharePosterLogoFallback(ctx,62,55);
-    }
-    ctx.textAlign='right';ctx.fillStyle='#88d8ff';
-    ctx.font='900 27px Arial, sans-serif';
-    ctx.fillText('SUA LOJA DIGITAL',W-57,81);
-    ctx.fillStyle='#a9b7ce';ctx.font='600 21px Arial, sans-serif';
-    ctx.fillText('mcogames.github.io/store',W-57,115);
-    ctx.textAlign='left';
 
-    // A CAPA É EXATAMENTE 1:1: 948 × 948 px. A imagem-fonte nunca sofre crop.
-    const coverX=66,coverY=160,coverSize=948;
-    const posterLayerMeta={
-        header:{x:30,y:28,w:1020,h:120},
-        cover:{x:coverX,y:coverY,w:coverSize,h:coverSize},
-        platformBadge:null,categoryBadge:null,statusBadge:null,comboBadge:null,
-        title:null,oldPrice:null,priceCard:null,footer:{x:50,y:1480,w:980,h:160}
-    };
-    ctx.save();ctx.shadowColor='#17d4ff';ctx.shadowBlur=27;
-    rrect(coverX,coverY,coverSize,coverSize,28,'#070c19','#28c9ff',5);
+    const rrect = (x,y,w,h,r,fill,stroke='',lineWidth=1) =>
+        drawSharePosterRoundedRect(ctx,x,y,w,h,r,fill,stroke,lineWidth);
+    const money = value => mcoWholeMoney(Number(value) || 0);
+    const selectedSharePlatforms = normalizeSharePlatforms(game, sharePlatforms);
+    const platformList = selectedSharePlatforms.length
+        ? selectedSharePlatforms
+        : (Array.isArray(game.platforms) ? game.platforms : []);
+    const platformLabel = platformList.length
+        ? platformList.map(platform => getPlatformDisplayLabel(game, platform)).join(' / ')
+        : String(game.platform || 'PLAYSTATION');
+
+    // Fundo e moldura neon MCO.
+    const bg = ctx.createLinearGradient(0, 0, W, H);
+    bg.addColorStop(0, '#090d27');
+    bg.addColorStop(.55, '#070c1a');
+    bg.addColorStop(1, '#10102b');
+    ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+    for (const [x,y,color] of [[0,0,'rgba(157,42,243,.30)'],[W,H,'rgba(132,50,243,.24)']]) {
+        const glow = ctx.createRadialGradient(x,y,10,x,y,390);
+        glow.addColorStop(0,color); glow.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.fillStyle = glow; ctx.fillRect(0,0,W,H);
+    }
+    ctx.save(); ctx.shadowColor = '#8e3dff'; ctx.shadowBlur = 24;
+    rrect(22,22,W-44,H-44,34,'','rgba(176,79,255,.78)',3);
     ctx.restore();
-    ctx.save();ctx.beginPath();
-    ctx.roundRect(coverX+5,coverY+5,coverSize-10,coverSize-10,24);
-    ctx.clip();
-    ctx.fillStyle='#14182d';ctx.fillRect(coverX+5,coverY+5,coverSize-10,coverSize-10);
-    let image = null;
+    rrect(29,29,W-58,H-58,29,'','rgba(26,194,255,.72)',2);
+
+    // Capa quadrada, sem corte: imagem original inteira dentro do quadro.
+    const coverX = 48, coverY = 48, coverSize = 690;
+    ctx.save(); ctx.shadowColor = '#17d4ff'; ctx.shadowBlur = 25;
+    rrect(coverX,coverY,coverSize,coverSize,25,'#070c19','#28c9ff',5);
+    ctx.restore();
+    ctx.save();
+    ctx.beginPath(); ctx.roundRect(coverX+5,coverY+5,coverSize-10,coverSize-10,21); ctx.clip();
+    ctx.fillStyle = '#14182d'; ctx.fillRect(coverX+5,coverY+5,coverSize-10,coverSize-10);
+    let coverImage = null;
     if (game.isCombo) {
-        const comboImages=await getSharePosterComboImages(game);
+        const comboImages = await getSharePosterComboImages(game);
         if (comboImages.length) {
             drawSharePosterComboMosaic(ctx,comboImages,coverX+6,coverY+6,coverSize-12,coverSize-12);
         } else {
-            image=await getSharePosterGameImage(game,cardEl);
+            coverImage = await getSharePosterGameImage(game,cardEl);
         }
     } else {
-        image=await getSharePosterGameImage(game,cardEl);
+        coverImage = await getSharePosterGameImage(game,cardEl);
     }
-    if (image) {
-        // Fundo desfocado ocupa áreas vazias de capas que não são quadradas.
-        ctx.save();ctx.filter='blur(24px) brightness(.43)';
-        drawSharePosterImageCover(ctx,image,coverX+6,coverY+6,coverSize-12,coverSize-12);
+    if (coverImage) {
+        // Fundo desfocado preenche apenas sobras; arte original é desenhada inteira por cima.
+        ctx.save(); ctx.filter = 'blur(22px) brightness(.42)';
+        drawSharePosterImageCover(ctx,coverImage,coverX+6,coverY+6,coverSize-12,coverSize-12);
         ctx.restore();
-        // Conteúdo original inteiro, sem nenhum zoom/corte no topo do título.
-        drawSharePosterImageContain(ctx,image,coverX+6,coverY+6,coverSize-12,coverSize-12);
+        drawSharePosterImageContain(ctx,coverImage,coverX+6,coverY+6,coverSize-12,coverSize-12);
     }
     ctx.restore();
 
-    const selectedSharePlatforms=normalizeSharePlatforms(game,sharePlatforms);
-    const platformList=selectedSharePlatforms.length?selectedSharePlatforms:(Array.isArray(game.platforms)?game.platforms:[]);
-    const platformLabel=platformList.length?platformList.map(platform=>getPlatformDisplayLabel(game,platform)).join(' / '):String(game.platform||'PLAYSTATION');
-    ctx.font='900 29px Arial, sans-serif';
-    const platformWidth=Math.min(420,ctx.measureText(platformLabel).width+55);
-    posterLayerMeta.platformBadge={x:coverX+22,y:coverY+20,w:platformWidth,h:61,r:14};
-    rrect(coverX+22,coverY+20,platformWidth,61,14,'rgba(6,8,22,.90)','#5676d8',2);
-    ctx.fillStyle='#fff';ctx.fillText(platformLabel,coverX+45,coverY+62,platformWidth-42);
+    // Plataforma no topo esquerdo da capa.
+    ctx.font = '900 23px Arial, sans-serif';
+    const platformWidth = Math.min(360,ctx.measureText(platformLabel).width+42);
+    rrect(coverX+18,coverY+18,platformWidth,48,12,'rgba(6,8,22,.91)','#5676d8',2);
+    ctx.fillStyle = '#fff'; ctx.fillText(platformLabel,coverX+38,coverY+49,platformWidth-35);
 
-    // Disponibilidade sobre a CAPA, no canto inferior direito como a referência.
-    const availability=getAvailabilityState(game);
-    const statusText=String(availability?.label||'Disponibilidade a confirmar');
-    const consult=/consulta|confirm|indispon/i.test(statusText);
-    const statusFont=statusText.length>23?25:31;
-    ctx.font=`900 ${statusFont}px Arial, sans-serif`;
-    const statusWidth=Math.min(630,ctx.measureText(statusText).width+85);
-    const statusX=coverX+coverSize-statusWidth-22;
-    const statusY=coverY+coverSize-85;
-    posterLayerMeta.statusBadge={x:statusX,y:statusY,w:statusWidth,h:66,r:28};
-    const statusColor=consult?'#f2bd6a':'#7dffc5';
-    ctx.save();ctx.shadowColor=consult?'#f29d3f':'#16ee98';ctx.shadowBlur=18;
-    rrect(statusX,statusY,statusWidth,66,28,consult?'#3c2c0c':'#073626',consult?'#eab44b':'#27f2a5',3);
-    ctx.restore();
-    ctx.fillStyle=statusColor;ctx.textAlign='center';
-    ctx.fillText(statusText,statusX+statusWidth/2,statusY+44,statusWidth-28);
-    ctx.textAlign='left';
-
-    // Promoção e pré-venda mantêm identificação comercial sem disputar o título da capa.
-    let categoryLabel='';
-    if (isCategory(game,'Pré Venda')) categoryLabel='PRÉ-VENDA';
-    else if (isCategory(game,'Promoção')) {
-        ctx.font='900 22px Arial, sans-serif';
-        categoryLabel=mcoPromoCampaignPosterLabel(ctx,260);
-    } else if (isCategory(game,'Lançamento em Oferta')) categoryLabel='LANÇAMENTO';
-    if(categoryLabel){
-        ctx.font='900 22px Arial, sans-serif';
-        const badgeW=Math.min(320,ctx.measureText(categoryLabel).width+40);
-        posterLayerMeta.categoryBadge={x:coverX+coverSize-badgeW-20,y:coverY+22,w:badgeW,h:52,r:12};
-        rrect(coverX+coverSize-badgeW-20,coverY+22,badgeW,52,12,'rgba(14,12,32,.92)','#ac7dff',2);
-        ctx.fillStyle='#f4deff';ctx.textAlign='center';
-        ctx.fillText(categoryLabel,coverX+coverSize-badgeW/2-20,coverY+56,badgeW-26);
-        ctx.textAlign='left';
+    // Categoria padronizada no canto superior direito da capa.
+    let categoryLabel = '';
+    let categoryKind = 'catalog';
+    if (isCategory(game,'Pré Venda')) {
+        categoryLabel = 'PRÉ-VENDA'; categoryKind = 'preorder';
+    } else if (isCategory(game,'Promoção')) {
+        categoryLabel = 'PROMOÇÃO'; categoryKind = 'promo';
+        categoryLabel = mcoPromoCampaignPosterLabel(ctx,250) || 'PROMOÇÃO';
+    } else if (isCategory(game,'Lançamento em Oferta') || isCategory(game,'Lançamentos')) {
+        categoryLabel = 'LANÇAMENTOS'; categoryKind = 'launch';
+    } else if (isCategory(game,'Catálogo')) {
+        categoryLabel = 'CATÁLOGO'; categoryKind = 'catalog';
+    }
+    if (categoryLabel) {
+        ctx.font = '900 22px Arial, sans-serif';
+        const badgeW = Math.min(300,ctx.measureText(categoryLabel).width+38);
+        const badgeX = coverX+coverSize-badgeW-18;
+        const badgeColors = {
+            preorder: ['rgba(54,29,91,.94)','#d5b8ff','#ae82ff'],
+            promo: ['rgba(75,43,8,.95)','#ffe18a','#ffbe41'],
+            launch: ['rgba(8,48,75,.94)','#8fe4ff','#30beff'],
+            catalog: ['rgba(25,37,51,.94)','#d2deea','#9aafc4']
+        }[categoryKind];
+        rrect(badgeX,coverY+18,badgeW,48,12,badgeColors[0],badgeColors[2],2);
+        ctx.fillStyle = badgeColors[1]; ctx.textAlign = 'center';
+        ctx.fillText(categoryLabel,badgeX+badgeW/2,coverY+49,badgeW-22);
+        ctx.textAlign = 'left';
     }
 
     if (game.isCombo) {
-        const count=Number(game.comboCount|| (Array.isArray(game.comboNames)?game.comboNames.length:0));
-        const comboText=count>0?`COMBO · ${count} JOGOS`:'COMBO';
-        ctx.font='900 25px Arial, sans-serif';
-        const comboWidth=Math.min(380,ctx.measureText(comboText).width+55);
-        posterLayerMeta.comboBadge={x:coverX+22,y:coverY+coverSize-84,w:comboWidth,h:59,r:15};
-        rrect(coverX+22,coverY+coverSize-84,comboWidth,59,15,'rgba(18,14,31,.92)','#c7a0ff',2);
-        ctx.fillStyle='#e6c8ff';ctx.fillText(comboText,coverX+45,coverY+coverSize-45,comboWidth-40);
+        const count = Number(game.comboCount || (Array.isArray(game.comboNames) ? game.comboNames.length : 0));
+        const comboText = count > 0 ? `COMBO · ${count} JOGOS` : 'COMBO';
+        ctx.font = '900 20px Arial, sans-serif';
+        const comboWidth = Math.min(290,ctx.measureText(comboText).width+40);
+        rrect(coverX+18,coverY+coverSize-66,comboWidth,46,12,'rgba(18,14,31,.93)','#c7a0ff',2);
+        ctx.fillStyle = '#e6c8ff'; ctx.fillText(comboText,coverX+38,coverY+coverSize-36,comboWidth-28);
     }
 
-    // Título completo (até duas linhas, só reduz a fonte se necessário).
-    let fontSize=50;
-    const title=String(game.name||'Jogo');
-    ctx.font=`900 ${fontSize}px Arial, sans-serif`;
-    if (ctx.measureText(title).width>950) {fontSize=43;ctx.font=`900 ${fontSize}px Arial, sans-serif`;}
-    ctx.fillStyle='#f9f6ff';ctx.shadowColor='rgba(66,84,190,.4)';ctx.shadowBlur=8;
-    const titleEnd=drawSharePosterWrappedText(ctx,title,66,1190,950,fontSize+10,2);
-    posterLayerMeta.title={x:50,y:1135,w:980,h:Math.max(140,Math.min(250,titleEnd-1135+42))};
-    ctx.shadowBlur=0;
-
-    const currentPrice=Number(getSharePlatformPrice(game,selectedSharePlatforms)||0);
-    const selectedOfferSlots=[];
-    selectedSharePlatforms.forEach(platform=>{
-        const d=getPlatformData(game,platform);
-        if(d.offerPrimary?.active)selectedOfferSlots.push(d.offerPrimary);
-        if(d.offerSecondary?.active)selectedOfferSlots.push(d.offerSecondary);
-    });
-    const slot=selectedOfferSlots.filter(s=>Number(s.offerPrice||0)>0).sort((a,b)=>Number(a.offerPrice)-Number(b.offerPrice))[0]||null;
-    const referenceSpecial=slot?Number(slot.normalPrice||0):0;
-    const oldPrice=Number(game.oldPrice||0);
-    const referencePrice=referenceSpecial>currentPrice?referenceSpecial:oldPrice;
-    const discount=referencePrice>currentPrice&&currentPrice>0?Math.round((1-currentPrice/referencePrice)*100):0;
-    const oldY=Math.max(1304,titleEnd+16);
-    posterLayerMeta.oldPrice={x:50,y:oldY-52,w:980,h:70};
-    if(referencePrice>currentPrice&&currentPrice>0){
-        const oldText=money(referencePrice);
-        ctx.fillStyle='#a5aabb';ctx.font='600 35px Arial, sans-serif';
-        ctx.fillText(oldText,70,oldY);
-        const textWidth=ctx.measureText(oldText).width;
-        ctx.strokeStyle='#f05275';ctx.lineWidth=3;
-        ctx.beginPath();ctx.moveTo(69,oldY-13);ctx.lineTo(75+textWidth,oldY-13);ctx.stroke();
+    // Coluna direita: logo discreto (60% de opacidade) e preço.
+    const rightX = 785, rightW = 365;
+    const logo = await getSharePosterLogoImage();
+    ctx.save(); ctx.globalAlpha = .60;
+    if (logo && logo.naturalWidth && logo.naturalHeight) {
+        const scale = Math.min(330/logo.naturalWidth,165/logo.naturalHeight);
+        const lw = logo.naturalWidth*scale, lh = logo.naturalHeight*scale;
+        ctx.drawImage(logo,rightX+(rightW-lw)/2,82+(165-lh)/2,lw,lh);
+    } else {
+        drawSharePosterLogoFallback(ctx,rightX+82,115);
     }
-    if(discount>0){
-        const dtext=`-${discount}%`;
-        ctx.font='900 34px Arial, sans-serif';
-        const dw=Math.min(230,ctx.measureText(dtext).width+55);
-        rrect(W-65-dw,oldY-39,dw,54,20,'#b81933','#ff526e',2);
-        ctx.textAlign='center';ctx.fillStyle='#fff';
-        ctx.fillText(dtext,W-65-dw/2,oldY-2);
-        ctx.textAlign='left';
-    }
-    const priceY=oldY+32;
-    posterLayerMeta.priceCard={x:66,y:priceY,w:W-132,h:121,r:25};
-    ctx.save();ctx.shadowColor='#1acfff';ctx.shadowBlur=16;
-    rrect(66,priceY,W-132,121,25,'#07172a','#19d2ff',4);
     ctx.restore();
-    const priceText=currentPrice>0?money(currentPrice):'Sob consulta';
-    ctx.fillStyle='#fff';ctx.font='800 34px Arial, sans-serif';
-    ctx.fillText(currentPrice>0?'A partir de':'Preço',100,priceY+75,310);
-    ctx.textAlign='right';ctx.fillStyle='#17dcff';
-    ctx.font=`900 ${currentPrice>0?68:49}px Arial, sans-serif`;
-    ctx.fillText(priceText,W-102,priceY+84,550);
-    ctx.textAlign='left';
 
-    // Preserva destaque comercial específico, quando houver, abaixo do quadro do preço.
-    const specialSummary=getSpecialOfferSummary(game,selectedSharePlatforms.length===1?selectedSharePlatforms[0]:'');
-    let summaryText='';
-    if(game.isCombo&&Array.isArray(game.comboNames)&&game.comboNames.length){
-        summaryText='Inclui: '+game.comboNames.slice(0,3).join(' • ')+(game.comboNames.length>3?` • +${game.comboNames.length-3}`:'');
-    } else if(specialSummary?.label){
-        summaryText=String(specialSummary.label);
-    } else if(game.targetDate){
-        const countdown=getCountdownString(game.targetDate);
-        if(countdown&&countdown!=='Encerrado / Lançado')summaryText='Oferta: '+countdown;
+    const currentPrice = Number(getSharePlatformPrice(game,selectedSharePlatforms) || 0);
+    const selectedOfferSlots = [];
+    selectedSharePlatforms.forEach(platform => {
+        const d = getPlatformData(game,platform);
+        if (d.offerPrimary?.active) selectedOfferSlots.push(d.offerPrimary);
+        if (d.offerSecondary?.active) selectedOfferSlots.push(d.offerSecondary);
+    });
+    const slot = selectedOfferSlots.filter(s => Number(s.offerPrice||0)>0)
+        .sort((a,b)=>Number(a.offerPrice)-Number(b.offerPrice))[0] || null;
+    const referenceSpecial = slot ? Number(slot.normalPrice||0) : 0;
+    const oldPrice = Number(game.oldPrice||0);
+    const referencePrice = referenceSpecial>currentPrice ? referenceSpecial : oldPrice;
+    const discount = referencePrice>currentPrice && currentPrice>0
+        ? Math.round((1-currentPrice/referencePrice)*100) : 0;
+
+    ctx.save(); ctx.shadowColor = '#1acfff'; ctx.shadowBlur = 18;
+    rrect(rightX,340,rightW,220,27,'#07172a','#19d2ff',4);
+    ctx.restore();
+    ctx.fillStyle = '#dcefff'; ctx.font = '900 27px Arial, sans-serif';
+    ctx.fillText(currentPrice>0?'A PARTIR DE':'PREÇO',rightX+28,395,rightW-56);
+    ctx.fillStyle = '#17dcff';
+    let priceFont = currentPrice>0 ? 61 : 43;
+    ctx.font = `900 ${priceFont}px Arial, sans-serif`;
+    let priceText = currentPrice>0 ? money(currentPrice) : 'Sob consulta';
+    while (ctx.measureText(priceText).width > rightW-48 && priceFont>35) {
+        priceFont -= 2; ctx.font = `900 ${priceFont}px Arial, sans-serif`;
     }
-    if(summaryText){
-        ctx.fillStyle='#c5b3e0';ctx.font='700 23px Arial, sans-serif';
-        ctx.fillText(summaryText,72,1515,936);
+    ctx.fillText(priceText,rightX+26,493,rightW-52);
+
+    if (referencePrice>currentPrice && currentPrice>0) {
+        ctx.fillStyle = '#b9c2d2'; ctx.font = '600 29px Arial, sans-serif';
+        const oldText = money(referencePrice);
+        ctx.fillText(oldText,rightX+8,625,220);
+        const oldWidth = Math.min(215,ctx.measureText(oldText).width);
+        ctx.strokeStyle = '#f05275'; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.moveTo(rightX+8,615); ctx.lineTo(rightX+8+oldWidth,615); ctx.stroke();
+        if (discount>0) {
+            const dtext = `-${discount}%`;
+            rrect(rightX+235,588,120,49,17,'#b81933','#ff526e',2);
+            ctx.fillStyle = '#fff'; ctx.font = '900 28px Arial, sans-serif';
+            ctx.textAlign = 'center'; ctx.fillText(dtext,rightX+295,621); ctx.textAlign = 'left';
+        }
     }
 
-    // CTA fixo na margem final; nunca corta nem encosta no quadro de preços.
-    ctx.strokeStyle='rgba(129,206,255,.32)';ctx.lineWidth=2;
-    ctx.beginPath();ctx.moveTo(64,H-113);ctx.lineTo(W-64,H-113);ctx.stroke();
-    ctx.fillStyle='#c5cfe1';ctx.font='700 27px Arial, sans-serif';
-    ctx.fillText('Confira esta e outras ofertas na',72,H-62);
-    ctx.fillStyle='#27d7ff';ctx.font='900 27px Arial, sans-serif';
-    ctx.fillText('MCO GAMES',525,H-62,460);
-    canvas.__mcoPosterLayerMeta=posterLayerMeta;
+    // Relógio somente para Pré-venda e Promoção, e somente com data válida.
+    const countdownEligible = isCategory(game,'Pré Venda') || isCategory(game,'Promoção');
+    const countdownText = countdownEligible && game.targetDate
+        ? getCountdownString(game.targetDate) : null;
+    if (countdownText && countdownText !== 'Encerrado / Lançado') {
+        rrect(rightX,680,rightW,76,17,'rgba(12,31,52,.94)','#456b91',2);
+        ctx.fillStyle = '#a9c6dc'; ctx.font = '800 16px Arial, sans-serif';
+        ctx.fillText('⏱ CONTAGEM REGRESSIVA',rightX+18,709,rightW-36);
+        ctx.fillStyle = '#ffffff'; ctx.font = '900 21px Arial, sans-serif';
+        ctx.fillText(countdownText,rightX+18,739,rightW-36);
+    }
+
+    // Nome e edição abaixo da capa.
+    const title = String(game.name || 'Jogo');
+    ctx.fillStyle = '#f9f6ff'; ctx.font = '900 39px Arial, sans-serif';
+    const titleEnd = drawSharePosterWrappedText(ctx,title,50,790,1090,46,2);
+    ctx.fillStyle = '#aebfd2'; ctx.font = '700 22px Arial, sans-serif';
+    const edition = `${game.edition || game.editionName || ''}`.trim();
+    const subtitle = [edition,platformLabel].filter(Boolean).join(' • ') || platformLabel;
+    ctx.fillText(subtitle,52,Math.min(884,titleEnd+24),1090);
+
+    // Modalidades em dois painéis; valores vêm diretamente do cadastro atual.
+    const optionY = 925, optionH = 126, optionGap = 20;
+    const optionW = (W-100-optionGap)/2;
+    const drawPlatformBox = (platform,index) => {
+        const x = 50+index*(optionW+optionGap);
+        rrect(x,optionY,optionW,optionH,20,'rgba(12,24,44,.96)','#4d78a0',2);
+        ctx.fillStyle = '#f8fbff'; ctx.font = '900 38px Arial, sans-serif';
+        ctx.fillText(platform,x+24,optionY+76,105);
+        ctx.strokeStyle = '#18d7f4'; ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.moveTo(x+145,optionY+24); ctx.lineTo(x+145,optionY+102); ctx.stroke();
+        const data = getPlatformData(game,platform);
+        ctx.fillStyle = '#eaf4ff'; ctx.font = '800 21px Arial, sans-serif';
+        let row = 0;
+        if (Number(data.primary||0)>0) {
+            const label = `Primária: ${money(data.offerPrimary?.active ? data.offerPrimary.offerPrice : data.primary)}`;
+            ctx.fillText(label,x+166,optionY+49,optionW-185); row++;
+        }
+        if (Number(data.secondary||0)>0) {
+            const label = `Secundária: ${money(data.offerSecondary?.active ? data.offerSecondary.offerPrice : data.secondary)}`;
+            ctx.fillText(label,x+166,optionY+(row?88:77),optionW-185);
+        }
+    };
+    const visiblePlatforms = selectedSharePlatforms.filter(p => ['PS5','PS4'].includes(p));
+    if (visiblePlatforms.length===1) {
+        drawPlatformBox(visiblePlatforms[0],0);
+    } else if (visiblePlatforms.length>=2) {
+        drawPlatformBox('PS5',0); drawPlatformBox('PS4',1);
+    }
+
+    // CTA de acesso; o link continua sendo enviado no texto de compartilhamento.
+    const ctaY = 1080;
+    ctx.save(); ctx.shadowColor = '#16dfff'; ctx.shadowBlur = 17;
+    rrect(50,ctaY,1100,78,22,'#08bddd','#36e8ff',3);
+    ctx.restore();
+    ctx.fillStyle = '#06182a'; ctx.font = '900 30px Arial, sans-serif';
+    ctx.textAlign = 'center'; ctx.fillText('ACESSE A MCO GAMES',W/2,ctaY+49); ctx.textAlign = 'left';
+
+    ctx.fillStyle = '#a9b9ce'; ctx.font = '600 16px Arial, sans-serif';
+    ctx.textAlign = 'center'; ctx.fillText('GRANDES JOGOS, GRANDES EXPERIÊNCIAS!',W/2,1190); ctx.textAlign = 'left';
+
+    canvas.__mcoPosterLayerMeta = {
+        layout:'square-two-column', cover:{x:coverX,y:coverY,w:coverSize,h:coverSize},
+        logoOpacity:.60, category:categoryLabel, countdown:countdownText || null,
+        price:{x:rightX,y:340,w:rightW,h:220}, options:{x:50,y:optionY,w:W-100,h:optionH}
+    };
     return canvas;
 }
 
