@@ -5508,6 +5508,65 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
 @media(prefers-reduced-motion:reduce){.mco-video-progress-bar{transition:none}}
 </style>
 
+
+<style id="mco-card-category-countdown-step-01">
+/* Etapa 01: categorias nos cards e relógio apenas em pré-venda/promoção.
+   Escopo limitado aos cards do catálogo; não altera compartilhamento ou compra. */
+.card-img-container > .mco-card-category-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 13;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 25px;
+    max-width: calc(100% - 100px);
+    padding: 4px 9px;
+    border: 1px solid rgba(255,255,255,.18);
+    border-radius: 7px;
+    background: rgba(5,12,22,.88);
+    color: #eaf7ff;
+    font-size: .62rem;
+    font-weight: 950;
+    letter-spacing: .055em;
+    line-height: 1.15;
+    box-shadow: 0 4px 14px rgba(0,0,0,.28);
+    backdrop-filter: blur(8px);
+}
+.card-img-container > .mco-card-category-badge.preorder {
+    color: #d5b8ff;
+    border-color: rgba(174,130,255,.48);
+    background: rgba(54,29,91,.90);
+}
+.card-img-container > .mco-card-category-badge.promo {
+    color: #ffe18a;
+    border-color: rgba(255,190,65,.48);
+    background: rgba(75,43,8,.92);
+}
+.card-img-container > .mco-card-category-badge.launch {
+    color: #8fe4ff;
+    border-color: rgba(48,190,255,.48);
+    background: rgba(8,48,75,.92);
+}
+.card-img-container > .mco-card-category-badge.catalog {
+    color: #d2deea;
+    border-color: rgba(160,180,200,.30);
+    background: rgba(25,37,51,.90);
+}
+@media (max-width: 800px) {
+    .ig-post .card-img-container > .mco-card-category-badge {
+        top: 12px;
+        right: 12px;
+        padding: 5px 8px;
+        font-size: .59rem;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .card-img-container > .timer-badge { transition: none !important; }
+}
+</style>
+
 </head>
 <body>
 
@@ -6679,6 +6738,8 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
                 'pre-venda': 'pre-venda',
                 'lancamento em oferta': 'lancamento-em-oferta',
                 'lancamentos em oferta': 'lancamento-em-oferta',
+                'lancamentos': 'lancamento-em-oferta',
+                'lancamento': 'lancamento-em-oferta',
                 'promocao': 'promocao',
                 'promocoes': 'promocao',
                 'catalogo': 'catalogo'
@@ -10346,9 +10407,26 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
                     </div>`;
             }
 
-            const timerHtml = game.targetDate
-                ? `<div class="timer-badge" data-target="${escapeHtml(game.targetDate)}">⏳ Carregando...</div>` : '';
-            const preorderHtml = isPreorderGame(game) ? `<span class="preorder-label">🚀 PRÉ-VENDA</span>` : '';
+            const showCountdown = Boolean(game.targetDate) &&
+                (isCategory(game, 'Pré Venda') || isCategory(game, 'Promoção'));
+            const timerHtml = showCountdown
+                ? `<div class="timer-badge" data-target="${escapeHtml(game.targetDate)}">⏳ Carregando...</div>`
+                : '';
+
+            let cardCategory = null;
+            if (isCategory(game, 'Pré Venda')) {
+                cardCategory = { label: 'PRÉ-VENDA', className: 'preorder' };
+            } else if (isCategory(game, 'Promoção')) {
+                cardCategory = { label: 'PROMOÇÃO', className: 'promo' };
+            } else if (isCategory(game, 'Lançamento em Oferta')) {
+                cardCategory = { label: 'LANÇAMENTOS', className: 'launch' };
+            } else if (isCategory(game, 'Catálogo')) {
+                cardCategory = { label: 'CATÁLOGO', className: 'catalog' };
+            }
+
+            const categoryBadgeHtml = cardCategory
+                ? `<span class="mco-card-category-badge ${cardCategory.className}">${escapeHtml(cardCategory.label)}</span>`
+                : '';
             const platformTag = getGamePlatformsDisplayText(game) || 'Plataforma não informada';
 
             const pricedStockValues = [
@@ -10375,7 +10453,7 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
 
             card.innerHTML = `
                 <div class="card-img-container mco-open-product" onclick="openGameById('${game.id}', true)" title="Ver detalhes de ${escapeHtml(game.name)}">
-                    ${preorderHtml}
+                    ${categoryBadgeHtml}
                     <span class="platform-tag">${escapeHtml(platformTag)}</span>
                     ${comboBadgeHtml}
                     ${timerHtml}
@@ -10387,7 +10465,6 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
                 <div class="card-info">
                     <div class="card-title mco-open-product" onclick="openGameById('${game.id}', true)" title="Ver detalhes">${escapeHtml(game.name)}</div>
                     ${comboItemsHtml}
-                    <span class="availability-chip ${availability.className}">${escapeHtml(availability.label)}</span>
                     <div class="price-vip-row">
                         <div class="price-container">
                             ${game.oldPrice > displayMainPrice ? `<span class="old-price">${mcoWholeMoney(game.oldPrice)}</span>` : ''}
