@@ -6,11 +6,11 @@
     <meta name="mco-mobile-engine" content="vertical-feed-normal-psn-discount-v9-stock-internal-v217">
     <meta name="mco-promo-priority-version" content="NEXUS-2M.2.23-PRODUCT-EDITION-PROMO-FIRST">
     <meta name="mco-campaign-dynamic-version" content="NEXUS-2M.2.24-CAMPAIGN-DYNAMIC">
-    <meta name="mco-share-copy-version" content="SITE-2M.2.43-COMPARTILHAR-DOIS-JOGOS-PC">
+    <meta name="mco-share-copy-version" content="SITE-2M.2.62-WHATSAPP-DESKTOP-CLIPBOARD">
     <meta name="mco-home-category-version" content="NEXUS-2M.2.31-UNIFIED-BANNER-LEFT">
     <meta name="mco-share-category-version" content="NEXUS-2M.2.41-BANNER-PLUS-FOUR-GAMES">
     <meta name="mco-retro-ps5-version" content="NEXUS-2M.2.38-PS4-RETRO-LABEL">
-    <meta name="mco-share-video-version" content="MCO-2M.2.60-OFERTA-DESMONTA-REMONTADA-15S-FULLHD-60FPS">
+    <meta name="mco-share-video-version" content="MCO-2M.2.61-LIMPEZA-ARTEFATOS-15S-FULLHD-60FPS">
     <meta name="mco-theme-version" content="SITE-2M.2.44-THEME-ENGINE">
     <meta name="mco-mobile-vertical-feed-fix" content="SITE-2M.2.45-MOBILE-FIRST-IG-FEED">
     <meta name="mco-share-poster-version" content="SITE-2M.2.56-SQUARE-COVER-PRESERVA-TEMA-GTA6">
@@ -2075,32 +2075,45 @@
 
 <script>
 async function copyShareText(text) {
+    // Inicia a Clipboard API imediatamente, ainda dentro do clique do usuário.
+    let clipboardWrite = null;
     if (navigator.clipboard && navigator.clipboard.writeText) {
         try {
-            await navigator.clipboard.writeText(text);
-            return true;
+            clipboardWrite = navigator.clipboard.writeText(text);
         } catch (e) {
-            console.warn('Clipboard API bloqueada:', e);
+            console.warn('Clipboard API indisponível:', e);
         }
     }
 
-    // Fallback para Chrome/Brave quando a Clipboard API não estiver disponível.
+    // Fallback síncrono: executado antes de qualquer await para preservar o gesto do clique.
+    let fallbackCopied = false;
     try {
         const ta = document.createElement('textarea');
         ta.value = text;
         ta.setAttribute('readonly', '');
         ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        ta.style.top = '0';
         ta.style.opacity = '0';
         document.body.appendChild(ta);
         ta.focus();
         ta.select();
-        const ok = document.execCommand('copy');
+        ta.setSelectionRange(0, ta.value.length);
+        fallbackCopied = document.execCommand('copy');
         ta.remove();
-        return ok;
     } catch (e) {
-        console.warn('Fallback de cópia falhou:', e);
-        return false;
+        console.warn('Fallback síncrono de cópia falhou:', e);
     }
+
+    if (clipboardWrite) {
+        try {
+            await clipboardWrite;
+            return true;
+        } catch (e) {
+            console.warn('Clipboard API bloqueada; usando resultado do fallback:', e);
+        }
+    }
+    return fallbackCopied;
 }
 </script>
 
@@ -9563,21 +9576,27 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
             };
         }
 
-        // MCO GAMES 2M.2.60 — 1s oferta completa, desmontagem por elementos,
-        // tela escura com chamada, reconstrução em camadas e oferta viva até 15s.
+        // MCO GAMES 2M.2.61 — limpeza de quadros e reconstrução sem bordas duplicadas.
+        // A moldura permanece estática; só o conteúdo comercial é separado e animado.
         function mcoVideoDrawFrame(ctx,poster,t,game,W,H){
             const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
             const smooth=(v)=>{v=clamp(v);return v*v*(3-2*v);};
             const lerp=(a,b,p)=>a+(b-a)*p;
             const easeOutCubic=(x)=>1-Math.pow(1-clamp(x),3);
             const easeOutBack=(x)=>{const c1=1.70158,c3=c1+1;return 1+c3*Math.pow(x-1,3)+c1*Math.pow(x-1,2);};
-            let assets=poster.__mco260;
+            let assets=poster.__mco261;
             if(!assets){
                 const make=()=>document.createElement('canvas');
-                const meta=poster.__mcoPosterLayerMeta||{
+                const sourceMeta=poster.__mcoPosterLayerMeta||{
                     header:{x:30,y:28,w:1020,h:120},cover:{x:66,y:160,w:948,h:948},
                     title:{x:50,y:1135,w:980,h:150},oldPrice:{x:50,y:1252,w:980,h:70},
                     priceCard:{x:66,y:1336,w:948,h:121,r:25},footer:{x:50,y:1480,w:980,h:160}
+                };
+                // Recortes internos: não carregam a moldura externa nem suas linhas neon.
+                const meta={...sourceMeta,
+                    header:{x:48,y:38,w:984,h:108},
+                    summary:{x:50,y:1478,w:980,h:55},
+                    footer:{x:50,y:1548,w:980,h:72}
                 };
                 const roundClip=(c,w,h,r)=>{c.beginPath();c.roundRect(0,0,w,h,r);c.clip();};
                 const cropLayer=(box,opts={})=>{
@@ -9620,37 +9639,59 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
                 add(cropLayer(meta.title,{keyBackground:true,id:'title'}),{out:{dx:-60,dy:15},enter:{dx:-90,dy:28},hold:'title'});
                 add(cropLayer(meta.oldPrice,{keyBackground:true,id:'oldprice'}),{out:{dx:70,dy:-18},enter:{dx:100,dy:-22},hold:'price'});
                 add(cropLayer(meta.priceCard,{radius:meta.priceCard?.r||25,id:'pricecard'}),{out:{dx:0,dy:75},enter:{dx:0,dy:100},hold:'price'});
-                add(cropLayer(meta.footer,{keyBackground:true,id:'footer'}),{out:{dx:0,dy:70},enter:{dx:0,dy:82},hold:'footer'});
+                add(cropLayer(meta.summary,{keyBackground:true,id:'summary'}),{out:{dx:0,dy:58},enter:{dx:0,dy:68},hold:'footer'});
+                // Rodapé tipográfico redesenhado, sem recortar a borda inferior da arte original.
+                const footerCanvas=make();footerCanvas.width=980;footerCanvas.height=72;
+                const footerCtx=footerCanvas.getContext('2d');
+                footerCtx.textAlign='left';footerCtx.textBaseline='alphabetic';
+                footerCtx.fillStyle='#c5cfe1';footerCtx.font='700 27px Arial, sans-serif';
+                footerCtx.fillText('Confira esta e outras ofertas na',22,40);
+                footerCtx.fillStyle='#27d7ff';footerCtx.font='900 27px Arial, sans-serif';
+                footerCtx.fillText('MCO GAMES',475,40,460);
+                add({canvas:footerCanvas,x:50,y:1548,w:980,h:72,id:'footer',kind:'normal'},
+                    {out:{dx:0,dy:70},enter:{dx:0,dy:82},hold:'footer'});
 
                 // CTA inferior separado para também sair e voltar como uma peça independente.
                 const cta=make();cta.width=900;cta.height=112;
                 const q=cta.getContext('2d');
-                q.save();q.shadowColor='#d83cff';q.shadowBlur=22;
+                q.save();q.shadowColor='rgba(216,60,255,.72)';q.shadowBlur=12;
                 q.fillStyle='#100b2b';q.strokeStyle='#e448ef';q.lineWidth=4;
                 q.beginPath();q.roundRect(7,7,886,98,23);q.fill();q.stroke();q.restore();
                 q.fillStyle='#f7f2ff';q.font='900 48px Inter, Arial, sans-serif';q.textAlign='center';q.textBaseline='middle';
                 q.fillText('ACESSE AGORA',450,56);
                 add({canvas:cta,x:90,y:1767,w:900,h:112,id:'cta',kind:'cta',out:{dx:0,dy:95},enter:{dx:0,dy:110},hold:'cta'});
 
-                // Base reconstruída: preserva moldura e fundo, deixando os componentes em camadas.
+                // Base limpa desenhada do zero. Não reutiliza pixels da arte original, evitando
+                // que bordas, textos ou sombras antigas permaneçam atrás das camadas animadas.
                 const base=make();base.width=poster.width;base.height=poster.height;
-                const b=base.getContext('2d');b.drawImage(poster,0,0);
-                const fillMask=(box,alpha=1)=>{
-                    if(!box)return;
-                    const grad=b.createLinearGradient(box.x,box.y,box.x+box.w,box.y+box.h);
-                    grad.addColorStop(0,`rgba(8,10,30,${alpha})`);
-                    grad.addColorStop(.55,`rgba(7,11,27,${alpha})`);
-                    grad.addColorStop(1,`rgba(8,9,25,${alpha})`);
-                    b.fillStyle=grad;b.fillRect(box.x,box.y,box.w,box.h);
-                };
-                fillMask(meta.header,.99);
+                const b=base.getContext('2d');
+                const baseGradient=b.createLinearGradient(0,0,poster.width,poster.height);
+                baseGradient.addColorStop(0,'#090d27');
+                baseGradient.addColorStop(.52,'#070c1a');
+                baseGradient.addColorStop(1,'#090c25');
+                b.fillStyle=baseGradient;b.fillRect(0,0,poster.width,poster.height);
+                for(const [gx,gy,color] of [[8,8,'rgba(157,42,243,.33)'],[poster.width-8,poster.height-8,'rgba(132,50,243,.23)']]){
+                    const glow=b.createRadialGradient(gx,gy,20,gx,gy,390);
+                    glow.addColorStop(0,color);glow.addColorStop(1,'rgba(0,0,0,0)');
+                    b.fillStyle=glow;b.fillRect(0,0,poster.width,poster.height);
+                }
+                b.save();b.shadowColor='#8e3dff';b.shadowBlur=25;
+                b.lineWidth=3;b.strokeStyle='rgba(176,79,255,.8)';
+                b.beginPath();b.roundRect(23,22,poster.width-46,poster.height-44,36);b.stroke();b.restore();
+                b.lineWidth=2;b.strokeStyle='rgba(26,194,255,.7)';
+                b.beginPath();b.roundRect(29,28,poster.width-58,poster.height-56,30);b.stroke();
+                // Linha divisória do rodapé é estática e não acompanha a animação do texto.
+                b.lineWidth=2;b.strokeStyle='rgba(129,206,255,.32)';
+                b.beginPath();b.moveTo(64,poster.height-113);b.lineTo(poster.width-64,poster.height-113);b.stroke();
+                // Um fundo desfocado discreto permanece atrás dos selos recortados da capa.
+                // Assim, os cantos transparentes dos selos não revelam áreas vazias.
                 if(meta.cover){
                     b.save();b.beginPath();b.rect(meta.cover.x,meta.cover.y,meta.cover.w,meta.cover.h);b.clip();
                     b.filter='blur(27px) brightness(.28) saturate(1.2)';
                     b.drawImage(poster,meta.cover.x,meta.cover.y,meta.cover.w,meta.cover.h,meta.cover.x-30,meta.cover.y-30,meta.cover.w+60,meta.cover.h+60);
-                    b.filter='none';b.fillStyle='rgba(5,8,24,.30)';b.fillRect(meta.cover.x,meta.cover.y,meta.cover.w,meta.cover.h);b.restore();
+                    b.filter='none';b.fillStyle='rgba(5,8,24,.30)';
+                    b.fillRect(meta.cover.x,meta.cover.y,meta.cover.w,meta.cover.h);b.restore();
                 }
-                fillMask(meta.title,.99);fillMask(meta.oldPrice,.99);fillMask(meta.priceCard,.99);fillMask(meta.footer,.99);
 
                 // Fundo escuro independente para a frase: nenhuma parte do anúncio fica visível.
                 const dark=make();dark.width=W;dark.height=H;
@@ -9677,7 +9718,7 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
                     {canvas:makeText('COMEÇA AQUI',112,'#ffffff','#ff55e8'),start:3350,y:960},
                     {canvas:makeText('MCO GAMES',118,'#14dcff','#9b65ff'),start:4100,y:1185}
                 ];
-                assets={base,dark,layers,textLines,meta};poster.__mco260=assets;
+                assets={base,dark,layers,textLines,meta};poster.__mco261=assets;
             }
 
             const scale=W*.965/1080;
@@ -9743,7 +9784,14 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
                 }
             }
 
-            ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=1;
+            // Cada quadro começa limpo e opaco. Isso impede rastros entre frames mesmo
+            // quando o navegador captura o canvas em 60 FPS ou perde um ciclo de pintura.
+            ctx.setTransform(1,0,0,1,0,0);
+            ctx.globalAlpha=1;
+            ctx.globalCompositeOperation='source-over';
+            ctx.clearRect(0,0,W,H);
+            ctx.fillStyle='#050713';
+            ctx.fillRect(0,0,W,H);
             if(t<=1000){
                 drawPosterFull();
                 return;
@@ -14262,16 +14310,39 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
                 return;
             }
 
-            // Abre a aba no gesto do clique para evitar bloqueio de pop-up após a geração do PNG.
-            let whatsappTab = null;
-            try { whatsappTab = window.open('about:blank', '_blank'); } catch (_) {}
             const entries = selected.map(game => ({ game, platforms: getAvailableSharePlatforms(game) }));
             const message = mcoBuildTwoGameShareMessage(entries);
             const sendButton = document.getElementById('mcoBulkShareSend');
             if (sendButton) { sendButton.disabled = true; sendButton.textContent = 'Preparando anúncio…'; }
 
+            // IMPORTANTE: clipboard e protocolo do WhatsApp são acionados imediatamente
+            // no gesto original do usuário, antes de qualquer await/processamento do canvas.
+            let clipboardPromise;
             try {
-                showShareStatus('Montando a arte com os dois jogos…');
+                clipboardPromise = copyShareText(message);
+            } catch (error) {
+                console.warn('Não foi possível iniciar a cópia da mensagem:', error);
+                clipboardPromise = Promise.resolve(false);
+            }
+
+            let whatsappLaunchRequested = false;
+            const waUrl = `whatsapp://send?text=${encodeURIComponent(message)}`;
+            try {
+                const appLink = document.createElement('a');
+                appLink.href = waUrl;
+                appLink.target = '_blank';
+                appLink.rel = 'noopener';
+                appLink.style.display = 'none';
+                document.body.appendChild(appLink);
+                appLink.click();
+                appLink.remove();
+                whatsappLaunchRequested = true;
+            } catch (error) {
+                console.warn('Não foi possível solicitar abertura do WhatsApp Desktop:', error);
+            }
+
+            try {
+                showShareStatus('Mensagem preparada. Gerando a arte das duas ofertas…');
                 const canvas = await mcoBuildTwoGamePoster(entries);
                 const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
                 if (!blob) throw new Error('Não foi possível gerar a imagem do anúncio.');
@@ -14283,22 +14354,30 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
                 document.body.appendChild(link); link.click(); link.remove();
                 setTimeout(() => URL.revokeObjectURL(objectUrl), 15000);
 
-                const copied = await copyShareText(message);
-                const waUrl = `https://web.whatsapp.com/send?text=${encodeURIComponent(message)}`;
-                if (whatsappTab && !whatsappTab.closed) whatsappTab.location.href = waUrl;
-                else {
-                    try { window.open(waUrl, '_blank'); } catch (_) {}
+                let copied = false;
+                try { copied = await clipboardPromise; } catch (error) {
+                    console.warn('Falha ao confirmar cópia da mensagem:', error);
                 }
 
-                showShareStatus(copied
-                    ? 'Imagem baixada e mensagem pronta no WhatsApp Web. Anexe MCO_GAMES_DUAS_OFERTAS.png antes de enviar.'
-                    : 'Imagem baixada. O WhatsApp Web será aberto; copie a mensagem e anexe MCO_GAMES_DUAS_OFERTAS.png.');
+                const statusParts = ['Imagem conjunta baixada como MCO_GAMES_DUAS_OFERTAS.png.'];
+                statusParts.push(copied
+                    ? 'Texto completo dos dois jogos copiado para a área de transferência.'
+                    : 'A cópia automática não foi confirmada; use a opção de copiar novamente ou Ctrl+C no texto.');
+                statusParts.push(whatsappLaunchRequested
+                    ? 'Solicitada a abertura do WhatsApp Desktop. Anexe a imagem antes de enviar.'
+                    : 'Não foi possível solicitar a abertura do WhatsApp Desktop.');
+                showShareStatus(statusParts.join(' '));
             } catch (error) {
-                if (whatsappTab && !whatsappTab.closed) whatsappTab.close();
                 console.error('Falha no anúncio conjunto:', error);
-                showShareStatus(error?.message || 'Não foi possível preparar o anúncio conjunto.');
+                let copied = false;
+                try { copied = await clipboardPromise; } catch (_) {}
+                showShareStatus((error?.message || 'Não foi possível preparar o anúncio conjunto.') +
+                    (copied ? ' A mensagem dos dois jogos já foi copiada.' : ' A cópia do texto não foi confirmada.'));
             } finally {
-                if (sendButton) { sendButton.disabled = mcoBulkShareSelectedIds.size !== 2; sendButton.textContent = '↗ Compartilhar no WhatsApp'; }
+                if (sendButton) {
+                    sendButton.disabled = mcoBulkShareSelectedIds.size !== 2;
+                    sendButton.textContent = '↗ Compartilhar no WhatsApp';
+                }
             }
         }
 
