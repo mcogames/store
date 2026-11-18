@@ -14,6 +14,8 @@
     <meta name="mco-theme-version" content="SITE-2M.2.44-THEME-ENGINE">
     <meta name="mco-mobile-vertical-feed-fix" content="SITE-2M.2.45-MOBILE-FIRST-IG-FEED">
     <meta name="mco-share-poster-version" content="SITE-2M.2.63-SHARE-POSTER-SQUARE-REFINED">
+    <meta name="mco-link-version" content="MCO-LINK-1.0">
+    <meta name="mco-isgd-version" content="MCO-ISGD-1.0">
     <title>MCO GAMES | Sua Loja Digital</title>
     <!-- Favicon oficial MCO GAMES -->
     <link rel="icon" type="image/png" sizes="64x64" href="./favicon-mco.png">
@@ -8958,6 +8960,202 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
             return url;
         }
 
+        /* MCO LINK 1.0 — links públicos curtos, sem API ou estado local.
+         * A identidade não depende da ordem, do preço, do título ou do tema.
+         * IDs numéricos antigos são sempre qualificados pela aba.
+         * O índice inclui os registros de origem para detectar colisões, inclusive
+         * com anúncios temporariamente ocultos. Só jogos visíveis podem abrir.
+         */
+        function mcoLinkIdentity(game) {
+            const ref = getGameStableRef(game);
+            if (!ref) return '';
+            if (isLegacyNumericGameCode(ref)) {
+                const sheet = String(game.sheetName || '').trim().toUpperCase();
+                return sheet ? JSON.stringify(['legacy', sheet, ref]) : '';
+            }
+            // Preservar a distinção entre códigos de edições diferentes.
+            return JSON.stringify(['product', ref]);
+        }
+
+        function mcoLinkCode(identity) {
+            // FNV-1a de 64 bits, reduzido a dez caracteres base 36.
+            // Identificador público, não um token de acesso/autenticação.
+            let hash = 0xcbf29ce484222325n;
+            for (const byte of new TextEncoder().encode(identity)) {
+                hash = BigInt.asUintN(64, (hash ^ BigInt(byte)) * 0x100000001b3n);
+            }
+            return (hash % (36n ** 10n)).toString(36).toUpperCase().padStart(10, '0');
+        }
+
+        let mcoLinkIndexCache = null;
+        function mcoLinkIndex() {
+            if (mcoLinkIndexCache && mcoLinkIndexCache.source === sourceGames &&
+                mcoLinkIndexCache.visible === games) return mcoLinkIndexCache;
+            const keysByCode = new Map();
+            const visibleByKey = new Map();
+            const register = game => {
+                const key = mcoLinkIdentity(game);
+                if (!key) return;
+                const code = mcoLinkCode(key);
+                if (!keysByCode.has(code)) keysByCode.set(code, new Set());
+                keysByCode.get(code).add(key);
+            };
+            sourceGames.forEach(register);
+            games.forEach(game => {
+                register(game);
+                const key = mcoLinkIdentity(game);
+                if (!key) return;
+                if (!visibleByKey.has(key)) visibleByKey.set(key, []);
+                visibleByKey.get(key).push(game);
+            });
+            mcoLinkIndexCache = { source: sourceGames, visible: games, keysByCode, visibleByKey };
+            return mcoLinkIndexCache;
+        }
+
+        function mcoLinkResolve(code) {
+            const token = String(code || '').trim().toUpperCase();
+            if (!/^[A-Z0-9]{10}$/.test(token)) return null;
+            const index = mcoLinkIndex();
+            const keys = index.keysByCode.get(token);
+            // Nunca escolher arbitrariamente um jogo quando há colisão.
+            if (!keys || keys.size !== 1) return null;
+            const matches = index.visibleByKey.get(keys.values().next().value) || [];
+            return matches.length === 1 ? matches[0] : null;
+        }
+
+        function getGameShareUrl(game) {
+            const original = getGameDirectUrl(game);
+            const key = mcoLinkIdentity(game);
+            if (!key) return original;
+            const code = mcoLinkCode(key);
+            const resolved = mcoLinkResolve(code);
+            if (!resolved || getGameRecordIdentity(resolved) !== getGameRecordIdentity(game)) return original;
+            const shortUrl = `${getStoreBaseUrl()}?g=${code}`;
+            // Não alongar links que já possuem um identificador muito curto.
+            return shortUrl.length < original.length ? shortUrl : original;
+        }
+
+        /* MCO IS.GD 1.0 — somente links públicos de jogos compartilhados.
+         * Mantém MCO LINK (?g=...) e ?jogo= para endereços já divulgados.
+         * Solicita JSON via CORS; jamais executa JSONP ou código de terceiros.
+         * Cache persistente por navegador, deduplicação e fallback para URL original.
+         */
+        const MCO_ISGD_CACHE_KEY = 'mco:isgd:game-links:v1';
+        const MCO_ISGD_TIMEOUT = 1500;
+        const MCO_ISGD_MAX_CACHE = 1000;
+        const mcoIsgdMemory = new Map();
+        const mcoIsgdPending = new Map();
+        let mcoIsgdCooldownUntil = 0;
+
+        function mcoIsgdValidShortUrl(value) {
+            return typeof value === 'string' && /^https:\/\/is\.gd\/[A-Za-z0-9_]{1,30}$/.test(value);
+        }
+
+        function mcoIsgdValidOriginal(value) {
+            try {
+                const url = new URL(value);
+                const store = new URL(SHARE_URL);
+                return url.origin === store.origin && !url.username && !url.password && !url.hash &&
+                    (url.pathname === store.pathname || url.pathname === store.pathname + 'index.html') &&
+                    Boolean(url.searchParams.get('jogo')) &&
+                    [...url.searchParams.keys()].every(key => key === 'jogo' || key === 'aba');
+            } catch (_) { return false; }
+        }
+
+        function mcoIsgdReadCache() {
+            try {
+                const rows = JSON.parse(localStorage.getItem(MCO_ISGD_CACHE_KEY) || '[]');
+                return new Map(Array.isArray(rows) ? rows.slice(-MCO_ISGD_MAX_CACHE).filter(row =>
+                    Array.isArray(row) && row.length === 2 && mcoIsgdValidOriginal(row[0]) && mcoIsgdValidShortUrl(row[1])
+                ) : []);
+            } catch (_) { return new Map(); }
+        }
+
+        function mcoIsgdGetCached(original) {
+            if (mcoIsgdMemory.has(original)) return mcoIsgdMemory.get(original);
+            const stored = mcoIsgdReadCache().get(original);
+            if (stored) mcoIsgdRemember(original, stored, false);
+            return stored || '';
+        }
+
+        function mcoIsgdRemember(original, shortened, persist = true) {
+            if (!mcoIsgdValidOriginal(original) || !mcoIsgdValidShortUrl(shortened)) return;
+            mcoIsgdMemory.delete(original);
+            mcoIsgdMemory.set(original, shortened);
+            while (mcoIsgdMemory.size > MCO_ISGD_MAX_CACHE) mcoIsgdMemory.delete(mcoIsgdMemory.keys().next().value);
+            if (!persist) return;
+            try {
+                // Releitura evita sobrescrever desnecessariamente dados de outras abas.
+                const stored = mcoIsgdReadCache();
+                stored.delete(original);
+                stored.set(original, shortened);
+                localStorage.setItem(MCO_ISGD_CACHE_KEY, JSON.stringify([...stored].slice(-MCO_ISGD_MAX_CACHE)));
+            } catch (_) { /* Armazenamento bloqueado/cheio: cache em memória continua. */ }
+        }
+
+        function mcoShortenGameUrl(original) {
+            if (!mcoIsgdValidOriginal(original)) return Promise.resolve(original);
+            const cached = mcoIsgdGetCached(original);
+            if (cached) return Promise.resolve(cached);
+            if (mcoIsgdPending.has(original)) return mcoIsgdPending.get(original);
+            // Não enfileira chamadas nem insiste após falhas ou limite da API.
+            if (Date.now() < mcoIsgdCooldownUntil || mcoIsgdPending.size >= 4 || typeof fetch !== 'function') {
+                return Promise.resolve(original);
+            }
+            const controller = typeof AbortController === 'function' ? new AbortController() : null;
+            let timeoutId;
+            const request = (async () => {
+                try {
+                    const endpoint = new URL('https://is.gd/create.php');
+                    endpoint.searchParams.set('format', 'json');
+                    endpoint.searchParams.set('url', original);
+                    const work = (async () => {
+                        const response = await fetch(endpoint.href, {
+                            method: 'GET', mode: 'cors', credentials: 'omit',
+                            redirect: 'error', cache: 'no-store',
+                            ...(controller ? { signal: controller.signal } : {})
+                        });
+                        if (response.status === 429 || response.status === 502) {
+                            mcoIsgdCooldownUntil = Math.max(mcoIsgdCooldownUntil, Date.now() + 60000);
+                        }
+                        if (!response.ok) return original;
+                        const result = await response.json();
+                        if (Number(result?.errorcode) === 3) {
+                            mcoIsgdCooldownUntil = Math.max(mcoIsgdCooldownUntil, Date.now() + 60000);
+                        }
+                        if (!result?.errorcode && mcoIsgdValidShortUrl(result?.shorturl)) return result.shorturl;
+                        return original;
+                    })();
+                    const timeout = new Promise(resolve => {
+                        timeoutId = setTimeout(() => {
+                            resolve(original);
+                            if (controller) controller.abort();
+                        }, MCO_ISGD_TIMEOUT);
+                    });
+                    const shortened = await Promise.race([work, timeout]);
+                    if (mcoIsgdValidShortUrl(shortened)) {
+                        mcoIsgdRemember(original, shortened);
+                        return shortened;
+                    }
+                    mcoIsgdCooldownUntil = Math.max(mcoIsgdCooldownUntil, Date.now() + 15000);
+                    return original;
+                } catch (_) {
+                    // Inclui falha de CORS, DNS, rede, JSON inválido ou indisponibilidade.
+                    mcoIsgdCooldownUntil = Math.max(mcoIsgdCooldownUntil, Date.now() + 15000);
+                    return original;
+                } finally {
+                    clearTimeout(timeoutId);
+                    mcoIsgdPending.delete(original);
+                }
+            })();
+            mcoIsgdPending.set(original, request);
+            return request;
+        }
+
+        function mcoResolveIsgdGameLink(game) {
+            return mcoShortenGameUrl(getGameDirectUrl(game));
+        }
+
         function setMetaTag(selector, attrName, attrValue, content) {
             let el = document.head.querySelector(selector);
             if (!el) {
@@ -9097,34 +9295,34 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
             if (input && input.value) input.focus();
         }
 
-        async function copyDirectGameLink(gameId) {
+        async function copyDirectGameLink(gameId, resolvedUrl) {
             const game = resolveGameReference(gameId);
             if (!game) return;
-            const url = getGameDirectUrl(game);
-            try {
-                await navigator.clipboard.writeText(url);
-                showShareStatus('Link do jogo copiado.');
-            } catch (_) {
+            const original = getGameDirectUrl(game);
+            const ready = resolvedUrl || mcoIsgdGetCached(original);
+            const urlPromise = ready ? Promise.resolve(ready) : mcoResolveIsgdGameLink(game);
+            let copied = false;
+            // Safari/iOS pode exigir início da escrita durante o clique original.
+            if (!ready && navigator.clipboard && typeof navigator.clipboard.write === 'function' && typeof ClipboardItem === 'function') {
                 try {
-                    const area = document.createElement('textarea');
-                    area.value = url;
-                    area.style.position = 'fixed';
-                    area.style.opacity = '0';
-                    document.body.appendChild(area);
-                    area.select();
-                    document.execCommand('copy');
-                    area.remove();
-                    showShareStatus('Link do jogo copiado.');
-                } catch (_) {
-                    showShareStatus('Não foi possível copiar o link automaticamente.');
-                }
+                    const content = urlPromise.then(url => new Blob([url], { type: 'text/plain' }));
+                    await navigator.clipboard.write([new ClipboardItem({ 'text/plain': content })]);
+                    copied = true;
+                } catch (_) { /* O mesmo link continuará disponível no fallback. */ }
+            }
+            const url = await urlPromise;
+            if (!copied) copied = await copyShareText(url);
+            if (copied) showShareStatus('Link do jogo copiado.');
+            else {
+                showShareStatus('Não foi possível copiar o link automaticamente.');
+                window.prompt('Copie o link do jogo:', url);
             }
         }
 
         async function shareDirectGameLink(gameId) {
             const game = resolveGameReference(gameId);
             if (!game) return;
-            const url = getGameDirectUrl(game);
+            const url = await mcoResolveIsgdGameLink(game);
             const text = `🎮 ${game.name} na MCO GAMES\n${url}`;
             if (navigator.share) {
                 try {
@@ -9134,11 +9332,16 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
                     if (err && err.name === 'AbortError') return;
                 }
             }
-            await copyDirectGameLink(gameId);
+            await copyDirectGameLink(gameId, url);
         }
 
         function getSharedGameRefFromParams(params) {
             const code = String(params.get('jogo') || '').trim();
+            // URLs antigas continuam prioritárias quando os dois parâmetros existem.
+            if (!code && params.has('g')) {
+                const game = mcoLinkResolve(params.get('g'));
+                return game ? getGameRecordIdentity(game) : '';
+            }
             const sheet = String(params.get('aba') || '').trim().toUpperCase();
             if (code && sheet && isLegacyNumericGameCode(code)) {
                 const exact = games.find(game =>
@@ -9153,7 +9356,12 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
         function applySharedGameFromUrl() {
             const params = new URLSearchParams(window.location.search);
             const gameId = getSharedGameRefFromParams(params);
-            if (!gameId) return false;
+            if (!gameId) {
+                if (params.has('g') && !String(params.get('jogo') || '').trim()) {
+                    showShareStatus('Este link não está disponível no catálogo atual.');
+                }
+                return false;
+            }
             return openGameById(gameId, false);
         }
 
@@ -10067,6 +10275,8 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
                 return;
             }
 
+            // Sobrepõe a requisição de link à escolha de mídia/plataforma.
+            const directUrlPromise = mcoResolveIsgdGameLink(game);
             const mediaMode=await mcoChooseShareMediaMode();
             if(!mediaMode)return;
 
@@ -10087,7 +10297,7 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
                 sharePlatforms,
                 optionLines,
                 comboLines,
-                getGameDirectUrl(game)
+                await directUrlPromise
             );
 
             if(mediaMode==='video'){
@@ -11591,7 +11801,7 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
             instagramInitialRandomized = true;
 
             const params = new URLSearchParams(window.location.search);
-            if (params.has('jogo') || params.has('categoria')) return;
+            if (params.has('jogo') || params.has('g') || params.has('categoria')) return;
 
             const platformGames = getPlatformFilteredGames(games);
             if (!platformGames.length) return;
@@ -14234,6 +14444,9 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
                     return;
                 }
                 mcoBulkShareSelectedIds.add(id);
+                // Seleção explícita para anúncio conjunto: adianta o link, sem bloquear a UI.
+                const chosenGame = games.find(game => String(game.id) === id);
+                if (chosenGame) void mcoResolveIsgdGameLink(chosenGame);
             }
             mcoUpdateBulkShareUi();
         }
@@ -14264,7 +14477,7 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
                 return `${index + 1}. ${game.isCombo ? '🎁' : '🕹️'} *${game.name}*\n` +
                     `${optionLines.length ? optionLines.join('\n') : `💰 A partir de ${mcoWholeMoney(Number(game.mainPrice || 0))}`}\n` +
                     `${comboLines}${retroNote}` +
-                    `🔗 ${getGameDirectUrl(game)}`;
+                    `🔗 ${entry.shareUrl || getGameDirectUrl(game)}`;
             });
             return `🎮 *MCO GAMES | DUAS OFERTAS PARA VOCÊ*\n\n` +
                 `Separamos dois jogos para sua próxima jogatina. Confira as opções:\n\n` +
@@ -14397,13 +14610,16 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
                 return;
             }
 
-            const entries = selected.map(game => ({ game, platforms: getAvailableSharePlatforms(game) }));
-            const message = mcoBuildTwoGameShareMessage(entries);
             const sendButton = document.getElementById('mcoBulkShareSend');
+            if (sendButton?.disabled) return;
             if (sendButton) { sendButton.disabled = true; sendButton.textContent = 'Preparando anúncio…'; }
+            const entries = await Promise.all(selected.map(async game => ({
+                game, platforms: getAvailableSharePlatforms(game), shareUrl: await mcoResolveIsgdGameLink(game)
+            })));
+            const message = mcoBuildTwoGameShareMessage(entries);
 
-            // IMPORTANTE: clipboard e protocolo do WhatsApp são acionados imediatamente
-            // no gesto original do usuário, antes de qualquer await/processamento do canvas.
+            // Links normalmente já estão em cache pela seleção. A espera de rede é
+            // limitada; clipboard e WhatsApp são acionados antes de processar o canvas.
             let clipboardPromise;
             try {
                 clipboardPromise = copyShareText(message);
