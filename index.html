@@ -5947,9 +5947,21 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
                         <button type="button" class="payment-method-btn" onclick="selectPaymentMethod('CARD')">
                             <span class="method-icon">💳</span>
                             <strong>Cartão</strong>
-                            <small>Há taxa da máquina. Atendimento pelo WhatsApp.</small>
+                            <small id="cardMethodNote">Há taxa da máquina. Atendimento pelo WhatsApp.</small>
                         </button>
                     </div>
+                </div>
+
+                <div class="pix-step" id="cardStep">
+                    <div class="pix-instruction" id="cardStepText">Gerando seu link seguro de pagamento…</div>
+                    <div class="payment-total-box" id="cardTotalBox" style="display:none">
+                        <small>Total no cartão</small>
+                        <strong id="cardTotalValue">R$ 0,00</strong>
+                        <small id="cardTotalNote">à vista pelo valor do anúncio · parcelado com os juros calculados no pagamento</small>
+                    </div>
+                    <a class="btn-pix-whatsapp" id="cardPayLink" href="#" rel="noopener" style="display:none;text-align:center;text-decoration:none">💳 Pagar com cartão</a>
+                    <button type="button" class="payment-back-btn" id="cardWhatsBtn" onclick="mcoCardViaWhatsApp()" style="display:none">Prefiro falar no WhatsApp</button>
+                    <button type="button" class="payment-back-btn" onclick="backToPaymentChoice()">← Voltar</button>
                 </div>
 
                 <div class="pix-step" id="pixStep">
@@ -9245,7 +9257,15 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
             return request;
         }
 
+        // 2026-11: links de compartilhamento usam o endereço da própria loja (mostra a marca e gera a prévia
+        // do WhatsApp). O is.gd fica desligado; para religar, mude MCO_USE_ISGD para true.
+        const MCO_USE_ISGD = false;
         function mcoResolveIsgdGameLink(game) {
+            if (!MCO_USE_ISGD) {
+                let own = getGameDirectUrl(game);
+                try { const curto = getGameShareUrl(game); if (curto && curto.length <= own.length) own = curto; } catch (_) {}
+                return Promise.resolve(own);
+            }
             return mcoShortenGameUrl(getGameDirectUrl(game));
         }
 
@@ -14382,12 +14402,25 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
             modalDrawer.classList.add('active');
         }
 
+        // Pagamento no cartão gerado na hora (InfinitePay) pelo projeto MCO PAGAMENTOS.
+        // Vazio = cartão continua pelo WhatsApp, como antes.
+        const MCO_PAGAMENTO_URL = 'https://script.google.com/macros/s/AKfycbx3pGnkWH4o00lW3gR8poQbHtSTkjqAXt7h8DTfaHUhkuQ3guZNmqenk9wUCdORn__E/exec';
+        let mcoPrecisaConsulta = false;
+        function mcoCardOnline() { return /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(MCO_PAGAMENTO_URL); }
+
         function openPaymentModal() {
             if (selectedCart.length === 0) return;
-            if (mcoOrderNeedsAvailabilityCheck()) {
+            mcoPrecisaConsulta = mcoOrderNeedsAvailabilityCheck();
+            // Sem o link de cartão, vaga sem estoque confirmado segue por consulta (regra de sempre).
+            // Com o link de cartão, o cliente pode pagar no cartão; o PIX continua passando pela consulta.
+            if (mcoPrecisaConsulta && !mcoCardOnline()) {
                 mcoRequestAvailabilityWhatsApp();
                 return;
             }
+            const note = document.getElementById('cardMethodNote');
+            if (note) note.innerText = mcoCardOnline() ? 'Pague agora pelo link seguro, em até 12x.' : 'Há taxa da máquina. Atendimento pelo WhatsApp.';
+            const cs = document.getElementById('cardStep'); if (cs) cs.classList.remove('active');
+            const pixBox = document.querySelector('#paymentOverlay .payment-total-box'); if (pixBox) pixBox.style.display = '';
 
             const total = calculateTotal();
             document.getElementById('paymentTotalValue').innerText = `${mcoWholeMoney(total)}`;
@@ -14408,7 +14441,86 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
             }
         }
 
+        function mcoCardViaWhatsApp() {
+            const message = buildWhatsAppOrderMessage('CARD');
+            window.open(`https://wa.me/${PHONE_NUMBER}?text=${encodeURIComponent(message)}`, '_blank');
+            closePaymentModal();
+            closeModal();
+        }
+
+        async function mcoGerarLinkCartao() {
+            const step = document.getElementById('cardStep'), txt = document.getElementById('cardStepText');
+            const box = document.getElementById('cardTotalBox'), link = document.getElementById('cardPayLink'), wa = document.getElementById('cardWhatsBtn');
+            document.getElementById('paymentChoiceStep').style.display = 'none';
+            document.getElementById('pixStep').classList.remove('active');
+            step.classList.add('active');
+            const pixBox = document.querySelector('#paymentOverlay .payment-total-box'); if (pixBox) pixBox.style.display = 'none';
+            box.style.display = 'none'; link.style.display = 'none'; wa.style.display = 'none';
+            txt.innerText = 'Gerando seu link seguro de pagamento…';
+            const itens = selectedCart.map(item => {
+                const game = games.find(g => g.id === item.gameId) || {};
+                return { aba: game.sheetName || '', codigo: game.sheetId || '', plataforma: item.platform, modalidade: item.type };
+            });
+            try {
+                const ctrl = typeof AbortController === 'function' ? new AbortController() : null;
+                const timer = setTimeout(() => ctrl && ctrl.abort(), 25000);
+                const resp = await fetch(`${MCO_PAGAMENTO_URL}?acao=link&itens=${encodeURIComponent(JSON.stringify(itens))}`, { method: 'GET', credentials: 'omit', ...(ctrl ? { signal: ctrl.signal } : {}) });
+                clearTimeout(timer);
+                const r = await resp.json();
+                if (!r || !r.ok || !/^https:\/\//.test(r.url || '')) throw new Error((r && r.erro) || 'Não foi possível gerar o link.');
+                try { sessionStorage.setItem('mcoPedidoCartao', JSON.stringify({ pedido: r.pedido, itens: buildOrderItemsText(), total: r.total })); } catch (_) {}
+                document.getElementById('cardTotalValue').innerText = mcoWholeMoney(r.total);
+                txt.innerText = `Pedido ${r.pedido}. Ao clicar, você vai para a página segura da InfinitePay. O link vale por 2 horas.`;
+                link.href = r.url;
+                box.style.display = ''; link.style.display = 'block'; wa.style.display = '';
+            } catch (err) {
+                const msg = String(err && err.name === 'AbortError' ? 'O servidor demorou para responder.' : (err && err.message) || err);
+                txt.innerText = `Não conseguimos gerar o link agora (${msg}). Fale com a gente pelo WhatsApp que geramos a cobrança para você.`;
+                wa.style.display = '';
+            }
+        }
+
+        // Volta da InfinitePay: confere o pagamento no servidor e mostra o próximo passo.
+        async function mcoConferirRetornoCartao() {
+            let params;
+            try { params = new URLSearchParams(window.location.search); } catch (_) { return; }
+            const pedido = params.get('pedido');
+            if (!pedido || !/^MCO\d{14}$/.test(pedido) || !mcoCardOnline()) return;
+            const q = new URLSearchParams({ acao: 'confirmar', pedido });
+            ['slug', 'invoice_slug', 'transaction_nsu', 'transaction_id', 'order_nsu', 'receipt_url'].forEach(k => { if (params.get(k)) q.set(k, params.get(k)); });
+            let salvo = {};
+            try { salvo = JSON.parse(sessionStorage.getItem('mcoPedidoCartao') || '{}') || {}; } catch (_) {}
+            let r = null;
+            try { r = await (await fetch(`${MCO_PAGAMENTO_URL}?${q.toString()}`, { credentials: 'omit' })).json(); } catch (_) {}
+            try {
+                const limpa = new URL(window.location.href);
+                ['pedido', 'slug', 'invoice_slug', 'transaction_nsu', 'transaction_id', 'order_nsu', 'receipt_url', 'capture_method'].forEach(k => limpa.searchParams.delete(k));
+                history.replaceState(null, '', limpa.toString());
+            } catch (_) {}
+            const pago = !!(r && r.ok && r.pago);
+            const itens = (r && r.itens) || salvo.itens || '';
+            const texto = pago
+                ? `✅ *Paguei no cartão* o pedido *${pedido}*\n\n${itens}\n\nPode liberar meu jogo? 🎮`
+                : `Olá! Fiz (ou tentei fazer) o pagamento no cartão do pedido *${pedido}*.\n\n${itens}\n\nPode conferir, por favor?`;
+            const ov = document.createElement('div');
+            ov.className = 'payment-overlay active';
+            ov.innerHTML = `<div class="payment-modal" onclick="event.stopPropagation()"><div class="payment-header"><div><span>PEDIDO ${pedido}</span><h2>${pago ? 'Pagamento confirmado! 🎉' : 'Ainda não identificamos o pagamento'}</h2></div><button class="close-btn" type="button">✕</button></div><div class="payment-body"><div class="pix-instruction">${pago ? 'Agora é só nos mandar o pedido no WhatsApp para liberarmos o seu jogo.' : 'Se você concluiu o pagamento, fale com a gente pelo WhatsApp com o número do pedido que conferimos na hora.'}</div><a class="btn-pix-whatsapp" style="display:block;text-align:center;text-decoration:none" target="_blank" rel="noopener" href="https://wa.me/${PHONE_NUMBER}?text=${encodeURIComponent(texto)}">💬 Enviar no WhatsApp</a></div></div>`;
+            ov.addEventListener('click', e => { if (e.target === ov || e.target.closest('.close-btn')) ov.remove(); });
+            document.body.appendChild(ov);
+        }
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => { mcoConferirRetornoCartao(); });
+        else mcoConferirRetornoCartao();
+
         function selectPaymentMethod(method) {
+            if (method === 'PIX' && mcoPrecisaConsulta) {
+                closePaymentModal();
+                mcoRequestAvailabilityWhatsApp();
+                return;
+            }
+            if (method === 'CARD' && mcoCardOnline()) {
+                mcoGerarLinkCartao();
+                return;
+            }
             if (method === 'CARD') {
                 const message = buildWhatsAppOrderMessage('CARD');
                 const whatsappUrl = `https://wa.me/${PHONE_NUMBER}?text=${encodeURIComponent(message)}`;
@@ -14457,6 +14569,8 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
 
         function backToPaymentChoice() {
             document.getElementById('pixStep').classList.remove('active');
+            const cs = document.getElementById('cardStep'); if (cs) cs.classList.remove('active');
+            const pixBox = document.querySelector('#paymentOverlay .payment-total-box'); if (pixBox) pixBox.style.display = '';
             document.getElementById('paymentChoiceStep').style.display = 'block';
             document.getElementById('pixCopiedStatus').innerText = '';
         }
