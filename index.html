@@ -8065,6 +8065,50 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
             return gameSummariesReady;
         }
 
+        // Data fixa para anúncios (a contagem regressiva congela numa imagem compartilhada).
+        function mcoFixedDateLabel(game) {
+            const d = parseTargetDate(game && game.targetDate);
+            if (!d || d.getTime() <= Date.now()) return null;
+            const pre = isCategory(game, 'Pré Venda');
+            const dd = String(d.getDate()).padStart(2, '0'), mm = String(d.getMonth() + 1).padStart(2, '0');
+            const hasTime = d.getHours() || d.getMinutes();
+            const hh = String(d.getHours()).padStart(2, '0') + 'h' + (d.getMinutes() ? String(d.getMinutes()).padStart(2, '0') : '');
+            return pre
+                ? { title: '🚀 LANÇAMENTO', value: `${dd}/${mm}/${d.getFullYear()}`, line: `🚀 *Lançamento:* ${dd}/${mm}/${d.getFullYear()}` }
+                : { title: '⏰ OFERTA VÁLIDA ATÉ', value: `${dd}/${mm}${hasTime ? ' às ' + hh : ''}`, line: `⏰ *Oferta válida até ${dd}/${mm}${hasTime ? ' às ' + hh : ''}*` };
+        }
+        // Escassez só quando é real: soma das vagas com estoque informado entre 1 e o limite.
+        const MCO_SCARCITY_LIMIT = 2;
+        function mcoScarcity(game, platforms) {
+            let total = 0, known = false;
+            (platforms || []).forEach(pl => {
+                const d = getPlatformData(game, pl);
+                [[d.primary, d.stockPrimary], [d.secondary, d.stockSecondary]].forEach(([price, st]) => {
+                    if (Number(price) > 0 && Number(st) > 0) { total += Number(st); known = true; }
+                });
+            });
+            return known && total <= MCO_SCARCITY_LIMIT ? total : 0;
+        }
+        // "Como funciona": mostra só as modalidades que o anúncio vende. Textos curtos e verdadeiros.
+        const MCO_HOW_IT_WORKS = {
+            primaria: 'jogue pelo perfil que você já tem',
+            secundaria: 'jogue pelo perfil que baixa o jogo'
+        };
+        function mcoHowItWorksLines(game, platforms) {
+            let pri = false, sec = false;
+            (platforms || []).forEach(pl => { const d = getPlatformData(game, pl); if (Number(d.primary) > 0) pri = true; if (Number(d.secondary) > 0) sec = true; });
+            const out = [];
+            if (pri && MCO_HOW_IT_WORKS.primaria) out.push(`✅ *Primária:* ${MCO_HOW_IT_WORKS.primaria}`);
+            if (sec && MCO_HOW_IT_WORKS.secundaria) out.push(`✅ *Secundária:* ${MCO_HOW_IT_WORKS.secundaria}`);
+            // Entrega muda conforme a categoria do anúncio.
+            const entrega = isCategory(game, 'Pré Venda') ? 'jogue no dia do lançamento'
+                : isCategory(game, 'Lançamento em Oferta') ? 'jogue o lançamento hoje pagando menos'
+                : isCategory(game, 'Promoção') ? 'jogue hoje pagando menos'
+                : 'comece sua aventura hoje';
+            if (out.length) out.push(`⚡ *Entrega:* ${entrega}`);
+            return out;
+        }
+
         function getGameSummary(game) {
             if (!game || game.isCombo) return '';
             for (const key of [game.productBaseCode, game.sheetId]) {
@@ -9532,7 +9576,10 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
                 comboLines +
                 retroShareNote +
                 `💰 *OPÇÕES DISPONÍVEIS:*\n${optionLines.join('\n')}\n\n` +
-                `📲 Gostou? Fale com nossa equipe pelo WhatsApp e consulte as condições para garantir o seu.\n\n` +
+                (mcoScarcity(game, sharePlatforms) ? `🔥 *Últimas ${mcoScarcity(game, sharePlatforms)} vagas!*\n` : '') +
+                (mcoFixedDateLabel(game) ? `${mcoFixedDateLabel(game).line}\n\n` : (mcoScarcity(game, sharePlatforms) ? '\n' : '')) +
+                (game.isCombo || !mcoHowItWorksLines(game, sharePlatforms).length ? '' : `${mcoHowItWorksLines(game, sharePlatforms).join('\n')}\n\n`) +
+                `📲 Gostou? Reage com 🔥 ou me chama no privado!\n\n` +
                 `👉 *VEJA OS DETALHES:* ${directUrl}\n\n` +
                 `*MCO GAMES — Grandes jogos, grandes experiências!*`
             );
@@ -16338,16 +16385,27 @@ async function buildMcoSharePoster(game, cardEl, sharePlatforms = null) {
         : null;
     let countdownBadge = null;
 
-    if (countdownText && countdownText !== 'Encerrado / Lançado') {
-        countdownBadge = { x: rightX, y: 680, w: rightW, h: 76, r: 17 };
+    const fixedDate = countdownEligible ? mcoFixedDateLabel(game) : null;
+    if (fixedDate) {
+        countdownBadge = { x: rightX, y: 640, w: rightW, h: 80, r: 17 };
         rrect(countdownBadge.x, countdownBadge.y, countdownBadge.w, countdownBadge.h,
             countdownBadge.r, 'rgba(12,31,52,.94)', '#456b91', 2);
+        ctx.textAlign = 'center';
         ctx.fillStyle = '#a9c6dc';
         ctx.font = '800 16px Arial, sans-serif';
-        ctx.fillText('⏱ CONTAGEM REGRESSIVA', rightX + 18, 709, rightW - 36);
+        ctx.fillText(fixedDate.title, rightX + rightW / 2, 669, rightW - 36);
         ctx.fillStyle = '#ffffff';
-        ctx.font = '900 21px Arial, sans-serif';
-        ctx.fillText(countdownText, rightX + 18, 739, rightW - 36);
+        ctx.font = '900 28px Arial, sans-serif';
+        ctx.fillText(fixedDate.value, rightX + rightW / 2, 704, rightW - 36);
+        ctx.textAlign = 'left';
+    }
+    const scarce = mcoScarcity(game, selectedSharePlatforms);
+    if (scarce) {
+        const sb = { x: rightX + 30, y: fixedDate ? 732 : 660, w: rightW - 60, h: 44 };
+        ctx.save(); ctx.shadowColor = 'rgba(255,60,90,.55)'; ctx.shadowBlur = 14;
+        rrect(sb.x, sb.y, sb.w, sb.h, 22, '#c8143a', '#ff6b85', 2); ctx.restore();
+        ctx.fillStyle = '#fff'; ctx.font = '900 20px Arial, sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText(`🔥 ÚLTIMAS ${scarce} VAGAS`, sb.x + sb.w / 2, sb.y + 29, sb.w - 16); ctx.textAlign = 'left';
     }
 
     // Título e edição. A plataforma aparece apenas nos quadros de preços,
