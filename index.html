@@ -5989,6 +5989,10 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
         // Se necessário, informe o GID real da aba em IMAGE_SHEET_GID.
         const IMAGE_SHEET_NAME = "IMAGENS";
         const IMAGE_SHEET_GID = "2127405738";
+        // Aba RESUMOS (preenchida pelo NEXUS): coluna A = código MCO; coluna C = resumo de venda do jogo.
+        const RESUMO_SHEET_NAME = "RESUMOS";
+        const gameSummaries = new Map();
+        let gameSummariesReady = null;
         // URLs diretas confirmadas pelo usuário. Usadas como fonte principal para evitar
         // depender da publicação/consulta CSV da aba IMAGENS.
         const BRAND_ASSET_URLS = {
@@ -8025,6 +8029,42 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
             return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(IMAGE_SHEET_NAME)}&cb=${cacheBust}`;
         }
 
+        function loadGameSummaries() {
+            if (gameSummariesReady) return gameSummariesReady;
+            gameSummariesReady = new Promise(resolve => {
+                try {
+                    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(RESUMO_SHEET_NAME)}&cb=${Date.now()}`;
+                    Papa.parse(url, {
+                        download: true,
+                        skipEmptyLines: true,
+                        complete: results => {
+                            const rows = Array.isArray(results.data) ? results.data : [];
+                            const header = (rows[0] || []).map(v => String(v || '').trim().toUpperCase());
+                            // Sem a aba (ou cabeçalho diferente): segue com a frase genérica de sempre.
+                            if (header[0] !== 'CODIGO_MCO' || header[2] !== 'RESUMO') return resolve(gameSummaries);
+                            rows.slice(1).forEach(row => {
+                                const code = String(row[0] || '').trim().toUpperCase();
+                                const text = String(row[2] || '').replace(/\s+/g, ' ').trim();
+                                if (code && text && text.length <= 180) gameSummaries.set(code, text);
+                            });
+                            resolve(gameSummaries);
+                        },
+                        error: () => resolve(gameSummaries)
+                    });
+                } catch (e) { resolve(gameSummaries); }
+            });
+            return gameSummariesReady;
+        }
+
+        function getGameSummary(game) {
+            if (!game || game.isCombo) return '';
+            for (const key of [game.productBaseCode, game.sheetId]) {
+                const code = String(key || '').trim().toUpperCase();
+                if (code && gameSummaries.has(code)) return gameSummaries.get(code);
+            }
+            return '';
+        }
+
         function normalizeImageAssetName(value) {
             return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toUpperCase();
         }
@@ -9478,7 +9518,7 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
 
             return (
                 `🎮 *MCO GAMES | OFERTA ESPECIAL*\n\n` +
-                `${game.isCombo ? '🎁 Confira este combo especial para sua próxima jogatina.' : '🔥 Uma ótima escolha para sua próxima experiência no PlayStation.'}\n\n` +
+                `${game.isCombo ? '🎁 Confira este combo especial para sua próxima jogatina.' : (getGameSummary(game) ? '🔥 ' + getGameSummary(game) : '🔥 Uma ótima escolha para sua próxima experiência no PlayStation.')}\n\n` +
                 `${game.isCombo ? '🎁' : '🕹️'} *${game.name}*\n\n` +
                 comboLines +
                 retroShareNote +
@@ -10286,6 +10326,7 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
             }
 
             const optionLines = buildSharePlatformOptionLines(game, sharePlatforms);
+            try { await Promise.race([loadGameSummaries(), new Promise(r => setTimeout(r, 2500))]); } catch (e) {}
 
             const comboLines =
                 game.isCombo && Array.isArray(game.comboNames) && game.comboNames.length
@@ -14703,6 +14744,7 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
         }
 
         brandAssetsReady = loadBrandAssetsFromSheet();
+        loadGameSummaries();
         fetchCatalogFromSheets();
     </script>
 
@@ -16189,52 +16231,96 @@ async function buildMcoSharePoster(game, cardEl, sharePlatforms = null) {
         ? Math.round((1 - currentPrice / referencePrice) * 100)
         : 0;
 
-    const priceCard = { x: rightX, y: 340, w: rightW, h: 220, r: 27 };
+    // Bloco de preço em ETIQUETA amarela pendurada (2026-11): preço centralizado, "de R$ X" riscado
+    // e economia em reais. Sem desconto: mostra só "a partir de" e o preço.
+    const oldPriceBox = null;
+    const temDesc = referencePrice > currentPrice && currentPrice > 0;
+    const economia = temDesc ? Math.round(referencePrice - currentPrice) : 0;
+    const priceNum = currentPrice > 0 ? String(money(currentPrice)).replace(/^R\$\s*/, '') : '';
+    const tag = { x: rightX + 10, y: 300, w: rightW - 20, h: 300 };
+    const tagCx = tag.x + tag.w / 2;
     ctx.save();
-    ctx.shadowColor = '#1acfff';
-    ctx.shadowBlur = 18;
-    rrect(priceCard.x, priceCard.y, priceCard.w, priceCard.h, priceCard.r, '#07172a', '#19d2ff', 4);
-    ctx.restore();
-
-    ctx.fillStyle = '#dcefff';
-    ctx.font = '900 27px Arial, sans-serif';
-    ctx.fillText(currentPrice > 0 ? 'A PARTIR DE' : 'PREÇO', rightX + 28, 395, rightW - 56);
-
-    ctx.fillStyle = '#17dcff';
-    let priceFont = currentPrice > 0 ? 61 : 43;
-    ctx.font = `900 ${priceFont}px Arial, sans-serif`;
-    const priceText = currentPrice > 0 ? money(currentPrice) : 'Sob consulta';
-    while (ctx.measureText(priceText).width > rightW - 48 && priceFont > 35) {
-        priceFont -= 2;
-        ctx.font = `900 ${priceFont}px Arial, sans-serif`;
-    }
-    ctx.fillText(priceText, rightX + 26, 493, rightW - 52);
-
-    let oldPriceBox = null;
-    if (referencePrice > currentPrice && currentPrice > 0) {
-        oldPriceBox = { x: rightX, y: 580, w: rightW, h: 76 };
-        ctx.fillStyle = '#b9c2d2';
-        ctx.font = '600 29px Arial, sans-serif';
-        const oldText = money(referencePrice);
-        ctx.fillText(oldText, rightX + 8, 625, 220);
-        const oldWidth = Math.min(215, ctx.measureText(oldText).width);
-        ctx.strokeStyle = '#f05275';
+    ctx.strokeStyle = 'rgba(255,255,255,.55)';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(tagCx, 262);
+    ctx.quadraticCurveTo(tagCx + 40, 285, tagCx, 330);
+    ctx.stroke();
+    ctx.translate(tagCx, tag.y + 30);
+    ctx.rotate(-0.05);
+    ctx.translate(-tagCx, -(tag.y + 30));
+    ctx.shadowColor = 'rgba(255,190,40,.55)';
+    ctx.shadowBlur = 26;
+    const tagGrad = ctx.createLinearGradient(tag.x, tag.y, tag.x + tag.w, tag.y + tag.h);
+    tagGrad.addColorStop(0, '#ffd84a');
+    tagGrad.addColorStop(1, '#ff9f1c');
+    ctx.beginPath();
+    ctx.moveTo(tagCx, tag.y);
+    ctx.lineTo(tag.x + tag.w - 22, tag.y + 40);
+    ctx.quadraticCurveTo(tag.x + tag.w, tag.y + 46, tag.x + tag.w, tag.y + 70);
+    ctx.lineTo(tag.x + tag.w, tag.y + tag.h - 22);
+    ctx.quadraticCurveTo(tag.x + tag.w, tag.y + tag.h, tag.x + tag.w - 22, tag.y + tag.h);
+    ctx.lineTo(tag.x + 22, tag.y + tag.h);
+    ctx.quadraticCurveTo(tag.x, tag.y + tag.h, tag.x, tag.y + tag.h - 22);
+    ctx.lineTo(tag.x, tag.y + 70);
+    ctx.quadraticCurveTo(tag.x, tag.y + 46, tag.x + 22, tag.y + 40);
+    ctx.closePath();
+    ctx.fillStyle = tagGrad;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#0a1020';
+    ctx.beginPath();
+    ctx.arc(tagCx, tag.y + 34, 9, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#3b2200';
+    ctx.font = '900 22px Arial, sans-serif';
+    ctx.fillText(currentPrice > 0 ? 'A PARTIR DE' : 'PREÇO', tagCx, tag.y + (temDesc ? 84 : 100));
+    if (temDesc) {
+        ctx.fillStyle = '#5a3a00';
+        ctx.font = '700 24px Arial, sans-serif';
+        const oldTxt = money(referencePrice);
+        ctx.fillText('de ' + oldTxt, tagCx, tag.y + 118);
+        const wDe = ctx.measureText('de ').width, wOld = ctx.measureText(oldTxt).width, wAll = ctx.measureText('de ' + oldTxt).width;
+        ctx.strokeStyle = '#c4102e';
         ctx.lineWidth = 3;
         ctx.beginPath();
-        ctx.moveTo(rightX + 8, 615);
-        ctx.lineTo(rightX + 8 + oldWidth, 615);
+        ctx.moveTo(tagCx - wAll / 2 + wDe, tag.y + 110);
+        ctx.lineTo(tagCx - wAll / 2 + wDe + wOld, tag.y + 110);
         ctx.stroke();
-
-        if (discount > 0) {
-            const dtext = `-${discount}%`;
-            rrect(rightX + 235, 588, 120, 49, 17, '#b81933', '#ff526e', 2);
-            ctx.fillStyle = '#fff';
-            ctx.font = '900 28px Arial, sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText(dtext, rightX + 295, 621);
-            ctx.textAlign = 'left';
-        }
     }
+    const priceBaseY = tag.y + (temDesc ? 210 : 222);
+    if (currentPrice > 0) {
+        let f = 92;
+        const medir = () => {
+            ctx.font = `900 ${Math.round(f * 0.42)}px Arial, sans-serif`;
+            const w1 = ctx.measureText('R$').width;
+            ctx.font = `900 ${f}px Arial, sans-serif`;
+            return w1 + 8 + ctx.measureText(priceNum).width;
+        };
+        while (medir() > tag.w - 40 && f > 40) f -= 4;
+        const total = medir(), x0 = tagCx - total / 2;
+        ctx.textAlign = 'left';
+        ctx.fillStyle = '#120b00';
+        ctx.font = `900 ${Math.round(f * 0.42)}px Arial, sans-serif`;
+        const wRs = ctx.measureText('R$').width;
+        ctx.fillText('R$', x0, priceBaseY - f * 0.48);
+        ctx.font = `900 ${f}px Arial, sans-serif`;
+        ctx.fillText(priceNum, x0 + wRs + 8, priceBaseY);
+    } else {
+        ctx.fillStyle = '#120b00';
+        ctx.font = '900 40px Arial, sans-serif';
+        ctx.fillText('Sob consulta', tagCx, priceBaseY, tag.w - 40);
+    }
+    if (temDesc && discount > 0) {
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#7a0b1f';
+        ctx.font = '900 24px Arial, sans-serif';
+        ctx.fillText(`-${discount}% · economize ${money(economia)}`, tagCx, tag.y + 262, tag.w - 30);
+    }
+    ctx.textAlign = 'left';
+    ctx.restore();
+    const priceCard = { x: rightX - 10, y: 250, w: rightW + 20, h: 370, r: 2 };
 
     // Relógio somente para Pré-venda e Promoção, e somente com data válida.
     const countdownEligible = isCategory(game, 'Pré Venda') || isCategory(game, 'Promoção');
@@ -16274,10 +16360,24 @@ async function buildMcoSharePoster(game, cardEl, sharePlatforms = null) {
         subtitleBox = { x: 50, y: subtitleY - 30, w: 1090, h: 42 };
     }
 
+    // Resumo de venda (aba RESUMOS). Some quando não houver; até 2 linhas no espaço livre abaixo do título.
+    let summaryEnd = null;
+    try { if (typeof loadGameSummaries === 'function') await Promise.race([loadGameSummaries(), new Promise(r => setTimeout(r, 2500))]); } catch (e) {}
+    const summary = typeof getGameSummary === 'function' ? getGameSummary(game) : '';
+    if (summary) {
+        const baseY = edition ? subtitleY + 34 : titleEnd - 2;
+        const lines = (titleEnd - titleY) > 60 || edition ? 1 : 2;
+        ctx.fillStyle = '#c9d8ea';
+        ctx.font = '600 23px Arial, sans-serif';
+        summaryEnd = drawSharePosterWrappedText(ctx, summary, 52, baseY, 1090, 30, lines);
+        const topo = subtitleBox ? subtitleBox.y : baseY - 26;
+        subtitleBox = { x: 50, y: topo, w: 1090, h: Math.max(42, summaryEnd - topo + 4) };
+    }
+
     // Um console ocupa toda a largura; dois consoles dividem a linha igualmente.
     const visiblePlatforms = selectedSharePlatforms.filter(platform => ['PS5', 'PS4'].includes(platform));
     const optionH = 118;
-    const optionY = Math.max(890, edition ? subtitleY + 42 : titleEnd + 54);
+    const optionY = Math.max(890, summaryEnd !== null ? summaryEnd + 8 : (edition ? subtitleY + 42 : titleEnd + 54));
     const optionGap = 20;
     const optionBoxes = [];
 
