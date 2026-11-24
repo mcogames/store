@@ -5991,6 +5991,7 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
         const IMAGE_SHEET_GID = "2127405738";
         // Aba RESUMOS (preenchida pelo NEXUS): coluna A = código MCO; coluna C = resumo de venda do jogo.
         const RESUMO_SHEET_NAME = "RESUMOS";
+        const RESUMO_SHEET_GID = "670628816";
         const gameSummaries = new Map();
         let gameSummariesReady = null;
         // URLs diretas confirmadas pelo usuário. Usadas como fonte principal para evitar
@@ -8031,28 +8032,36 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
 
         function loadGameSummaries() {
             if (gameSummariesReady) return gameSummariesReady;
-            gameSummariesReady = new Promise(resolve => {
+            // 1º: o mesmo link "Publicar na Web" das categorias (gid da aba RESUMOS);
+            // 2º: leitura direta da planilha (exige compartilhamento por link). Sem nenhum dos dois: frase genérica.
+            const urls = [
+                `${SHEET_CSV_BASE}${encodeURIComponent(RESUMO_SHEET_GID)}&cb=${Date.now()}`,
+                `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(RESUMO_SHEET_NAME)}&cb=${Date.now()}`
+            ];
+            const tryUrl = url => new Promise(resolve => {
                 try {
-                    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(RESUMO_SHEET_NAME)}&cb=${Date.now()}`;
                     Papa.parse(url, {
                         download: true,
                         skipEmptyLines: true,
                         complete: results => {
                             const rows = Array.isArray(results.data) ? results.data : [];
                             const header = (rows[0] || []).map(v => String(v || '').trim().toUpperCase());
-                            // Sem a aba (ou cabeçalho diferente): segue com a frase genérica de sempre.
-                            if (header[0] !== 'CODIGO_MCO' || header[2] !== 'RESUMO') return resolve(gameSummaries);
+                            if (header[0] !== 'CODIGO_MCO' || header[2] !== 'RESUMO') return resolve(false);
                             rows.slice(1).forEach(row => {
                                 const code = String(row[0] || '').trim().toUpperCase();
                                 const text = String(row[2] || '').replace(/\s+/g, ' ').trim();
                                 if (code && text && text.length <= 180) gameSummaries.set(code, text);
                             });
-                            resolve(gameSummaries);
+                            resolve(true);
                         },
-                        error: () => resolve(gameSummaries)
+                        error: () => resolve(false)
                     });
-                } catch (e) { resolve(gameSummaries); }
+                } catch (e) { resolve(false); }
             });
+            gameSummariesReady = (async () => {
+                for (const url of urls) { if (await tryUrl(url)) break; }
+                return gameSummaries;
+            })();
             return gameSummariesReady;
         }
 
