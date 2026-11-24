@@ -5942,7 +5942,7 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
                         <button type="button" class="payment-method-btn" onclick="selectPaymentMethod('PIX')">
                             <span class="method-icon">⚡</span>
                             <strong>PIX</strong>
-                            <small>Valor do anúncio. Chave PIX para copiar.</small>
+                            <small id="pixMethodNote">Valor do anúncio. Chave PIX para copiar.</small>
                         </button>
                         <button type="button" class="payment-method-btn" onclick="selectPaymentMethod('CARD')">
                             <span class="method-icon">💳</span>
@@ -9600,7 +9600,9 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
                 (mcoFixedDateLabel(game) ? `${mcoFixedDateLabel(game).line}\n\n` : (mcoScarcity(game, sharePlatforms) ? '\n' : '')) +
                 (game.isCombo || !mcoHowItWorksLines(game, sharePlatforms).length ? '' : `${mcoHowItWorksLines(game, sharePlatforms).join('\n')}\n\n`) +
                 `📲 Gostou? Reage com 🔥 ou me chama no privado!\n\n` +
-                `👉 *VEJA OS DETALHES:* ${directUrl}\n\n` +
+                (mcoCardOnline()
+                    ? `👉 *ACESSE E PAGUE NA HORA:* ${directUrl}\n⚡ Pix ou 💳 cartão em até 12x, direto pelo link\n\n`
+                    : `👉 *VEJA OS DETALHES:* ${directUrl}\n\n`) +
                 `*MCO GAMES — Grandes jogos, grandes experiências!*`
             );
         }
@@ -14419,6 +14421,8 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
             }
             const note = document.getElementById('cardMethodNote');
             if (note) note.innerText = mcoCardOnline() ? 'Pague agora pelo link seguro, em até 12x.' : 'Há taxa da máquina. Atendimento pelo WhatsApp.';
+            const pnote = document.getElementById('pixMethodNote');
+            if (pnote) pnote.innerText = mcoCardOnline() ? 'Valor do anúncio. Pague agora, confirmação na hora.' : 'Valor do anúncio. Chave PIX para copiar.';
             const cs = document.getElementById('cardStep'); if (cs) cs.classList.remove('active');
             const pixBox = document.querySelector('#paymentOverlay .payment-total-box'); if (pixBox) pixBox.style.display = '';
 
@@ -14448,7 +14452,8 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
             closeModal();
         }
 
-        async function mcoGerarLinkCartao() {
+        async function mcoGerarLinkCartao(metodo = 'cartao') {
+            const ehPix = metodo === 'pix';
             const step = document.getElementById('cardStep'), txt = document.getElementById('cardStepText');
             const box = document.getElementById('cardTotalBox'), link = document.getElementById('cardPayLink'), wa = document.getElementById('cardWhatsBtn');
             document.getElementById('paymentChoiceStep').style.display = 'none';
@@ -14464,12 +14469,15 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
             try {
                 const ctrl = typeof AbortController === 'function' ? new AbortController() : null;
                 const timer = setTimeout(() => ctrl && ctrl.abort(), 25000);
-                const resp = await fetch(`${MCO_PAGAMENTO_URL}?acao=link&itens=${encodeURIComponent(JSON.stringify(itens))}`, { method: 'GET', credentials: 'omit', ...(ctrl ? { signal: ctrl.signal } : {}) });
+                const resp = await fetch(`${MCO_PAGAMENTO_URL}?acao=link&metodo=${ehPix ? 'pix' : 'cartao'}&itens=${encodeURIComponent(JSON.stringify(itens))}`, { method: 'GET', credentials: 'omit', ...(ctrl ? { signal: ctrl.signal } : {}) });
                 clearTimeout(timer);
                 const r = await resp.json();
                 if (!r || !r.ok || !/^https:\/\//.test(r.url || '')) throw new Error((r && r.erro) || 'Não foi possível gerar o link.');
                 try { sessionStorage.setItem('mcoPedidoCartao', JSON.stringify({ pedido: r.pedido, itens: buildOrderItemsText(), total: r.total })); } catch (_) {}
                 document.getElementById('cardTotalValue').innerText = mcoWholeMoney(r.total);
+                document.querySelector('#cardTotalBox small').innerText = ehPix ? 'Total no Pix' : 'Total no cartão';
+                document.getElementById('cardTotalNote').innerText = ehPix ? 'valor do anúncio · QR Code e copia e cola na próxima tela' : 'à vista pelo valor do anúncio · parcelado com os juros calculados no pagamento';
+                link.innerText = ehPix ? '⚡ Pagar com Pix' : '💳 Pagar com cartão';
                 txt.innerText = `Pedido ${r.pedido}. Ao clicar, você vai para a página segura da InfinitePay. O link vale por 2 horas.`;
                 link.href = r.url;
                 box.style.display = ''; link.style.display = 'block'; wa.style.display = '';
@@ -14500,8 +14508,8 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
             const pago = !!(r && r.ok && r.pago);
             const itens = (r && r.itens) || salvo.itens || '';
             const texto = pago
-                ? `✅ *Paguei no cartão* o pedido *${pedido}*\n\n${itens}\n\nPode liberar meu jogo? 🎮`
-                : `Olá! Fiz (ou tentei fazer) o pagamento no cartão do pedido *${pedido}*.\n\n${itens}\n\nPode conferir, por favor?`;
+                ? `✅ *Paguei ${r.metodo === 'pix' ? 'no Pix' : 'no cartão'}* o pedido *${pedido}*\n\n${itens}\n\nPode liberar meu jogo? 🎮`
+                : `Olá! Fiz (ou tentei fazer) o pagamento do pedido *${pedido}*.\n\n${itens}\n\nPode conferir, por favor?`;
             const ov = document.createElement('div');
             ov.className = 'payment-overlay active';
             ov.innerHTML = `<div class="payment-modal" onclick="event.stopPropagation()"><div class="payment-header"><div><span>PEDIDO ${pedido}</span><h2>${pago ? 'Pagamento confirmado! 🎉' : 'Ainda não identificamos o pagamento'}</h2></div><button class="close-btn" type="button">✕</button></div><div class="payment-body"><div class="pix-instruction">${pago ? 'Agora é só nos mandar o pedido no WhatsApp para liberarmos o seu jogo.' : 'Se você concluiu o pagamento, fale com a gente pelo WhatsApp com o número do pedido que conferimos na hora.'}</div><a class="btn-pix-whatsapp" style="display:block;text-align:center;text-decoration:none" target="_blank" rel="noopener" href="https://wa.me/${PHONE_NUMBER}?text=${encodeURIComponent(texto)}">💬 Enviar no WhatsApp</a></div></div>`;
@@ -14515,6 +14523,10 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
             if (method === 'PIX' && mcoPrecisaConsulta) {
                 closePaymentModal();
                 mcoRequestAvailabilityWhatsApp();
+                return;
+            }
+            if (method === 'PIX' && mcoCardOnline()) {
+                mcoGerarLinkCartao('pix');
                 return;
             }
             if (method === 'CARD' && mcoCardOnline()) {
