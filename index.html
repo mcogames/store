@@ -14,6 +14,7 @@
     <meta name="mco-theme-version" content="SITE-2M.2.44-THEME-ENGINE">
     <meta name="mco-mobile-vertical-feed-fix" content="SITE-2M.2.45-MOBILE-FIRST-IG-FEED">
     <meta name="mco-share-poster-version" content="SITE-2M.3.17-BLACK-FRIDAY-SIDE-TAG">
+    <meta name="mco-share-message-version" content="SITE-2M.3.18-BLACK-FRIDAY-COPY">
     <meta name="mco-link-version" content="MCO-LINK-1.0">
     <meta name="mco-isgd-version" content="MCO-ISGD-1.0">
     <title>MCO GAMES | Sua Loja Digital</title>
@@ -9659,9 +9660,20 @@ html[data-mco-theme="gta6"] .community-btn{box-shadow:0 0 0 1px #ffffff12}
                 ].filter(Boolean).join('\n') + (blackFridayStock > 0 || fixedDate ? '\n\n' : '')
                 : '';
 
+            const messageTitle = blackFriday
+                ? '🎮 *BLACK FRIDAY MCO GAMES!*'
+                : '🎮 *MCO GAMES | OFERTA ESPECIAL*';
+            const messageIntro = game.isCombo
+                ? '🎁 Confira este combo especial para sua próxima jogatina.'
+                : blackFriday
+                    ? '🔥 Preços especiais para você aproveitar e garantir seu próximo jogo com desconto!'
+                    : (getGameSummary(game)
+                        ? '🔥 ' + getGameSummary(game)
+                        : '🔥 Uma ótima escolha para sua próxima experiência no PlayStation.');
+
             return (
-                `🎮 *MCO GAMES | ${blackFriday ? 'BLACK FRIDAY' : 'OFERTA ESPECIAL'}*\n\n` +
-                `${game.isCombo ? '🎁 Confira este combo especial para sua próxima jogatina.' : (getGameSummary(game) ? '🔥 ' + getGameSummary(game) : (blackFriday ? '🔥 Oferta Black Friday por tempo limitado.' : '🔥 Uma ótima escolha para sua próxima experiência no PlayStation.'))}\n\n` +
+                `${messageTitle}\n\n` +
+                `${messageIntro}\n\n` +
                 `${game.isCombo ? '🎁' : '🕹️'} *${game.name}*\n\n` +
                 comboLines +
                 retroShareNote +
