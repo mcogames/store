@@ -32,7 +32,7 @@ textarea{resize:vertical}
 .prev{display:grid;grid-template-columns:150px 1fr;gap:12px;align-items:start}
 @media(max-width:520px){.prev{grid-template-columns:1fr}}
 .prev img{width:100%;border-radius:10px;border:1px solid #2a6a8c}
-#texto{min-height:300px;font-size:13px;line-height:1.45}
+#texto{min-height:360px;font-size:13px;line-height:1.45}
 .refaz{font:inherit;font-size:12px;background:none;border:0;color:#7fe9ff;cursor:pointer;padding:4px 0;text-decoration:underline}
 .passos{display:grid;gap:9px;margin-top:4px}
 .passo{display:flex;align-items:center;gap:12px;width:100%;font:inherit;text-align:left;padding:12px 14px;border-radius:12px;border:1px solid #2a6a8c;background:#0b2a3e;color:#eaf7ff;cursor:pointer}
@@ -89,9 +89,7 @@ textarea{resize:vertical}
   </div>
   <h2 style="margin-top:16px">3. Enviar no WhatsApp</h2>
   <div class="passos">
-    <button type="button" class="passo principal" id="compartilhar"><span class="n">1</span><span><strong>📤 Compartilhar arte + texto</strong><small id="dica1">Baixa a arte e copia o texto. No WhatsApp: arraste a arte para a conversa, cole o texto (Ctrl+V) e envie.</small></span></button>
-    <button type="button" class="passo" id="copEmail"><span class="n">2</span><span><strong>📧 Copiar e-mail</strong><small>Cole na conversa e envie (sozinho, para o cliente copiar fácil).</small></span></button>
-    <button type="button" class="passo" id="copSenha"><span class="n">3</span><span><strong>🔑 Copiar senha</strong><small>Cole na conversa e envie.</small></span></button>
+    <button type="button" class="passo principal" id="compartilhar"><span class="n">1</span><span><strong>📤 Compartilhar arte + texto</strong><small id="dica1">Baixa a arte e copia o texto (já com e-mail e senha). No WhatsApp: arraste a arte para a conversa, cole o texto (Ctrl+V) e envie.</small></span></button>
   </div>
   <div class="rodape"><div id="status" role="status" aria-live="polite"></div><button type="button" id="limpar">🧹 Limpar (próxima entrega)</button></div>
 </section>
@@ -255,15 +253,17 @@ async function desenharArte(){
   c.strokeRect(990,1090,52,52);c.beginPath();c.moveTo(40,1090);c.lineTo(90,1140);c.moveTo(90,1090);c.lineTo(40,1140);c.stroke();c.restore();
   const lg=await carregarLogo();
   if(lg){const lw=300,lh=lw*lg.naturalHeight/lg.naturalWidth;c.save();c.shadowColor='#2ee6ff88';c.shadowBlur=18;c.drawImage(lg,(W-lw)/2,30,lw,lh);c.restore();}
-  // cartão da capa (inclinado)
-  const cw=430,ch=580,cx=46+cw/2,cy=225+ch/2;
-  c.save();c.translate(cx,cy);c.rotate(-4*Math.PI/180);
-  c.save();c.shadowColor='#27def6';c.shadowBlur=45;rr(c,-cw/2,-ch/2,cw,ch,22);c.fillStyle='#0b2a3e';c.fill();c.restore();
-  c.save();rr(c,-cw/2,-ch/2,cw,ch,22);c.clip();
-  const im=capa.img;const s=Math.max(cw/im.width,ch/im.height),dw=im.width*s,dh=im.height*s;c.drawImage(im,-dw/2,-dh/2,dw,dh);c.restore();
-  rr(c,-cw/2,-ch/2,cw,ch,22);c.lineWidth=4;c.strokeStyle='#45e7ff';c.stroke();c.restore();
+  // cartão da capa (quadrado 1:1, inclinado): desenhado depois do texto, centrado na altura dele
+  function cartao(cy){
+    const cw=440,ch=440,cx=36+cw/2;
+    c.save();c.translate(cx,cy);c.rotate(-4*Math.PI/180);
+    c.save();c.shadowColor='#27def6';c.shadowBlur=45;rr(c,-cw/2,-ch/2,cw,ch,22);c.fillStyle='#0b2a3e';c.fill();c.restore();
+    c.save();rr(c,-cw/2,-ch/2,cw,ch,22);c.clip();
+    const im=capa.img;const s=Math.max(cw/im.width,ch/im.height),dw=im.width*s,dh=im.height*s;c.drawImage(im,-dw/2,-dh/2,dw,dh);c.restore();
+    rr(c,-cw/2,-ch/2,cw,ch,22);c.lineWidth=4;c.strokeStyle='#45e7ff';c.stroke();c.restore();
+  }
   // coluna da direita
-  const X=520,LARG=W-X-40;let y=245;
+  const X=520,LARG=W-X-50;let y=245;
   c.save();c.beginPath();c.arc(X+34,y+34,31,0,Math.PI*2);c.lineWidth=5;c.strokeStyle='#27def6';c.shadowColor='#27def6';c.shadowBlur=18;c.stroke();
   c.beginPath();c.moveTo(X+20,y+35);c.lineTo(X+30,y+46);c.lineTo(X+49,y+24);c.lineWidth=6;c.lineCap='round';c.lineJoin='round';c.stroke();c.restore();
   const yCheck=y;
@@ -271,7 +271,10 @@ async function desenharArte(){
   const tokens='Parabéns pela compra do seu'.split(' ').map(t=>({t,cor:'#ffffff'})).concat(nome.split(/\s+/).map(t=>({t,cor:'#45e7ff'})));
   tokens[tokens.length-1]={t:tokens[tokens.length-1].t+'!',cor:'#45e7ff'};
   let f=64,linhas;
-  for(;f>=34;f-=4){c.font='900 '+f+'px '+FONTE;linhas=quebrar(c,tokens,LARG);if(linhas.length<=5&&tokens.every(tk=>c.measureText(tk.t).width<=LARG))break;}
+  // Diminui a letra até o título caber na largura E todo o bloco (título + etiqueta + frase) terminar antes da faixa de selos.
+  for(;f>=34;f-=4){c.font='900 '+f+'px '+FONTE;linhas=quebrar(c,tokens,LARG);
+    const fim=y+68+22+Math.round(f*0.80)+(linhas.length-1)*Math.round(f*1.08)+10+54+52+38+28;
+    if(linhas.length<=5&&tokens.every(tk=>c.measureText(tk.t).width<=LARG)&&fim<=860)break;}
   c.textBaseline='alphabetic';const lh=Math.round(f*1.08);
   y=yCheck+68+22+Math.round(f*0.80);
   linhas.forEach(l=>{let x=X;const esp=c.measureText(' ').width;l.forEach(tk=>{c.fillStyle=tk.cor;if(tk.cor!=='#ffffff'){c.save();c.shadowColor='#19deef88';c.shadowBlur=24;c.fillText(tk.t,x,y);c.restore();}else c.fillText(tk.t,x,y);x+=c.measureText(tk.t).width+esp;});y+=lh;});
@@ -283,6 +286,8 @@ async function desenharArte(){
   y+=54+52;
   c.font='500 27px '+FONTE;c.fillStyle='#cfe9f7';
   quebrar(c,'Seu jogo já está disponível. Siga o tutorial, libere o acesso e divirta-se!'.split(' ').map(t=>({t})),LARG).forEach(l=>{c.fillText(l.map(x=>x.t).join(' '),X,y);y+=38;});
+  const fimTexto=y-28;
+  cartao(Math.max(195+220,Math.min(880-235,(245+fimTexto)/2)));
   // faixa de selos
   const by=900;c.save();rr(c,46,by,W-92,96,22);c.fillStyle='rgba(6,24,42,.82)';c.fill();c.lineWidth=2;c.strokeStyle='rgba(39,222,246,.65)';c.stroke();c.restore();
   c.font='800 27px '+FONTE;c.fillStyle='#dff6ff';c.textAlign='center';
@@ -363,6 +368,7 @@ function linkTutorial(){
   const p=[];const j=$('jogo').value.trim();
   if(j)p.push('jogo='+encodeURIComponent(j));
   p.push('licenca='+estado.vaga);
+  p.push('console='+estado.console.toLowerCase()); // o tutorial abre direto no console certo
   return TUTORIAL+'?'+p.join('&');
 }
 function montarTexto(){
@@ -372,7 +378,9 @@ function montarTexto(){
     'É só seguir 3 passos:\n'+
     '1️⃣ Abra o tutorial 👉 '+linkTutorial()+'\n'+
     '2️⃣ Escolha *'+estado.console+' → '+vaga+'* e aceite os termos\n'+
-    '3️⃣ Use o e-mail e a senha que mando logo abaixo 👇\n\n'+
+    '3️⃣ No seu '+estado.console+', entre com estes dados:\n'+
+    '📧 E-mail: '+($('email').value.trim()||'(cole o e-mail)')+'\n'+
+    '🔑 Senha: '+($('senha').value.trim()||'(cole a senha)')+'\n\n'+
     '⚠️ Para manter a garantia: não altere nenhum dado da conta e não ative a verificação em duas etapas.\n'+
     '🔒 Deu cadeado? O guia está no mesmo link.\n\n'+
     'Bom jogo! 💙 *MCO GAMES*';
@@ -380,8 +388,8 @@ function montarTexto(){
 function atualizar(){
   if(!estado.textoEditado)$('texto').value=montarTexto();
   if(capa.img)redesenhar();
-  $('copEmail').disabled=!$('email').value.trim();
-  $('copSenha').disabled=!$('senha').value.trim();
+  const sn=$('senha').value;
+  if(/[*_~`]/.test(sn))$('avSenha').textContent='tem * _ ~ ou `: confira no WhatsApp';
 }
 $('texto').addEventListener('input',()=>{estado.textoEditado=true;$('refazer').hidden=false;});
 $('refazer').onclick=()=>{estado.textoEditado=false;$('refazer').hidden=true;atualizar();};
@@ -415,13 +423,14 @@ if(ehCelular())$('dica1').textContent='Abre o compartilhar do celular com a arte
 $('compartilhar').onclick=async()=>{
   const texto=$('texto').value;
   if(!$('jogo').value.trim()){status('Informe o nome do jogo antes de compartilhar.',true);$('jogo').focus();return;}
+  if(!$('email').value.trim()||!$('senha').value.trim()){status('Falta o e-mail ou a senha da conta: eles vão dentro do texto.',true);(!$('email').value.trim()?$('email'):$('senha')).focus();return;}
   const celular=ehCelular();
   // PC: igual ao site — a cópia do texto começa ainda dentro do clique, antes de qualquer espera.
   const copia=celular?null:copiar(texto);
   const arquivo=new File([await arteParaEnviar()],nomeArquivo(),{type:'image/jpeg'});
   if(celular){
     if(navigator.share&&navigator.canShare&&navigator.canShare({files:[arquivo]})){
-      try{await navigator.share({files:[arquivo],text:texto,title:'MCO GAMES — seu jogo chegou'});feito('compartilhar');status('Compartilhado. Agora mande o e-mail e a senha.');return;}
+      try{await navigator.share({files:[arquivo],text:texto,title:'MCO GAMES — seu jogo chegou'});feito('compartilhar');status('Compartilhado. ✅');return;}
       catch(e){if(e&&e.name==='AbortError')return;}
     }
     baixar(arquivo,arquivo.name);status('Arte salva. Abrindo o WhatsApp com o texto…');feito('compartilhar');
@@ -430,10 +439,8 @@ $('compartilhar').onclick=async()=>{
   baixar(arquivo,arquivo.name);
   const ok=await copia;
   feito('compartilhar');
-  status(ok?'Arte baixada e texto copiado. No WhatsApp: arraste a arte para a conversa, cole o texto (Ctrl+V) e envie.':'Arte baixada, mas não consegui copiar o texto: selecione o texto ao lado e copie.',!ok);
+  status(ok?'Arte baixada e texto copiado (com e-mail e senha). No WhatsApp: arraste a arte para a conversa, cole o texto (Ctrl+V) e envie. ✅':'Arte baixada, mas não consegui copiar o texto: selecione o texto ao lado e copie.',!ok);
 };
-$('copEmail').onclick=async()=>{const ok=await copiar($('email').value.trim());if(ok)feito('copEmail');status(ok?'E-mail copiado: cole na conversa e envie.':'Não consegui copiar o e-mail.',!ok);};
-$('copSenha').onclick=async()=>{const ok=await copiar($('senha').value.trim());if(ok)feito('copSenha');status(ok?'Senha copiada: cole na conversa e envie. Pronto! ✅':'Não consegui copiar a senha.',!ok);};
 $('limpar').onclick=()=>{
   ['cola','email','senha','jogo'].forEach(id=>$(id).value='');['avEmail','avSenha'].forEach(id=>$(id).textContent='');
   estado.textoEditado=false;$('refazer').hidden=true;++pedidoCapa;capa.img=null;capa.url='';capa.fonte='';mostrarCapa();redesenhar();
