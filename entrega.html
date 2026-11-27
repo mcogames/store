@@ -157,22 +157,36 @@ async function carregarCatalogo(){
   $('catStatus').textContent=catalogo.length?('· Catálogo: '+catalogo.length+' jogos'+(falhas?' ('+falhas+' aba(s) não carregaram)':'')):'· Catálogo indisponível: digite o nome e use “Trocar capa”.';
   const j=$('jogo').value.trim();if(j&&!capa.img)casarAutomatico(j);
 }
-function buscar(q){
+const GENERICAS=new Set(['standard','edition','edicao','padrao','deluxe','digital','ps4','ps5','de','do','da','the','e','jogo','game','versao','comprado']);
+function buscar(q,solto){
   const n=norm(q);if(!n)return [];
-  const ps=n.split(' ');
+  let ps=n.split(' ');
+  if(solto){const f=ps.filter(p=>!GENERICAS.has(p));if(f.length)ps=f;}
   const junto=n.replace(/ /g,'');
   // Palavras soltas ("elden") ou sigla ("gta" → Grand Theft Auto, "gtav", "rdr2").
   const casa=g=>ps.every(p=>g.k.includes(p))||(junto.length>=2&&g.sigla.startsWith(junto));
   return catalogo.filter(casa)
     .sort((a,b)=>(b.k.startsWith(n)-a.k.startsWith(n))||(a.k.length-b.k.length)).slice(0,8);
 }
-function casarAutomatico(nome){const n=norm(nome);const g=catalogo.find(x=>x.k===n);if(g)escolherJogo(g,true);}
+function casarAutomatico(nome){
+  if(!catalogo.length)return;
+  const n=norm(nome);const g=catalogo.find(x=>x.k===n);
+  if(g){escolherJogo(g,true);return;}
+  const cand=buscar(nome,true);
+  if(cand.length===1){escolherJogo(cand[0],true);status('Capa de “'+cand[0].nome+'” (nome parecido no catálogo). Confira.');return;}
+  if(cand.length>1){$('jogo').value=nome;sugs=cand;mostrarLista(cand);status('Achei mais de um jogo parecido: escolha na lista para puxar a capa.');return;}
+  status('“'+nome+'” não está no catálogo da loja: use “🖼️ Trocar capa” para pôr a capa.',true);
+}
 
 /* ---------- sugestões da busca ---------- */
 let sugs=[],ativo=-1;
 function mostrarSugestoes(){
-  const box=$('sugestoes');sugs=buscar($('jogo').value);ativo=-1;
-  if(!sugs.length||document.activeElement!==$('jogo')){box.hidden=true;$('jogo').setAttribute('aria-expanded','false');return;}
+  const lista=buscar($('jogo').value);
+  if(!lista.length||document.activeElement!==$('jogo')){fecharSugestoes();return;}
+  mostrarLista(lista);
+}
+function mostrarLista(lista){
+  const box=$('sugestoes');sugs=lista;ativo=-1;
   box.innerHTML='';
   sugs.forEach((g,i)=>{const b=document.createElement('button');b.type='button';b.setAttribute('role','option');
     const im=document.createElement('img');im.alt='';im.loading='lazy';if(g.capa)im.src=g.capa;
@@ -189,7 +203,7 @@ $('jogo').addEventListener('keydown',e=>{
   else if(e.key==='Escape')fecharSugestoes();
 });
 $('jogo').addEventListener('blur',()=>setTimeout(()=>{if(document.activeElement!==$('jogo'))fecharSugestoes();},120));
-$('jogo').addEventListener('focus',mostrarSugestoes);
+$('jogo').addEventListener('focus',()=>mostrarSugestoes());
 
 /* ---------- capa ---------- */
 const capa={img:null,fonte:'',nome:'',url:''};
@@ -207,7 +221,6 @@ function mostrarCapa(){
 async function escolherJogo(g,silencioso){
   fecharSugestoes();
   $('jogo').value=g.nome;
-  if(g.plats.length===1)marcar('console',g.plats[0]);
   atualizar();
   if(!g.capa){if(!silencioso)status('Esse jogo não tem capa no catálogo: use “Trocar capa”.',true);return;}
   const meu=++pedidoCapa;$('capaTit').textContent='Carregando capa…';
@@ -303,6 +316,7 @@ function lerColado(txt){
     if(!out.email&&(m=s.match(/^(?:e-?mail|login|usu[aá]rio|id de in[ií]cio de sess[aã]o)\s*[:\-–]\s*(\S+@\S+)/i))){out.email=m[1];iEmail=i;return;}
     if(!out.senha&&(m=s.match(/^senha(?!\s*(?:_|do|da|de)\s*e-?mail)\s*[:\-–]\s*(.+)$/i))){out.senha=m[1].trim();return;}
     if(!out.jogo&&(m=s.match(/^jogo\s*:\s*(.+)$/i)))out.jogo=m[1].trim();
+    if(!out.console&&/^grupo\s*:/i.test(s)&&(m=s.replace(/>[^<]*<\s*$/,'').match(/[-–]\s*(PS[45])\s*$/i)))out.console=m[1].toUpperCase();
     if(!out.jogo&&(m=s.match(/^grupo\s*:\s*(.+)$/i)))out.jogo=m[1].replace(/>[^<]*<\s*$/,'').replace(/^edi[cç][aã]o\s+\S+\s+(do|da|de)\s+/i,'').replace(/\s*[-–]\s*PS[45](\s*\/\s*PS[45])?\s*$/i,'').trim();
     if(!out.console&&(m=s.match(/^plataforma\s*:\s*(PS[45])\s*$/i)))out.console=m[1].toUpperCase();
   });
@@ -327,13 +341,13 @@ $('cola').addEventListener('input',()=>{
   if(r.email)$('email').value=r.email;
   if(r.senha)$('senha').value=r.senha;
   if(r.jogo&&!$('jogo').value.trim()){$('jogo').value=r.jogo;casarAutomatico(r.jogo);}
-  if(r.console)marcar('console',r.console);
   $('avEmail').textContent=r.email?'':'não achei';
   $('avSenha').textContent=r.senha?(r.senhaIncerta?'confira':''):'não achei';
   atualizar();
 });
 ['email','senha'].forEach(id=>$(id).addEventListener('input',()=>{$('av'+id[0].toUpperCase()+id.slice(1)).textContent='';atualizar();}));
 $('jogo').addEventListener('input',()=>{atualizar();mostrarSugestoes();});
+document.addEventListener('mousedown',e=>{if(!e.target.closest('.busca'))fecharSugestoes();});
 
 /* ---------- console e vaga ---------- */
 function marcar(tipo,valor){
